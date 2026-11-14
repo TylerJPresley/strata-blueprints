@@ -1,0 +1,23 @@
+{
+  "name": "strata-blueprints",
+  "version": "0.1.0",
+  "description": "Strata Blueprints: a lightweight standard for describing any subject in three layers, with a lint script and one agent skill.",
+  "license": "MIT",
+  "homepage": "https://stratablueprints.com",
+  "private": true,
+  "type": "module",
+  "author": "Tyler J Presley",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TylerJPresley/strata-blueprints.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "strata-blueprints-lint": "skills/strata-blueprints/scripts/strata-blueprints-lint.mjs"
+  },
+  "scripts": {
+    "test": "node --test tests/strata-blueprints-lint.test.mjs tests/strata-blueprints-examples.test.mjs tests/version-check.test.mjs tests/links-check.test.mjs"
+  }
+}

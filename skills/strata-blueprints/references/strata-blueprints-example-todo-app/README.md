@@ -1,0 +1,12 @@
+# To-do app example
+
+This folder is the to-do app example as a stack in separate files: `sbp-vision.md` (Layer 1), `sbp-structure.md` (Layer 2, ending with the Lifecycle view) and one `sbp-detail-<part>.md` for each part (Layer 3: access, ledger, folders, timing, notifier, presence). Lint the whole stack with `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs skills/strata-blueprints/references/strata-blueprints-example-todo-app --strict`.
+
+## What to notice
+
+- Layer 1 names no part and no tool. It speaks of commitments, groupings, due and alerts, the keeper's own words, so that the parts in Layer 2 and the means in Layer 3 can be chosen freely to serve it.
+- Every value scenario carries an id in Layer 1 (V1..V7), the same id rides its path through the parts in Layer 2, and the same id names the rule that realizes it in Layer 3. Following one id, V4 for instance, shows the whole thread from "alert me" to Timing marking a commitment due and Notifier sending the message.
+- Specific means, such as a hash for the keeper's secret, an encrypted transport, a change log and a local-first write, appear only in Layer 3 Construction, each as a decision with a reason, and each chosen to meet a Limit that traces to a Layer 1 quality.
+- The privacy and identity qualities are carried all the way down: Layer 1 states "private by default" and "trustworthy with identity", Layer 2 makes Access a part every other part leans on, and Layer 3 gives Ledger, Folders, Notifier and Access concrete rules and limits that keep a keeper's commitments readable only by that keeper.
+- Three things the keeper cannot yet settle are marked `Not supplied:` rather than invented: whether a person without an account can be invited to a shared grouping, whether one member or an owner may unshare it, and how long a session lasts before the keeper must prove themselves again. A maker would ask for these before building, instead of guessing.
+- Costs and risks sit in the layer where each binds: the maintainer's time and the sharing risk in Layer 1, the build cost and the offline overwrite in Layer 2, the hosting cost in Ledger. An amount or an answer nobody gave is marked `Not supplied:`, and each risk names the decision that answers it.

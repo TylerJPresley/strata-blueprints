@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use Strata Blueprints, please cite it as below."
+title: "Strata Blueprints"
+version: "0.1.0"
+license: MIT
+type: software
+authors:
+  - family-names: "Presley"
+    given-names: "Tyler"
+    website: "https://github.com/TylerJPresley"
+repository-code: "https://github.com/TylerJPresley/strata-blueprints"
+url: "https://stratablueprints.com"
+abstract: "Strata Blueprints is a lightweight standard for describing any subject, at any scale, in three layers: Vision (why it exists), Structure (its parts and where they meet), and Detail (how one part does its job). Each layer zooms into one element of the layer before it and holds one kind of content."

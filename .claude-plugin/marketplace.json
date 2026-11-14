@@ -1,0 +1,18 @@
+{
+  "name": "strata-blueprints",
+  "owner": { "name": "Tyler J Presley" },
+  "metadata": {
+    "description": "Strata Blueprints: a lightweight standard for describing any subject, at any scale, in three layers.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "strata-blueprints",
+      "description": "One agent skill: strata-blueprints interviews the owner and fills a blueprint layer by layer.",
+      "homepage": "https://stratablueprints.com",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/strata-blueprints"]
+    }
+  ]
+}
