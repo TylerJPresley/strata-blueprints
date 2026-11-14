@@ -1,7 +1,5 @@
 # Strata Blueprints
 
-"StrataBP" is the short form of Strata Blueprints.
-
 **AI agents:** start with [AGENTS.md](AGENTS.md) for commands, project map and rules.
 
 A lightweight standard for describing any subject in three zoom layers: Vision, Structure and Detail.
