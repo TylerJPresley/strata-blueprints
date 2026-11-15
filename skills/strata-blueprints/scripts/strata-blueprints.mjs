@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MIT
-// Strata Blueprints tool: condense a stack (leave out each topic whose whole body is None.) and expand it back.
+// Strata Blueprints tool: condense a stack (leave out each topic whose whole body is None.).
 // usage: node strata-blueprints.mjs condense <file.md or folder> --out <path> [--force]
-//        node strata-blueprints.mjs expand <file.md or folder> --out <path> [--force]
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,10 +14,7 @@ export const TOPICS = {
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   3: ["Responsibility", "Concepts and states", "Seams", "Rules", "Inside", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
 };
-const USAGE = [
-  "usage: node strata-blueprints.mjs condense <file.md or folder> --out <path> [--force]",
-  "       node strata-blueprints.mjs expand <file.md or folder> --out <path> [--force]",
-].join("\n");
+const USAGE = "usage: node strata-blueprints.mjs condense <file.md or folder> --out <path> [--force]";
 
 const hasMarker = (line) => (line || "").trim().startsWith(MARKER_PREFIX);
 
@@ -113,70 +109,6 @@ export function condenseResult(text) {
 }
 export const condenseText = (text) => condenseResult(text).text;
 
-// expand: returns { text, count, notes }.
-export function expandResult(text) {
-  const { lines: raw, eol } = split(text);
-  let lines = raw;
-  if (hasMarker(lines[0])) lines = lines.slice(lines.length > 1 && isBlank(lines[1]) ? 2 : 1);
-  const layers = scan(lines);
-  if (!layers.length) throw new Error("no layer heading found");
-  const before = new Map();   // line index -> blocks written before that line
-  const ends = [];            // { last, end, blocks }: blocks written at the end of a unit
-  const notes = [];
-  let count = 0;
-  const block = (hashes, n, name) => [`${hashes} ${n}. ${name}`, "", "None."];
-  const expandUnit = (layerN, unit, hashes, from, end) => {
-    const present = new Set(unit.topics.map((t) => t.name));
-    const atEnd = [];
-    TOPICS[layerN].forEach((name, idx) => {
-      if (present.has(name)) return;
-      count++;
-      const next = unit.topics.find((t) => t.idx > idx);
-      const b = block(hashes, idx + 1, name);
-      if (next) { if (!before.has(next.i)) before.set(next.i, []); before.get(next.i).push(b); } else atEnd.push(b);
-    });
-    if (!atEnd.length) return;
-    let last = end - 1;
-    while (last > from && isBlank(lines[last])) last--;
-    ends.push({ last, end, blocks: atEnd });
-  };
-  for (const layer of layers) {
-    if (layer.n < 3) {
-      if (layer.bare.topics.length) { expandUnit(layer.n, layer.bare, "###", layer.i, layer.end); continue; }
-      let j = layer.i + 1;
-      while (j < layer.end && isBlank(lines[j])) j++;
-      if (j < layer.end && lines[j].trim().startsWith("Scope:")) j++;
-      while (j < layer.end && isBlank(lines[j])) j++;
-      if (j >= layer.end) expandUnit(layer.n, layer.bare, "###", layer.i, layer.end);
-      else notes.push(`Layer ${layer.n} has content but no topic headings; left as is`);
-    } else if (layer.entries.length) {
-      for (const e of layer.entries) expandUnit(3, e, "####", e.i, e.end);
-    } else if (layer.bare.topics.length) {
-      expandUnit(3, layer.bare, "###", layer.i, layer.end);
-    } else {
-      notes.push("Layer 3 has content but no topic headings; left as is");
-    }
-  }
-  const out = [];
-  const endAt = new Map(ends.map((e) => [e.last, e]));
-  let skipTo = -1;
-  for (let i = 0; i <= lines.length; i++) {
-    if (i < skipTo) continue;
-    for (const b of before.get(i) || []) out.push(...b, "");
-    if (i === lines.length) break;
-    out.push(lines[i]);
-    const e = endAt.get(i);
-    if (e) {
-      for (const b of e.blocks) out.push("", ...b);
-      if (e.end < lines.length) out.push("");
-      skipTo = e.end;
-    }
-  }
-  while (out.length && isBlank(out.at(-1))) out.pop();
-  return { text: join(out, eol), count, notes };
-}
-export const expandText = (text) => expandResult(text).text;
-
 // --- command line -------------------------------------------------------------
 class Refuse extends Error {}
 const die = (msg) => { throw new Refuse(msg); };
@@ -198,7 +130,7 @@ const inside = (child, parent) => child === parent || child.startsWith(parent + 
 
 export function run(argv, log = console.log) {
   const [cmd, ...rest] = argv;
-  if (cmd !== "condense" && cmd !== "expand") die(`unknown subcommand: ${cmd}`);
+  if (cmd !== "condense") die(`unknown subcommand: ${cmd}`);
   let out = null, force = false;
   const pos = [];
   for (let i = 0; i < rest.length; i++) {
@@ -240,7 +172,7 @@ export function run(argv, log = console.log) {
     let text;
     try { text = fs.readFileSync(f.src, "utf8"); } catch (e) { die(`cannot read ${f.src}: ${e.code || e.message}`); }
     let r;
-    try { r = cmd === "condense" ? condenseResult(text) : expandResult(text); } catch (e) { die(`${f.src}: ${e.message}`); }
+    try { r = condenseResult(text); } catch (e) { die(`${f.src}: ${e.message}`); }
     const dst = lstat(f.dest);
     if (dst) {
       if (dst.isSymbolicLink()) die(`${f.dest} is a symlink`);
@@ -257,11 +189,7 @@ export function run(argv, log = console.log) {
   else fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   for (const j of jobs) {
     fs.writeFileSync(j.dest, j.r.text);
-    if (cmd === "condense") log(`condensed ${j.dest}: dropped ${j.r.count} topic(s)`);
-    else {
-      log(`expanded ${j.dest}: added ${j.r.count} topic(s)`);
-      for (const note of j.r.notes) log(`note: ${j.src}: ${note}`);
-    }
+    log(`condensed ${j.dest}: dropped ${j.r.count} topic(s)`);
   }
 }
 

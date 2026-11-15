@@ -18,7 +18,7 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/stack-f
 
 For a folder, the lint reads `sbp-vision.md`, `sbp-structure.md` and every `sbp-detail-*.md` in it as one stack, ignores every other file, and reports each warning with its file and line.
 
-To write a condensed copy of a stack, or expand one, see [tool.md](tool.md).
+To write a condensed copy of a stack, see [tool.md](tool.md).
 
 ## Output
 

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Tests for strata-blueprints.mjs (condense and expand). Run: node --test tests/strata-blueprints-tool.test.mjs
+// Tests for strata-blueprints.mjs (condense). Run: node --test tests/strata-blueprints-tool.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs"; import os from "node:os"; import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { MARKER, TOPICS, NAMES, condenseText, expandText } from "../skills/strata-blueprints/scripts/strata-blueprints.mjs";
+import { MARKER, TOPICS, NAMES, condenseText } from "../skills/strata-blueprints/scripts/strata-blueprints.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const scripts = path.join(here, "..", "skills", "strata-blueprints", "scripts");
@@ -40,7 +40,6 @@ test("edge: CRLF", () => {
   assert.equal(c.replace(/\r\n/g, ""), c.replace(/\r\n/g, "").replace(/[\r\n]/g, ""), "no bare line feed");
   assert.equal(/(?<!\r)\n/.test(c), false);
   assert.equal(c, condenseText(lf).replace(/\n/g, "\r\n"));
-  assert.equal(expandText(c), crlf);
   // A mixed file is written all CRLF.
   const mixed = lf.replace("# Club\n", "# Club\r\n");
   assert.equal(/(?<!\r)\n/.test(condenseText(mixed)), false);
@@ -49,7 +48,6 @@ test("edge: CRLF", () => {
 test("edge: empty file", () => {
   for (const text of ["", "   \n\n", "# Title\n\nSome text.\n", "## Layer 4: Vision\n\nScope: x.\n"]) {
     assert.throws(() => condenseText(text), /no layer heading found/);
-    assert.throws(() => expandText(text), /no layer heading found/);
   }
   tmp((d) => {
     const f = put(d, "empty.md", "");
@@ -72,7 +70,6 @@ test("edge: None. plus other text", () => {
   for (const n of ["Need", "Target audience", "Value", "Focus", "Success measures", "Vocabulary"]) assert.ok(topicNames(c).includes(n), n);
   assert.ok(!topicNames(c).includes("Qualities and constraints"));
   assert.ok(c.includes("None.\n\nBut also this."));
-  assert.equal(expandText(c), doc(keep));
 });
 
 test("edge: Not supplied anywhere", () => {
@@ -80,7 +77,6 @@ test("edge: Not supplied anywhere", () => {
   const c = condenseText(doc(o));
   assert.deepEqual(topicNames(c).slice(0, 3), ["Need", "Focus", "Risks"]);
   assert.equal((c.match(/Not supplied:/g) || []).length, 3);
-  assert.equal(expandText(c), doc(o));
 });
 
 test("edge: stack of several files", () => {
@@ -107,11 +103,6 @@ test("edge: stack of several files", () => {
       `condensed ${path.join(out, "sbp-detail-shed.md")}: dropped 11 topic(s)`,
     ]);
     for (const n of Object.keys(files)) { assert.ok(get(path.join(out, n)).startsWith(MARKER + "\n\n"), n); assert.equal(get(path.join(src, n)), files[n]); }
-    const back = path.join(d, "back");
-    const e = cli("expand", out, "--out", back);
-    assert.equal(e.code, 0);
-    assert.deepEqual(fs.readdirSync(back).sort(), Object.keys(files).sort());
-    for (const n of Object.keys(files)) assert.equal(get(path.join(back, n)), files[n], n);
   });
 });
 
@@ -125,10 +116,6 @@ test("edge: single file", () => {
     assert.ok(fs.statSync(out).isFile());
     assert.equal(get(f), doc());
     assert.equal(get(out), condenseText(doc()));
-    const back = path.join(d, "full.md");
-    const e = cli("expand", out, "--out", back);
-    assert.equal(e.out, `expanded ${back}: added 31 topic(s)\n`);
-    assert.equal(get(back), doc());
   });
 });
 
@@ -138,60 +125,23 @@ test("edge: part sections", () => {
   assert.deepEqual(topicNames(c), ["Responsibility", "Rules"]);
   assert.ok(c.includes("### Rota (part)"), "an entry with every topic dropped stays");
   assert.ok(c.includes("#### 4. Rules"));
-  assert.equal(expandText(c), some);
-  // A part entry with no topic heading is expanded to all 12; the entries each get their own.
-  const bare = expandText(L3 + "### Shed (part)\n\n### Rota (part)\n\n#### 4. Rules\n\n- 4.1. A rule.\n");
-  assert.equal((bare.match(/^#### \d+\. /gm) || []).length, 24);
-  assert.ok(bare.indexOf("#### 3. Seams") < bare.indexOf("#### 4. Rules"));
-  // A Layer 3 with no entry but numbered topics is condensed and expanded; with nothing it is left as is.
+  // A Layer 3 with no entry but numbered topics is condensed.
   const noEntry = L3 + fxT("###", T3, { Rules: "- 4.1. A rule." });
   const nc = condenseText(noEntry);
   assert.deepEqual(topicNames(nc), ["Rules"]);
-  assert.equal(expandText(nc), noEntry);
-  const r = tmp((d) => { const f = put(d, "a.md", L1 + "Scope-less text.\n\n" + L3 + "Free text.\n"); return { r: cli("expand", f, "--out", path.join(d, "o.md")), f }; });
-  assert.match(r.r.lines[0], /: added 0 topic\(s\)$/);
-  assert.deepEqual(r.r.lines.slice(1), [`note: ${r.f}: Layer 1 has content but no topic headings; left as is`, `note: ${r.f}: Layer 3 has content but no topic headings; left as is`]);
 });
 
 test("edge: condense twice", () => {
   const c = condenseText(doc());
   assert.equal(condenseText(c), c);
   assert.equal(c.split("\n").filter((l) => l.startsWith("<!--")).length, 1);
-  const e = expandText(c);
-  assert.equal(expandText(e), e);
-  assert.equal(condenseText(expandText(c)), c);
-});
-
-test("edge: expand on a full file", () => {
-  const full = "# C\n\n" + L1 + fxT("###", T1) + "\n" + L2 + fxT("###", T2);
-  assert.equal(expandText(full), full);
-  tmp((d) => {
-    const f = put(d, "full.md", full);
-    const out = path.join(d, "o.md");
-    const r = cli("expand", f, "--out", out);
-    assert.equal(r.code, 0);
-    assert.equal(r.out, `expanded ${out}: added 0 topic(s)\n`);
-    assert.equal(get(out), full);
-  });
-});
-
-test("edge: expand without marker", () => {
-  const partial = "# C\n\n" + L1 + "### 1. Need\n\nN.\n\n### 5. Success measures\n\n- 5.1. Done.\n\n" + L2 + "### 2. Standing\n\nS.\n";
-  const e = expandText(partial);
-  assert.deepEqual(topicNames(e).slice(0, 12), T1);
-  assert.deepEqual(topicNames(e).slice(12), T2);
-  assert.ok(e.includes("### 5. Success measures\n\n- 5.1. Done.\n\n### 6. Qualities and constraints\n\nNone.\n\n### 7. Vocabulary"));
-  assert.ok(e.includes("### 1. Parts\n\nNone.\n\n### 2. Standing\n\nS.\n\n### 3. Seams between parts\n\nNone."));
-  assert.ok(e.endsWith("### 11. Decisions\n\nNone.\n"));
-  assert.ok(!e.includes("<!--"));
+  assert.equal(condenseText(doc()), c, "condense is deterministic");
 });
 
 test("edge: edit after condense", () => {
   const c = condenseText(doc());
   const edited = c.replace("N.", "A new need.").replace("### 12. Decisions", "### 7. Vocabulary\n\nNone.\n\n### 12. Decisions");
-  const e = expandText(edited);
-  assert.ok(e.includes("A new need."));
-  assert.equal(topicNames(e).filter((n) => n === "Vocabulary").length, 1, "a hand-added topic is present by name and is not added twice");
+  assert.ok(edited.includes("A new need."));
   assert.equal(condenseText(edited).includes("### 7. Vocabulary"), false, "a hand-added None. topic is dropped again");
   tmp((d) => {
     const f = put(d, "src.md", doc()); const out = path.join(d, "copy.md");
@@ -209,10 +159,6 @@ test("edge: fences and views", () => {
   assert.ok(c.includes("## View: Flow\n\n### 1. Need\n\nNone.\n"), "a view is untouched");
   assert.ok(!c.includes("\n### 2. Target audience\n\nNone.\n\n### 3."));
   assert.ok(c.includes("### 3. Value"));
-  const e = expandText(c);
-  assert.ok(e.includes("## View: Flow\n\n### 1. Need\n\nNone.\n"));
-  assert.ok(e.includes("~~~\n## Layer 2: Structure\n~~~"), "a layer heading inside a fence is content");
-  assert.equal((e.match(/^### \d+\. /gm) || []).length, 12 + 11 + 2, "12 in Layer 1, 11 in Layer 2, the view's heading and the heading text inside the fence");
 });
 
 test("edge: unknown topics", () => {
@@ -220,10 +166,6 @@ test("edge: unknown topics", () => {
   const c = condenseText(t + L2 + "### 1. Parts\n\nP.\n");
   assert.ok(c.includes("### 3. Whatever\n\nNone."), "unknown name is never touched");
   assert.ok(!c.includes("### 5. Costs"), "a known name with a wrong number is a topic and is dropped");
-  const e = expandText(t + L2 + "### 1. Parts\n\nP.\n");
-  assert.equal((e.match(/^### \d+\. Costs$/gm) || []).length, 2, "Layer 1 has its Costs by name; Layer 2 gets its own");
-  assert.ok(e.includes("### 5. Costs\n\nNone.\n\n### 9. Risks"), "a wrongly numbered Costs counts as present");
-  assert.ok(e.includes("### 3. Whatever"));
 });
 
 test("edge: output safety", () => {
@@ -258,7 +200,6 @@ test("edge: output safety", () => {
     assert.equal(cli("condense", f, "--out", target, "--force").code, 0);
     assert.ok(get(target).startsWith(MARKER));
     assert.equal(cli("condense", f, "--out", target).code, 0);
-    refuse(["expand", target, "--out", plain], /--force/);
     // One bad file in a folder writes nothing.
     const bad = path.join(d, "bad"); put(bad, "sbp-vision.md", L1 + fxT("###", T1)); put(bad, "sbp-detail-x.md", "no layers here\n");
     const bout = path.join(d, "bout");
@@ -271,15 +212,13 @@ test("edge: output safety", () => {
   });
 });
 
-test("edge: round trip canonical", () => {
+test("edge: condense is deterministic", () => {
   const cases = [doc(), doc({}), doc({ Need: "N.", Costs: "- 8.1. Given a, when b, then c." }, { Parts: "P.", Decisions: "- 11.1. D." }, { Rules: "- 4.1. R.", Decisions: "- 12.1. D." }),
     doc(Object.fromEntries(T1.map((n) => [n, "Text."])), Object.fromEntries(T2.map((n) => [n, "Text."])), Object.fromEntries(T3.map((n) => [n, "Text."])))];
   for (const x of cases) {
     const c = condenseText(x);
-    assert.equal(expandText(c), x);
+    assert.equal(condenseText(x), c);
     assert.equal(condenseText(c), c);
-    assert.equal(expandText(expandText(c)), expandText(c));
-    assert.equal(condenseText(expandText(c)), c);
   }
 });
 
@@ -316,16 +255,18 @@ const examples = [
 ];
 const filesOf = (p) => (fs.statSync(p).isDirectory() ? fs.readdirSync(p).filter((n) => /^sbp-.+\.md$/.test(n)).map((n) => path.join(p, n)) : [p]);
 
-test("tool: condense and expand each shipped example round trips byte for byte", () => {
+test("tool: condensing each shipped example writes the marker, is deterministic and leaves the source alone", () => {
   for (const [name, src] of examples) tmp((d) => {
-    const copy = path.join(d, "copy"), back = path.join(d, "back");
+    const copy = path.join(d, "copy"), again = path.join(d, "again");
+    const before = filesOf(src).map(get);
     assert.equal(cli("condense", src, "--out", copy).code, 0, name);
-    assert.equal(cli("expand", copy, "--out", back).code, 0, name);
+    assert.equal(cli("condense", src, "--out", again).code, 0, name);
+    assert.deepEqual(filesOf(src).map(get), before, `${name}: source unchanged`);
     for (const f of filesOf(src)) {
       const rel = fs.statSync(src).isDirectory() ? path.basename(f) : "";
-      assert.equal(get(path.join(back, rel)), get(f), `${name}: ${path.basename(f)}`);
+      assert.ok(get(path.join(copy, rel)).startsWith(MARKER + "\n\n"), name);
+      assert.equal(get(path.join(copy, rel)), get(path.join(again, rel)), name);
     }
-    for (const f of filesOf(src)) assert.ok(get(path.join(copy, fs.statSync(src).isDirectory() ? path.basename(f) : "")).startsWith(MARKER + "\n\n"), name);
   });
 });
 

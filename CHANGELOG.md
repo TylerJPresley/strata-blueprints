@@ -4,7 +4,7 @@ This changelog records releases of Strata Blueprints. The `Version:` line of `sk
 
 ## Unreleased
 
-- Condensed copies: `scripts/strata-blueprints.mjs` has `condense`, which writes a copy that leaves out each topic whose whole body is `None.`, and `expand`, which writes them back. The lint reads a condensed file (marker on line 1) and still checks topic order and citations.
+- Condensed copies: `scripts/strata-blueprints.mjs` has `condense`, which writes a copy that leaves out each topic whose whole body is `None.`. The lint reads a condensed file (marker on line 1) and still checks topic order and citations.
 
 ## 0.1.0
 
