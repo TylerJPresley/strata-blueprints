@@ -56,6 +56,7 @@ Publishing twice gives the same bytes. A file with `\r\n` in any input makes the
 
 For condense:
 - `--out` is required. The tool never writes to its input and refuses when `--out` is the input, inside the input folder, or a parent of the input.
+- `--out` follows symlinks the way any file tool does, so a symlink in the path decides where the file lands; the tool still refuses an `--out` that resolves to an input file or into an input folder.
 - It refuses a folder input with a file `--out`, a file input with a folder `--out`, and any target that is a symbolic link.
 - An existing target file is overwritten only when it carries the marker, or when `--force` is given.
 - All inputs are read and all targets checked before the first write, so a failure writes nothing. The tool deletes nothing, so a stale file in `--out` stays.
