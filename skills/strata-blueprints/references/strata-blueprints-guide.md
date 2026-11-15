@@ -90,9 +90,9 @@ The working files hold every topic and are the source of the stack. A condensed 
 
 The first line of a condensed file is `<!-- strata-blueprints: condensed (generated; omitted topics read None.) -->`. A reader takes each topic that is not there as `None.`. Each file of a stack condenses on its own.
 
-Expanding a condensed copy writes each omitted topic back, as `None.` under its own number, and removes the marker line. Nothing else changes. A condensed copy is never edited by hand: change the source and generate the copy again. The lint reads a condensed file: it does not warn about omitted topics, and it still checks the order of the topics and every citation.
+A condensed copy is never edited by hand: change the source and generate the copy again. The lint reads a condensed file: it does not warn about omitted topics, and it still checks the order of the topics and every citation.
 
-Make a copy with `node scripts/strata-blueprints.mjs condense <file or folder> --out <path>`, and reverse it with `expand`.
+Make a copy with `node scripts/strata-blueprints.mjs condense <file or folder> --out <path>`.
 
 ## Views across the layers
 
