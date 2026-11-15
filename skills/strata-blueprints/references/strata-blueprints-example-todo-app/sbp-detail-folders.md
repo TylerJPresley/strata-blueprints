@@ -23,9 +23,9 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 4. Rules
 
-- V2. Given the keeper has many commitments, when they open the app, then Folders returns the keeper's groupings in the order the keeper set, each ready to show its own commitments.
-- V7. Given a grouping is shared with another person, when either person changes it, then Folders records the change under the shared grouping for Presence to carry to every member.
-- Given the keeper reorders their groupings, when they move one, then Folders records the new order and keeps it for next time.
+- 4.1. Realizes vision-3.2. Given the keeper has many commitments, when they open the app, then Folders returns the keeper's groupings in the order the keeper set, each ready to show its own commitments.
+- 4.2. Realizes vision-3.7. Given a grouping is shared with another person, when either person changes it, then Folders records the change under the shared grouping for Presence to carry to every member.
+- 4.3. Given the keeper reorders their groupings, when they move one, then Folders records the new order and keeps it for next time.
 
 #### 5. Inside
 
@@ -33,13 +33,13 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 6. Limits
 
-- A grouping and its order are durable across app restarts and devices (Layer 1, Durable).
-- A shared grouping's content is visible only to its named members (Layer 1, Private by default).
+- 6.1. A grouping and its order are durable across app restarts and devices (Layer 1, Durable).
+- 6.2. A shared grouping's content is visible only to its named members (Layer 1, Private by default).
 
 #### 7. Construction
 
-- D3.1. A grouping's membership is a list of keeper identities, checked on every read of the grouping so only members see its commitments. Reason: meets "visible only to its named members".
-- D3.2. A grouping sits at the top level of the keeper's order and is not nested inside another grouping. Reason: a flat, ordered set matches how the keeper arranges groups and keeps "which group holds this" unambiguous.
+- 7.1. A grouping's membership is a list of keeper identities, checked on every read of the grouping so only members see its commitments. Reason: meets "visible only to its named members".
+- 7.2. A grouping sits at the top level of the keeper's order and is not nested inside another grouping. Reason: a flat, ordered set matches how the keeper arranges groups and keeps "which group holds this" unambiguous.
 
 #### 8. Costs
 
@@ -55,8 +55,8 @@ None.
 
 #### 11. Assumptions
 
-- A3.1. The keeper has a small number of groupings, few enough to show all at once. Basis: groupings mirror the areas of a person's life, which are few. If wrong: Folders would need its own browsing and search.
+- 11.1. The keeper has a small number of groupings, few enough to show all at once. Basis: groupings mirror the areas of a person's life, which are few. If wrong: Folders would need its own browsing and search.
 
 #### 12. Decisions
 
-- D3.3. A commitment lives in exactly one grouping at a time. Reason: a single home keeps "what is in this group" unambiguous and matches the Layer 2 assumption, so the keeper never wonders where an item is.
+- 12.1. A commitment lives in exactly one grouping at a time. Reason: a single home keeps "what is in this group" unambiguous and matches the Layer 2 assumption, so the keeper never wonders where an item is.

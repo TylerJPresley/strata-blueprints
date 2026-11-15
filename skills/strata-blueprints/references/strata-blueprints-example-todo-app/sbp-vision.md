@@ -20,13 +20,13 @@ A person carries many small commitments in their head: things to do today, thing
 
 ### 3. Value
 
-- V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then it is saved and shows up as something to do.
-- V2. Given the keeper has many commitments, when they open the app, then the commitments are grouped the way the keeper arranged them, each group shown on its own.
-- V3. Given some commitments have a day or time they are due, when the keeper looks, then they see what is due today and what is overdue, in due order.
-- V4. Given a commitment is due soon and the app is not open, when its due time approaches, then the keeper is alerted through a channel they chose.
-- V5. Given the keeper finishes a commitment, when they mark it done, then it leaves the list of things to do and the keeper can still find it later.
-- V6. Given the keeper added commitments on their phone, when they open the app on their computer, then the same commitments appear, up to date.
-- V7. Given a grouping is shared with another person, when either person changes it, then both see the change without asking the other.
+- 3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then it is saved and shows up as something to do.
+- 3.2. Given the keeper has many commitments, when they open the app, then the commitments are grouped the way the keeper arranged them, each group shown on its own.
+- 3.3. Given some commitments have a day or time they are due, when the keeper looks, then they see what is due today and what is overdue, in due order.
+- 3.4. Given a commitment is due soon and the app is not open, when its due time approaches, then the keeper is alerted through a channel they chose.
+- 3.5. Given the keeper finishes a commitment, when they mark it done, then it leaves the list of things to do and the keeper can still find it later.
+- 3.6. Given the keeper added commitments on their phone, when they open the app on their computer, then the same commitments appear, up to date.
+- 3.7. Given a grouping is shared with another person, when either person changes it, then both see the change without asking the other.
 
 ### 4. Focus
 
@@ -61,23 +61,23 @@ The app covers capturing commitments quickly, grouping them, judging what is due
 
 ### 8. Costs
 
-- C1.1. Given the app is kept running, when the maintainer spends time on it, then it costs Not supplied: the hours each month. Paid by the maintainer.
+- 8.1. Given the app is kept running, when the maintainer spends time on it, then it costs Not supplied: the hours each month. Paid by the maintainer.
 
 ### 9. Risks
 
-- R1.1. Given a keeper shares a grouping with the wrong person, when that person opens it, then the keeper's commitments are read by someone they did not intend. Severity: High. Answered by D1.
-- R1.2. Given the one maintainer is away, when the app stops working, then keepers wait for a fix. Severity: Low. Answered by Not supplied: who covers for the maintainer.
+- 9.1. Given a keeper shares a grouping with the wrong person, when that person opens it, then the keeper's commitments are read by someone they did not intend. Severity: High. Answered by vision-12.1.
+- 9.2. Given the one maintainer is away, when the app stops working, then keepers wait for a fix. Severity: Low. Answered by Not supplied: who covers for the maintainer.
 
 ### 10. Open Concerns
 
-- O1.1. Given keepers may want their commitments in more than one language, when the maintainer says whether the app must be translated, then the qualities are re-weighed and C2.1 is priced again. Raised by a keeper.
+- 10.1. Given keepers may want their commitments in more than one language, when the maintainer says whether the app must be translated, then the qualities are re-weighed and the costs that follow from them are priced again. Raised by a keeper.
 
 ### 11. Assumptions
 
-- A1. The keeper reaches the app through devices they already own, over an ordinary consumer connection that is sometimes absent. Basis: the audience is a single person managing personal commitments, not an enterprise fleet. If wrong: the offline and reachable-anywhere qualities would be re-weighed.
-- A2. Most keepers hold hundreds, not millions, of live commitments. Basis: personal task-keeping, not archival storage. If wrong: the prompt and durable qualities would need stricter limits.
+- 11.1. The keeper reaches the app through devices they already own, over an ordinary consumer connection that is sometimes absent. Basis: the audience is a single person managing personal commitments, not an enterprise fleet. If wrong: the offline and reachable-anywhere qualities would be re-weighed.
+- 11.2. Most keepers hold hundreds, not millions, of live commitments. Basis: personal task-keeping, not archival storage. If wrong: the prompt and durable qualities would need stricter limits.
 
 ### 12. Decisions
 
-- D1. The app serves one keeper's own commitments first, with sharing as a deliberate, limited act, rather than being a team workspace. Reason: the need is a trusted personal place; a shared grouping meets the household case without the weight of team roles.
+- 12.1. The app serves one keeper's own commitments first, with sharing as a deliberate, limited act, rather than being a team workspace. Reason: the need is a trusted personal place; a shared grouping meets the household case without the weight of team roles.
 - Not supplied: whether the keeper may invite a person who has no account yet, or only an existing keeper, to a shared grouping.

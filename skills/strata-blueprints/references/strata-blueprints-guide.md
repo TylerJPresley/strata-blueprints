@@ -3,11 +3,11 @@
 Version: 0.1.0
 Status: Draft
 
-A Strata Blueprints stack describes any subject, at any scale, in three layers. Every layer zooms into one element of the layer before it. The layers are the same everywhere; only the content changes. This is a guide, not a strict template: use what fits the subject and leave out what does not.
+A Strata Blueprints stack describes any subject, at any scale, in three layers. Every layer zooms into one element of the layer before it. The layers are the same everywhere; only the content changes. This is a guide, not a strict template: use what fits the subject, and leave out a layer it does not need.
 
 Strata Blueprints is a lightweight framework for spec-driven development, for anyone or anything. Models load it as context, so it stays small and high level, carrying context and intent. Use it for RFPs (requests for proposals), software documentation, project steering, standards, policies, ideas and more. As loose suggestions, Layer 1 reads like a product brief, Layer 2 like a high-level design and Layer 3 like a technical design for one part of the subject.
 
-**Short stacks.** Write every layer the subject needs, and in each only the topics the subject needs, in their order. The required topics are, in Layer 1: Need, Target audience, Value, Focus, Assumptions and Decisions; in Layer 2: Parts, Seams between parts, Assumptions and Decisions; and in each Layer 3 part: Responsibility, Rules, Limits, Assumptions and Decisions. Every other topic is optional and left out when the owner gave nothing; add one when a maker would otherwise have to ask. Assumptions and Decisions are written as `None.` when empty. Mark each unknown fact `Not supplied:`. Costs, Risks and Open Concerns are written only when the owner gave something; an idea often has none.
+**Short stacks.** Write every layer the subject needs; a layer the subject does not need is left out whole. A layer that is written holds all of its topics, in their order and numbered from 1: 12 in Layer 1, 11 in Layer 2 and 12 in each Layer 3 part. A topic with nothing to say reads `None.`, and a fact nobody has given reads `Not supplied: <what is needed>`. The required topics are, in Layer 1: Need, Target audience, Value, Focus, Assumptions and Decisions; in Layer 2: Parts, Seams between parts, Assumptions and Decisions; and in each Layer 3 part: Responsibility, Rules, Limits, Assumptions and Decisions. A required topic holds real content, except Assumptions and Decisions, which may read `None.`. Every other topic is optional and may read `None.`; give it content when a maker would otherwise have to ask. An idea often has no costs, risks or open concerns, and those topics then read `None.`.
 
 ## Definitions
 
@@ -40,19 +40,24 @@ Every element has exactly one of these types, and a reader can tell which: state
 Every layer rests on the layers above it, Layer 1 highest (the innermost ring in Rule 1). These four rules keep the layers saying one thing.
 
 - **Fill top down.** Settle the layer above before the layer below, and within a layer ask in the order of its Contents. Where an upper answer is missing, write `Not supplied: <what is needed>` there. Every element below that rests on it carries the gap, with its own `Not supplied:` or by citing the gap's id.
-- **Changes cascade down.** A change to an element reopens every element below it that cites it: paths and rules by V id, and costs, risks, open concerns, assumptions and decisions that name its id. Find them with `node scripts/strata-blueprints-lint.mjs --impact <id> <blueprint or folder>` and settle each. A Limit cites its Layer 1 quality by name, so when a quality changes, re-read every Limit that cites it.
+- **Changes cascade down.** A change to an element reopens every element below it that cites it: paths and rules by the scenario id they realize, and costs, risks, open concerns, assumptions and decisions that name its id. Find them with `node scripts/strata-blueprints-lint.mjs --impact <id> <blueprint or folder>` and settle each. A Limit cites its Layer 1 quality by name, so when a quality changes, re-read every Limit that cites it.
 - **A lower answer can change an upper layer.** When an answer for Layer 2 or Layer 3 contradicts or adds to what a layer above says, the answer is a change to that layer: write it there, have the owner confirm it, then cascade it down.
 - **A decision reopens when its basis changes.** A decision's `Reason:` and the ids it cites are its basis. When either changes, ask the decision again.
 
 ## How to fill it out
 
-- Start from the template that fits the job, in `assets/` of the skill folder. Optional topics are marked `(optional)`.
+- Start from the template that fits the job, in `assets/` of the skill folder. Optional topics are marked `(optional)` in the template. Delete the marker when you fill the topic in, and write `None.` under an optional topic that has nothing to say.
   - A whole stack in one document: `strata-blueprints-template.md`, the full template. It is authoritative; the three cuts follow it.
   - Layer 1 alone or Layer 2 alone: `strata-blueprints-template-layer-1.md` or `strata-blueprints-template-layer-2.md`.
   - One part's Detail: `strata-blueprints-template-layer-3.md`, one entry for each part.
   - A file of a stack in separate files: the matching cut with each heading lowered one level, under the `# <Subject>` title (see "A stack in separate files").
 - Write anything that happens as Given, When, Then. One scenario keeps its form down the layers.
-- A Layer 1 value scenario may carry an id (V1, V2, ...). When it does, the Layer 2 path and the Layer 3 rule that realize it cite the same id and keep its Given and when text, so one line reads `- V1. Given ..., when ..., then ...`. Ids are optional.
+- Give every item under these topics its number, written at the start of its line under its own topic, such as `- 3.1. Given ..., when ..., then ...`. Layer 1: Value, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 2: Scenario paths, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 3: Rules, Limits, Construction, Costs, Risks, Open Concerns, Assumptions and Decisions. An item under another topic may carry a number too. A `None.` line and a `Not supplied:` line carry none. A citation writes the full id, with the document in front (`vision-3.1`); a bare number is never a citation.
+- An item's number, and so its id, never changes and is never reused. When an item is deleted its number stays unused, and a new item takes the next count above the highest one used under its topic. A rule or a limit is cited by its id like any other item.
+- An item is numbered by its topic's number in its layer guide and a count that starts at 1 under each topic, and it is written with that number under its own topic: `9.1` is the first item under topic 9 (Risks). A citation, and `--impact`, put the document in front, joined with a hyphen: `vision`, `structure` or `detail.<part>`. So the first risk of the Vision is written `9.1` and cited `vision-9.1`, and the first Construction item of the part Session is written `7.1` and cited `detail.session-7.1`.
+- A part's name is one word of letters and digits. In a full id it is written in lower case, as in `detail.session-7.1`. The same word names the part's file, `sbp-detail-<part>.md`, and its heading `### <Part> (part)`, and it is the name of a part listed in Layer 2.
+- An element cites the ids of its own document and of the documents inside it. Layer 3 cites its own part's ids, then `structure` and `vision` ids; Layer 2 cites `structure` and `vision` ids; Layer 1 cites `vision` ids. A part never cites another part's ids; parts relate through their seams.
+- A path or rule that realizes a Layer 1 value scenario writes its own number, then `Realizes` and that scenario's full id, then keeps the scenario's Given and when text word for word: `- 6.1. Realizes vision-3.1. Given ..., when ..., then ...`. A path or rule that realizes no scenario has its own number and no `Realizes` sentence.
 
 ## Every layer has
 
@@ -66,12 +71,12 @@ The files sit flat in one folder. The lint finds them by name and ignores every 
 
 - `sbp-vision.md` holds Layer 1. There is one per stack.
 - `sbp-structure.md` holds Layer 2, and any views at its end. There is one per stack.
-- `sbp-detail-<part>.md` holds Layer 3 for one part: the heading `## Layer 3: Detail`, its `Scope:` line and that part's one `### <Part> (part)` entry. `<part>` is the part's name in Parts, in lower case, each run of characters other than letters and digits written as one hyphen, with no hyphen at either end.
+- `sbp-detail-<part>.md` holds Layer 3 for one part: the heading `## Layer 3: Detail`, its `Scope:` line and that part's one `### <Part> (part)` entry. `<part>` is the part's name in Parts, in lower case.
 - `sbp-` marks a blueprint file. `strata-blueprints-` marks the standard's own files.
 
 Each file opens with the stack's `# <Subject>` title and holds its layer exactly as the one document would. Only `sbp-vision.md` carries `Version:` and `Status:`. A view is a `## View: <name>` section at the end of `sbp-structure.md`; there is no view file.
 
-Ids name one thing in the whole stack. A file cites an id by the id alone, never by a file name, and only ids of its own layer or the layers inside it. Layer 3 ids count up across the detail files together, in the order of the parts in Parts.
+Each file numbers its own items, and a full id carries the document, so the detail files count apart. A file cites an item by its full id alone, never by a file name.
 
 Standing names each detail file, such as `Ledger: sbp-detail-ledger.md`. The files Standing names and the detail files in the folder are the same set. A part with no Detail has no file and no Standing line. The line `described here` belongs to a stack written as one document.
 
@@ -119,9 +124,9 @@ Every layer opens with a title and a one-line scope. A layer that uses symbols, 
 **Markup**
 - Under the title, write `Version: 0.1.0`.
 - One heading per layer, such as "## Layer 2: Structure", followed by its one-line scope as a line that starts with `Scope:`, for example `Scope: the whole app, divided into parts, with the seams between them and with the outside.`
-- Number the topics in sequence as written, 1, 2, 3 and so on, in dependency order.
+- Number the topics of a layer, or of a part's entry, from 1 in the layer's order: 1 to 12 in Layer 1, 1 to 11 in Layer 2 and 1 to 12 in each Layer 3 part. The number of a topic is the topic part of an id.
 - Write each Detail entry under `### <Part> (part)`, with its topics as `#### N. <Topic>` in the layer's order.
-- Write each scenario as one line: Given …, when …, then …. A value scenario may open with an id, such as `- V1. Given …, when …, then …`, cited by its path and its rule.
+- Write each scenario as one line: Given …, when …, then …. A value scenario opens with its number, such as `- 3.1. Given …, when …, then …`; its path and its rule say `Realizes vision-3.1.` after their own numbers.
 - Write a stand-alone view as a `## View: <name>` section after Layer 3, or at the end of `sbp-structure.md` in a stack of separate files.
 - Write costs, risks and open concerns as list bullets, never as a table.
 - A part's own stack may open with `Parent: <subject>, part <part>` before its `## Layer 1: Vision` heading, in its `sbp-vision.md` when split.
@@ -179,7 +184,7 @@ Audit: for each rule, definition, state, trigger, reason, measure, seam, cost an
 
 - **An idea:** a stack for an idea may stop after Layer 2. It states the need, the parts and the seams, marks unknown intent as `Not supplied:`, and gains Layer 3 for a part when a maker needs it.
 - **A subject with no outsiders:** say so in Vision.
-- **A cost, a risk or an open concern:** write it in the Costs, Risks or Open Concerns topic of the layer where it binds; where a layer has none, leave the topic out, or write `None.`. A figure, a severity or an answer the owner did not give is never invented: write `Not supplied:`, and `Not rated` for a severity. A decision, an assumption or a value scenario's rule answers a risk; cite its id.
+- **A cost, a risk or an open concern:** write it in the Costs, Risks or Open Concerns topic of the layer where it binds; where a layer has none, the topic reads `None.`. A figure, a severity or an answer the owner did not give is never invented: write `Not supplied:`, and `Not rated` for a severity. A decision, an assumption, a rule, a limit or a Construction item answers a risk; cite its id.
 
 ## Worked example
 

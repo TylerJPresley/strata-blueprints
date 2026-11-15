@@ -1,4 +1,4 @@
-<!-- A blank Strata Blueprints stack, all three layers in one document. Delete this line, then fill in the brackets. For one layer, start from strata-blueprints-template-layer-1.md, -2.md or -3.md. -->
+<!-- A blank Strata Blueprints stack, all three layers in one document. Delete this line, delete the `(optional)` marker from each heading you fill in, write `None.` under an optional topic with nothing to say, then fill in the brackets. An item is numbered by its topic's number in its layer guide and a count that starts at 1 under each topic, and it is written with that number under its own topic: `9.1` is the first item under topic 9 (Risks). A citation, and `--impact`, put the document in front, joined with a hyphen: `vision`, `structure` or `detail.<part>`. So the first risk of the Vision is written `9.1` and cited `vision-9.1`, and the first Construction item of the part Session is written `7.1` and cited `detail.session-7.1`. For one layer, start from strata-blueprints-template-layer-1.md, -2.md or -3.md. -->
 
 # [Subject name]
 
@@ -19,8 +19,8 @@ Scope: the whole [subject], its [audiences], and what lies beyond it.
 
 ### 3. Value
 
-- V1. Given [an audience in a situation], when [they act], then [what they get].
-- V2. Given [...], when [...], then [...].
+- 3.1. Given [an audience in a situation], when [they act], then [what they get].
+- 3.2. Given [...], when [...], then [...].
 
 ### 4. Focus
 
@@ -28,8 +28,8 @@ The [subject] covers [what is in]. It does not cover [what is out].
 
 ### 5. Success measures (optional)
 
-- [A number or an observable result] (V1).
-- [A number or an observable result] (V2).
+- [A number or an observable result] (vision-3.1).
+- [A number or an observable result] (vision-3.2).
 
 ### 6. Qualities and constraints (optional)
 
@@ -42,23 +42,23 @@ The [subject] covers [what is in]. It does not cover [what is out].
 
 ### 8. Costs (optional)
 
-- C1.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
+- 8.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
 
 ### 9. Risks (optional)
 
-- R1.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
+- 9.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
 
 ### 10. Open Concerns (optional)
 
-- O1.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
+- 10.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
 
 ### 11. Assumptions
 
-- A1.1. [What is taken as true]. Basis: [why we think so]. If wrong: [what changes].
+- 11.1. [What is taken as true]. Basis: [why we think so]. If wrong: [what changes].
 
 ### 12. Decisions
 
-- D1.1. [What was chosen]. Reason: [why].
+- 12.1. [What was chosen]. Reason: [why].
 
 ## Layer 2: Structure
 
@@ -92,28 +92,28 @@ Scope: the whole [subject], divided into parts, with the seams between them and 
 
 ### 6. Scenario paths (optional)
 
-- V1. Given [...], when [...], then [Part A] [does what], and [Part B] [does what].
-- V2. Given [...], when [...], then [Part B] [does what].
+- 6.1. Realizes vision-3.1. Given [...], when [...], then [Part A] [does what], and [Part B] [does what].
+- 6.2. Realizes vision-3.2. Given [...], when [...], then [Part B] [does what].
 
 ### 7. Costs (optional)
 
-- C2.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
+- 7.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
 
 ### 8. Risks (optional)
 
-- R2.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
+- 8.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
 
 ### 9. Open Concerns (optional)
 
-- O2.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
+- 9.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
 
 ### 10. Assumptions
 
-- A2.1. [What the division takes as true]. Basis: [why we think so]. If wrong: [what changes].
+- 10.1. [What the division takes as true]. Basis: [why we think so]. If wrong: [what changes].
 
 ### 11. Decisions
 
-- D2.1. [Why a part is a part of its own, or why two parts were kept apart]. Reason: [why].
+- 11.1. [Why a part is a part of its own, or why two parts were kept apart]. Reason: [why].
 
 ## Layer 3: Detail
 
@@ -137,8 +137,8 @@ Scope: one part at a time. Each entry below describes one part from Layer 2: wha
 
 #### 4. Rules
 
-- V1. Given [...], when [...], then [Part A] [does what].
-- Given [an edge or failure the owner gave], when [...], then [Part A] [does what].
+- 4.1. Realizes vision-3.1. Given [...], when [...], then [Part A] [does what].
+- 4.2. Given [an edge or failure the owner gave], when [...], then [Part A] [does what].
 
 #### 5. Inside (optional)
 
@@ -147,33 +147,33 @@ Scope: one part at a time. Each entry below describes one part from Layer 2: wha
 
 #### 6. Limits
 
-- [A number, a testable condition or an observable result] (Layer 1, [quality or topic]).
-- [A second limit] (Layer 1, Not supplied: [the quality]).
+- 6.1. [A number, a testable condition or an observable result] (Layer 1, [quality or topic]).
+- 6.2. [A second limit] (Layer 1, Not supplied: [the quality]).
 
 #### 7. Construction (optional)
 
-- [The means chosen: tool, material or method, and the value it is set to]. Reason: [the Limit it meets].
+- 7.1. [The means chosen: tool, material or method, and the value it is set to]. Reason: [the Limit it meets].
 - Not supplied: [a value nobody has chosen].
 
 #### 8. Costs (optional)
 
-- C3.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
+- 8.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
 
 #### 9. Risks (optional)
 
-- R3.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
+- 9.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
 
 #### 10. Open Concerns (optional)
 
-- O3.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
+- 10.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
 
 #### 11. Assumptions
 
-- A3.1. [What the part's rules rest on]. Basis: [why we think so]. If wrong: [what changes].
+- 11.1. [What the part's rules rest on]. Basis: [why we think so]. If wrong: [what changes].
 
 #### 12. Decisions
 
-- D3.1. [What was chosen about the part's shape]. Reason: [why].
+- 12.1. [What was chosen about the part's shape]. Reason: [why].
 
 ### [Part B] (part)
 
@@ -181,18 +181,46 @@ Scope: one part at a time. Each entry below describes one part from Layer 2: wha
 
 [...]
 
-#### 2. Rules
-
-- V2. Given [...], when [...], then [Part B] [does what].
-
-#### 3. Limits
-
-- [...] (Layer 1, [quality or topic]).
-
-#### 4. Assumptions
+#### 2. Concepts and states
 
 None.
 
-#### 5. Decisions
+#### 3. Seams
+
+None.
+
+#### 4. Rules
+
+- 4.1. Realizes vision-3.2. Given [...], when [...], then [Part B] [does what].
+
+#### 5. Inside
+
+None.
+
+#### 6. Limits
+
+- 6.1. [...] (Layer 1, [quality or topic]).
+
+#### 7. Construction
+
+None.
+
+#### 8. Costs
+
+None.
+
+#### 9. Risks
+
+None.
+
+#### 10. Open Concerns
+
+None.
+
+#### 11. Assumptions
+
+None.
+
+#### 12. Decisions
 
 None.

@@ -86,10 +86,10 @@ test("diagram-key", () => {
 });
 
 test("reasons", () => {
-  assert.equal(warns(lintText(L1 + "A1.1. Fact. If wrong: x.\n" + L2), "reasons").length, 1);
-  assert.equal(warns(lintText(L1 + "A1.1. Fact. Basis: y. If wrong: x.\n" + L2), "reasons").length, 0);
-  assert.equal(warns(lintText(L1 + "D1.1. Choice.\n" + L2), "reasons").length, 1);
-  assert.equal(warns(lintText(L1 + "D1.1. Choice. Reason: z.\n" + L2), "reasons").length, 0);
+  assert.equal(warns(lintText(L1 + "11.1. Fact. If wrong: x.\n" + L2), "reasons").length, 1);
+  assert.equal(warns(lintText(L1 + "11.1. Fact. Basis: y. If wrong: x.\n" + L2), "reasons").length, 0);
+  assert.equal(warns(lintText(L1 + "12.1. Choice.\n" + L2), "reasons").length, 1);
+  assert.equal(warns(lintText(L1 + "12.1. Choice. Reason: z.\n" + L2), "reasons").length, 0);
 });
 
 test("unfinished", () => {
@@ -100,6 +100,11 @@ test("unfinished", () => {
 // --- three-layer rules (D18) ---------------------------------------------
 const todoApp = path.join(here, "..", "skills", "strata-blueprints", "references", "strata-blueprints-example-todo-app");
 const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
+// Topics for fixtures: fxT writes the named topics in order, each None. unless given content.
+const fxT = (h, names, have = {}) => names.map((n, i) => `${h} ${i + 1}. ${n}\n\n${have[n] ?? "None."}\n`).join("\n");
+const T1 = ["Need", "Target audience", "Value", "Focus", "Success measures", "Qualities and constraints", "Vocabulary", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"];
+const T2 = ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"];
+const T3 = ["Responsibility", "Concepts and states", "Seams", "Rules", "Inside", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"];
 
 test("topic-order: Layer 3 accepts Construction in order; unknown names and misorder warn", () => {
   // Construction (topic 7) after Limits (topic 6) is accepted.
@@ -175,33 +180,33 @@ test("scenario-trace: ids absent add no warnings", () => {
 });
 
 test("scenario-trace: an id without a path in Layer 2 warns", () => {
-  const md = L1 + "- V1. Given a rider, when braking, then stops.\n" + L2 + "- No citation here.\n";
+  const md = L1 + "- 3.1. Given a rider, when braking, then stops.\n" + L2 + "- No citation here.\n";
   const r = warns(lintText(md), "scenario-trace");
   assert.equal(r.length, 1);
-  assert.match(r[0], /V1 has no path in Layer 2/);
+  assert.match(r[0], /vision-3\.1 has no path in Layer 2/);
 });
 
 test("scenario-trace: an id without a rule in Layer 3 warns", () => {
-  const md = L1 + "- V1. Given a rider, when braking, then stops.\n" +
-    L2 + "- V1. Given a rider, when braking, then stops.\n" +
+  const md = L1 + "- 3.1. Given a rider, when braking, then stops.\n" +
+    L2 + "- 6.1. Realizes vision-3.1. Given a rider, when braking, then stops.\n" +
     L3 + "### Brakes (part)\n\n#### 4. Rules\n- A rule with no id.\n";
   const r = warns(lintText(md), "scenario-trace");
   assert.equal(r.length, 1);
-  assert.match(r[0], /V1 has no rule in Layer 3/);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
 });
 
 test("scenario-trace: ids cited pass, and Layers 1 and 2 only with ids on both pass strict", () => {
-  const full = L1 + "- V1. Given a rider, when braking, then stops.\n" +
-    L2 + "- V1. Given a rider, when braking, then stops.\n" +
-    L3 + "### Brakes (part)\n\n#### 4. Rules\n- V1. Given a rider, when braking, then stops.\n";
+  const full = L1 + "- 3.1. Given a rider, when braking, then stops.\n" +
+    L2 + "- 6.1. Realizes vision-3.1. Given a rider, when braking, then stops.\n" +
+    L3 + "### Brakes (part)\n\n#### 4. Rules\n- 4.1. Realizes vision-3.1. Given a rider, when braking, then stops.\n";
   assert.equal(warns(lintText(full), "scenario-trace").length, 0);
-  const idea = L1 + "- V1. Given a rider, when braking, then stops.\n" + L2 + "- V1. Given a rider, when braking, then stops.\n";
+  const idea = L1 + "- 3.1. Given a rider, when braking, then stops.\n" + L2 + "- 6.1. Realizes vision-3.1. Given a rider, when braking, then stops.\n";
   assert.equal(lintText(idea, "--strict").code, 0);
   assert.equal(warns(lintText(idea), "scenario-trace").length, 0);
 });
 
 test("scenario-trace: an id'd line must still read Given, when, then", () => {
-  const md = L1 + "- V1. Given a cat it sleeps.\n" + L2 + "- V1. Given a cat, when fed, then sleeps.\n";
+  const md = L1 + "- 3.1. Given a cat it sleeps.\n" + L2 + "- 6.1. Realizes vision-3.1. Given a cat, when fed, then sleeps.\n";
   assert.equal(warns(lintText(md), "scenario-form").length, 1);
 });
 
@@ -209,16 +214,16 @@ test("scenario-trace: an id'd line must still read Given, when, then", () => {
 
 test("own-stack: a Parent line before Layer 1 and an own-stack Standing line lint clean", () => {
   const md = "# Example: brakes (part)\n\nParent: bicycle, part Brakes\n\n" +
-    L1 + "- V1. Given a rider, when braking, then stops.\n" +
-    "## Layer 2: Structure\n\nScope: all.\n\n### 2. Standing\nStanding: own stack, brakes/brakes.md\n" +
-    "- V1. Given a rider, when braking, then stops.\n";
+    L1 + "- 3.1. Given a rider, when braking, then stops.\n" +
+    "## Layer 2: Structure\n\nScope: all.\n\n### 1. Parts\n\nNone.\n\n### 2. Standing\nStanding: own stack, brakes/brakes.md\n\n" +
+    fxT("###", T2.slice(2), { "Scenario paths": "- 6.1. Realizes vision-3.1. Given a rider, when braking, then stops." });
   const r = lintText(md, "--strict");
   assert.equal(r.code, 0);
   assert.equal(r.lines.filter((l) => l.startsWith("WARN")).length, 0);
 });
 
 test("view: a View section after the last layer lints clean", () => {
-  const md = L1 + L2 + L3 + "### Brakes (part)\n\n#### 1. Responsibility\n\n" +
+  const md = L1 + L2 + L3 + "### Brakes (part)\n\n#### 1. Responsibility\n\nStops.\n\n" + fxT("####", T3.slice(1)) + "\n" +
     "## View: Lifecycle\n\n- Given a bicycle, when built, then shipped.\n";
   const r = lintText(md, "--strict");
   assert.equal(r.code, 0);
@@ -228,8 +233,8 @@ test("view: a View section after the last layer lints clean", () => {
 // --- reasons: every id shape (scope-and-ids D14) ---------------------------
 const ADH = "### 8. Assumptions\n\n";
 const rs = (md) => warns(lintText(md), "reasons");
-const A_IDS = ["A1.", "A1.1.", "A1.1", "A1:", "A1.1:", "A3.1.1.", "A12.3.4", "**A1.1.**", "**A1.1**", "A1)", "Assumption 1:", "Assumption 2.1.", "Assumption A1.1."];
-const D_IDS = ["D1.", "D1.1.", "D2.3", "D1:", "D3.1.1.", "**D1.1.**", "Decision 2.", "Decision D3.1:"];
+const A_IDS = ["11.1.", "vision-11.1", "11.1:", "11.12.", "vision-11.10", "11.1)", "**11.1.**", "**11.1**"];
+const D_IDS = ["12.1.", "vision-12.3", "12.1:", "12.10.", "**12.1.**", "12.2)"];
 
 test("reasons-ids: assumption id shapes without both labels warn", () => {
   for (const id of A_IDS) {
@@ -239,10 +244,10 @@ test("reasons-ids: assumption id shapes without both labels warn", () => {
     assert.match(r[0], /\(line 7\)$/, id);
   }
   for (const prefix of ["* ", "1. ", ""]) {
-    assert.equal(rs(L1 + ADH + prefix + "A1.1 Fact.\n" + L2).length, 1, JSON.stringify(prefix));
+    assert.equal(rs(L1 + ADH + prefix + "11.1 Fact.\n" + L2).length, 1, JSON.stringify(prefix));
   }
-  assert.equal(rs(L1 + ADH + "- A1.1 Fact. Basis: y.\n" + L2).length, 1);
-  assert.equal(rs(L1 + ADH + "- A1.1 Fact. If wrong: x.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 11.1 Fact. Basis: y.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 11.1 Fact. If wrong: x.\n" + L2).length, 1);
 });
 
 test("reasons-ids: decision id shapes without Reason warn", () => {
@@ -252,62 +257,62 @@ test("reasons-ids: decision id shapes without Reason warn", () => {
     assert.match(r[0], /decision needs 'Reason:'/, id);
     assert.match(r[0], /\(line 7\)$/, id);
   }
-  assert.equal(rs(L1 + ADH + "- D1.1 Choice. Why: y.\n" + L2).length, 1);
-  assert.equal(rs(L1 + ADH + "- D1.1 Choice. Reason it is.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 12.1 Choice. Why: y.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 12.1 Choice. Reason it is.\n" + L2).length, 1);
 });
 
 test("reasons-ids: the same shapes pass with their labels", () => {
   for (const id of A_IDS) assert.equal(rs(L1 + ADH + "- " + id + " Fact. Basis: y. If wrong: x.\n" + L2).length, 0, id);
   for (const id of D_IDS) assert.equal(rs(L1 + ADH + "- " + id + " Choice. Reason: z.\n" + L2).length, 0, id);
-  assert.equal(rs(L1 + "- A1.1 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.1 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
 });
 
 test("reasons-ids: labels inside a ~~~ fenced block are not credited to the item above", () => {
-  const r = rs(L1 + ADH + "- A1.1. Fact.\n~~~\nBasis: y. If wrong: x.\n~~~\n" + L2);
+  const r = rs(L1 + ADH + "- 11.1. Fact.\n~~~\nBasis: y. If wrong: x.\n~~~\n" + L2);
   assert.equal(r.length, 1);
   assert.match(r[0], /assumption needs 'Basis:' and 'If wrong:'/);
 });
 
 test("reasons-ids: only the guide's labels count", () => {
-  assert.equal(rs(L1 + ADH + "- A1.1 Fact. We think so because y.\n" + L2).length, 1);
-  assert.equal(rs(L1 + ADH + "- D1.1 Choice. Why: y.\n" + L2).length, 1);
-  assert.equal(rs(L1 + ADH + "- D1 Choice, so that z.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 11.1 Fact. We think so because y.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 12.1 Choice. Why: y.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 12.1 Choice, so that z.\n" + L2).length, 1);
 });
 
 test("reasons-ids: an unclosed id is checked only inside the topic", () => {
-  assert.equal(rs(L1 + "- A4 paper is used.\n- D2 cable is long.\n- A1.1 Fact.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "- A1. Fact.\n" + L2).length, 1);
-  assert.equal(rs(L1 + "- D2: Choice.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "- A4 paper is used.\n- D2 cable is long.\n- 3.1 Fact.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.1. Fact.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "- 12.2: Choice.\n" + L2).length, 1);
 });
 
 test("reasons-ids: the topic ends at the next heading, and Detail entries are covered", () => {
-  assert.equal(rs(L1 + ADH + "- A1 Fact. Basis: y. If wrong: x.\n\n### Diagrams\n\n- A2 Fact.\n" + L2).length, 0);
-  assert.equal(rs(L1 + ADH + "- A1 Fact.\n" + L2 + "- A2 Fact.\n").length, 1);
-  assert.equal(rs(L1 + "### Assumptions\n\n- A1 Fact.\n" + L2).length, 1);
-  assert.equal(rs(L1 + "### 8. Assumption notes\n\n- A1 Fact.\n" + L2).length, 0);
-  assert.equal(rs(L1 + L2 + L3 + "### Brakes (part)\n\n#### 8. Assumptions\n\n- A3.1.1 Fact.\n\n#### 9. Decisions\n\n- D3.1.1 Choice.\n\n### Frame (part)\n\n- A3.2 Fact.\n").length, 2);
+  assert.equal(rs(L1 + ADH + "- 11.1 Fact. Basis: y. If wrong: x.\n\n### Diagrams\n\n- 3.2 Fact.\n" + L2).length, 0);
+  assert.equal(rs(L1 + ADH + "- 11.1 Fact.\n" + L2 + "- 3.1 Fact.\n").length, 1);
+  assert.equal(rs(L1 + "### Assumptions\n\n- 11.1 Fact.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "### 8. Assumption notes\n\n- 3.1 Fact.\n" + L2).length, 0);
+  assert.equal(rs(L1 + L2 + L3 + "### Brakes (part)\n\n#### 8. Assumptions\n\n- 11.1 Fact.\n\n#### 9. Decisions\n\n- 12.1 Choice.\n\n### Frame (part)\n\n- 3.1 Fact.\n").length, 2);
 });
 
 test("reasons-ids: items with no id are not checked", () => {
-  const md = L1 + ADH + "- Not supplied: who decides.\n- None.\n- Some prose without an id.\n" + L2;
+  const md = L1 + fxT("###", T1.slice(0, 10)) + "\n" + ADH + "- Not supplied: who decides.\n- None.\n\n### 12. Decisions\n\nNone.\n\n" + L2;
   assert.equal(rs(md).length, 0);
   assert.equal(lintText(md, "--strict").code, 0);
 });
 
 test("reasons-ids: wrapped and nested lines count, the next item's do not", () => {
   const doc = (text) => rs(L1 + ADH + text + L2);
-  assert.equal(doc("- A1.1. Fact.\n  Basis: y. If wrong: x.\n").length, 0);
-  assert.equal(doc("- A1.1. Fact.\n  - Basis: y\n  - If wrong: x\n").length, 0);
-  assert.equal(doc("- A1.1. Fact.\n  Basis: y.\n").length, 1);
-  const two = doc("- D1.1. Choice.\n- A1.1. Fact. Basis: y. If wrong: x. Reason: z.\n");
+  assert.equal(doc("- 11.1. Fact.\n  Basis: y. If wrong: x.\n").length, 0);
+  assert.equal(doc("- 11.1. Fact.\n  - Basis: y\n  - If wrong: x\n").length, 0);
+  assert.equal(doc("- 11.1. Fact.\n  Basis: y.\n").length, 1);
+  const two = doc("- 12.1. Choice.\n- 11.1. Fact. Basis: y. If wrong: x. Reason: z.\n");
   assert.equal(two.length, 1);
   assert.match(two[0], /decision needs 'Reason:'/);
   assert.match(two[0], /\(line 7\)$/);
-  const plain = doc("D1.1. Choice.\nA1.1. Fact. Basis: y. If wrong: x. Reason: z.\n");
+  const plain = doc("12.1. Choice.\nvision-11.1. Fact. Basis: y. If wrong: x. Reason: z.\n");
   assert.equal(plain.length, 1);
   assert.match(plain[0], /decision needs 'Reason:'/);
   assert.match(plain[0], /\(line 7\)$/);
-  assert.equal(doc("- D1.1. Choice.\n\nReason: later.\n").length, 1);
+  assert.equal(doc("- 12.1. Choice.\n\nReason: later.\n").length, 1);
 });
 
 test("reasons-ids: each example engages the check", () => {
@@ -341,13 +346,13 @@ test("reasons-ids: each example engages the check", () => {
       const where = doc.label ? `${doc.label.replace(/\./g, "\\.")} line ` : "line ";
       assert.match(r[0], new RegExp(`\\(${where}${idx + 1}\\)$`), name);
     };
-    mutate(/^- A\d+(\.\d+)*\. .*Basis:.*If wrong:/, (l) => l.replace(" If wrong:", ""));
-    mutate(/^- D\d+(\.\d+)*\. .*Reason:/, (l) => l.replace(" Reason:", " Because:"));
+    mutate(/^- (?:11|10)\.\d+\. .*Basis:.*If wrong:/, (l) => l.replace(" If wrong:", ""));
+    mutate(/^- (?:12|11)\.\d+\. .*Reason:/, (l) => l.replace(" Reason:", " Because:"));
   }
 });
 
 test("fence: a ~~~ block hides its content like a backtick block, and each closes only with its own marker", () => {
-  const body = "- A1.1. Inside tilde fence with no reasons.\n";
+  const body = "- 11.1. Inside tilde fence with no reasons.\n";
   assert.equal(rs(L1 + ADH + "Title: t.\n~~~\n" + body + "~~~\n" + L2).length, 0);
   assert.equal(rs(L1 + ADH + "Title: t.\n```\n" + body + "```\n" + L2).length, 0);
   assert.equal(rs(L1 + ADH + "Title: t.\n~~~\n```\n" + body + "~~~\n" + L2).length, 0);
@@ -375,18 +380,18 @@ test("split-topics: Decisions before Assumptions is out of order", () => {
 });
 
 test("split-topics: reasons are checked under both topics", () => {
-  assert.equal(rs(L1 + "### 8. Assumptions\n\n- A1 Fact.\n" + L2).length, 1);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- D1 Choice.\n" + L2).length, 1);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- A2 Fact.\n" + L2).length, 1);
-  assert.equal(rs(L1 + "### 8. Assumptions\n\n- A1 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- D1 Choice. Reason: z.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- A2 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
-  assert.equal(rs(L1 + L2 + L3 + "### Brakes (part)\n\n#### 8. Assumptions\n\n- A3.1.1 Fact.\n\n#### 9. Decisions\n\n- D3.1.1 Choice.\n").length, 2);
-  assert.equal(rs(L1 + "### 8. Assumptions\n\n- A1 Fact. Basis: y. If wrong: x.\n\n### 9. Decisions\n\n- D1 Choice. Reason: z.\n\n### Diagrams\n\n- A2 Fact.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 8. Assumptions\n\n- 11.1 Fact.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 12.1 Choice.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 11.2 Fact.\n" + L2).length, 1);
+  assert.equal(rs(L1 + "### 8. Assumptions\n\n- 11.1 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 12.1 Choice. Reason: z.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 11.2 Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
+  assert.equal(rs(L1 + L2 + L3 + "### Brakes (part)\n\n#### 8. Assumptions\n\n- 11.1 Fact.\n\n#### 9. Decisions\n\n- 12.1 Choice.\n").length, 2);
+  assert.equal(rs(L1 + "### 8. Assumptions\n\n- 11.1 Fact. Basis: y. If wrong: x.\n\n### 9. Decisions\n\n- 12.1 Choice. Reason: z.\n\n### Diagrams\n\n- 3.2 Fact.\n" + L2).length, 0);
 });
 
 test("split-topics: None. under either topic passes strict", () => {
-  const r = lintText(L1 + "### 8. Assumptions\n\nNone.\n\n### 9. Decisions\n\nNone.\n\n" + L2 + "### 7. Assumptions\n\nNone.\n\n### 8. Decisions\n\n- D2.1. Choice. Reason: z.\n\n", "--strict");
+  const r = lintText(L1 + fxT("###", T1.slice(0, 10)) + "\n### 11. Assumptions\n\nNone.\n\n### 12. Decisions\n\nNone.\n\n" + L2 + fxT("###", T2.slice(0, 9)) + "\n### 10. Assumptions\n\nNone.\n\n### 11. Decisions\n\n- 11.1. Choice. Reason: z.\n\n", "--strict");
   assert.equal(r.code, 0);
   assert.equal(r.lines.some((l) => l.startsWith("WARN")), false);
 });
@@ -403,130 +408,114 @@ test("split-topics: the combined name is not a topic in any layer", () => {
   const d = tp(L1 + L2 + L3 + "### Brakes (part)\n\n#### 8. Assumptions and decisions\n");
   assert.equal(d.length, 1);
   assert.match(JSON.stringify(d), /not a Layer 3 topic in the entry 'Brakes'/);
-  assert.equal(rs(L1 + "### 8. Assumptions and decisions\n\n- A1 Fact.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 8. Assumptions and decisions\n\n- 3.1 Fact.\n" + L2).length, 0);
 });
 
 // --- reasons: a "Not supplied:" gap is exempt --------------------------------
 test("reasons-ids: Not supplied gap in a bullet is exempt", () => {
-  assert.equal(rs(L1 + "- A1.3. Not supplied: the deployment target.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "- A1.2. Expiry policy: Not supplied: whether and when a link expires.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "- D1.2. Not supplied: the storage choice.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "- D1.2. Expiry policy: Not supplied: whether a link expires.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.3. Not supplied: the deployment target.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.2. Expiry policy: Not supplied: whether and when a link expires.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 12.2. Not supplied: the storage choice.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 12.2. Expiry policy: Not supplied: whether a link expires.\n" + L2).length, 0);
 });
+
 test("reasons-ids: Not supplied gap wrapped over two lines is exempt", () => {
-  assert.equal(rs(L1 + "- A1.3. Deployment target.\n  Not supplied: the deployment target.\n" + L2).length, 0);
-  assert.equal(rs(L1 + "- D1.3. Storage choice.\n  Not supplied: which store.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.3. Deployment target.\n  Not supplied: the deployment target.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 12.3. Storage choice.\n  Not supplied: which store.\n" + L2).length, 0);
 });
 test("reasons-ids: Not supplied gap in Assumptions and Decisions topics is exempt", () => {
-  assert.equal(rs(L1 + ADH + "- A1.3. Not supplied: the deployment target.\n\n" + L2).length, 0);
-  assert.equal(rs(L1 + ADH + "- A1 Target.\n  Not supplied: the deployment target.\n\n" + L2).length, 0);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- D1 Not supplied: the store.\n\n" + L2).length, 0);
-  assert.equal(rs(L1 + "### 9. Decisions\n\n- D1 Store.\n  Not supplied: which store.\n\n" + L2).length, 0);
+  assert.equal(rs(L1 + ADH + "- 11.3. Not supplied: the deployment target.\n\n" + L2).length, 0);
+  assert.equal(rs(L1 + ADH + "- 11.1 Target.\n  Not supplied: the deployment target.\n\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 12.1 Not supplied: the store.\n\n" + L2).length, 0);
+  assert.equal(rs(L1 + "### 9. Decisions\n\n- 12.1 Store.\n  Not supplied: which store.\n\n" + L2).length, 0);
 });
 test("reasons-ids: items without labels or gap still warn; complete item passes", () => {
-  assert.equal(rs(L1 + "- A1.3. Deployment target is cloud.\n" + L2).length, 1);
-  assert.equal(rs(L1 + ADH + "- A1 Deployment target is cloud.\n\n" + L2).length, 1);
-  assert.equal(rs(L1 + "- A1.3. Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
+  assert.equal(rs(L1 + "- 11.3. Deployment target is cloud.\n" + L2).length, 1);
+  assert.equal(rs(L1 + ADH + "- 11.1 Deployment target is cloud.\n\n" + L2).length, 1);
+  assert.equal(rs(L1 + "- 11.3. Fact. Basis: y. If wrong: x.\n" + L2).length, 0);
 });
 
 // --- costs and risks topics (plan costs-risks-topics, step 2) -------------
 const mk = (o = {}) => {
-  const d = { c1: "None.", r1: "None.", c2: "None.", r2: "None.", c3: "None.", r3: "None.", ...o };
-  return "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\nA need.\n\n### 2. Value\n\n- V1. Given a, when b, then c.\n\n" +
-    `### 3. Costs\n\n${d.c1}\n\n### 4. Risks\n\n${d.r1}\n\n### 5. Assumptions\n\n- A1.1. Fact. Basis: b. If wrong: w.\n\n### 6. Decisions\n\n- D1.1. Choice. Reason: r.\n\n` +
-    "## Layer 2: Structure\n\nScope: all.\n\n### 1. Parts\n\nP.\n\n### 2. Scenario paths\n\n- V1. Given a, when b, then c.\n\n" +
-    `### 3. Costs\n\n${d.c2}\n\n### 4. Risks\n\n${d.r2}\n\n### 5. Assumptions\n\nNone.\n\n### 6. Decisions\n\n- D2.1. Choice. Reason: r.\n\n` +
-    "## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n#### 1. Rules\n\n- V1. Given a, when b, then c.\n\n#### 2. Limits\n\nL.\n\n" +
-    `#### 3. Costs\n\n${d.c3}\n\n#### 4. Risks\n\n${d.r3}\n\n#### 5. Assumptions\n\nNone.\n\n#### 6. Decisions\n\n- D3.1. Choice. Reason: r.\n`;
+  const d = { c1: "None.", r1: "None.", o1: "None.", c2: "None.", r2: "None.", o2: "None.", c3: "None.", r3: "None.", o3: "None.", ...o };
+  return "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\nA need.\n\n### 2. Target audience\n\nMembers.\n\n### 3. Value\n\n- 3.1. Given a, when b, then c.\n\n### 4. Focus\n\nSheds.\n\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n\n### 7. Vocabulary\n\nNone.\n\n" +
+    `### 8. Costs\n\n${d.c1}\n\n### 9. Risks\n\n${d.r1}\n\n### 10. Open Concerns\n\n${d.o1}\n\n### 11. Assumptions\n\n- 11.1. Fact. Basis: b. If wrong: w.\n\n### 12. Decisions\n\n- 12.1. Choice. Reason: r.\n\n` +
+    "## Layer 2: Structure\n\nScope: all.\n\n### 1. Parts\n\nP.\n\n### 2. Standing\n\nNone.\n\n### 3. Seams between parts\n\nNone.\n\n### 4. Seams with the outside\n\nNone.\n\n### 5. Shared things\n\nNone.\n\n### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a, when b, then c.\n\n" +
+    `### 7. Costs\n\n${d.c2}\n\n### 8. Risks\n\n${d.r2}\n\n### 9. Open Concerns\n\n${d.o2}\n\n### 10. Assumptions\n\nNone.\n\n### 11. Decisions\n\n- 11.1. Choice. Reason: r.\n\n` +
+    "## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n#### 1. Responsibility\n\nR.\n\n#### 2. Concepts and states\n\nNone.\n\n#### 3. Seams\n\nNone.\n\n#### 4. Rules\n\n- 4.1. Realizes vision-3.1. Given a, when b, then c.\n\n#### 5. Inside\n\nNone.\n\n#### 6. Limits\n\n- 6.1. L.\n\n#### 7. Construction\n\nNone.\n\n" +
+    `#### 8. Costs\n\n${d.c3}\n\n#### 9. Risks\n\n${d.r3}\n\n#### 10. Open Concerns\n\n${d.o3}\n\n#### 11. Assumptions\n\nNone.\n\n#### 12. Decisions\n\n- 12.1. Choice. Reason: r.\n`;
 };
-const crWarns = (r) => r.lines.filter((l) => /^WARN (cost-shape|risk-shape|cr-id|risk-ref):/.test(l));
-const C = (id, amt = "40 USD per month", rest = "Paid by the club") => `- ${id}. Upkeep: ${amt}. ${rest}.`;
-const R = (id, sev = "High", ans = "D1.1") => `- ${id}. Given a flood, when the shed fills, then tools rust. Severity: ${sev}. Answered by ${ans}.`;
+const crWarns = (r) => r.lines.filter((l) => /^WARN (cost-shape|risk-shape|risk-ref|concern-shape):/.test(l));
+// The number an item is written with: the document in a full id is dropped.
+const num = (id) => id.replace(/^(?:vision|structure|detail\.[a-z0-9]+)-/, "");
+const C = (id, amt = "40 USD per month", rest = "Paid by the club") => `- ${num(id)}. Upkeep: ${amt}. ${rest}.`;
+const R = (id, sev = "High", ans = "vision-12.1") => `- ${num(id)}. Given a flood, when the shed fills, then tools rust. Severity: ${sev}. Answered by ${ans}.`;
 
 test("topics: well-formed costs and risks pass --strict in every layer; Not supplied counts", () => {
   const r = lintText(mk({
-    c1: C("C1.1", "Not supplied: the hours") + "\n" + C("C1.2", "1,200.50 USD one-off", "Paid by the club; driven by the tool count"),
-    r1: R("R1.1") + "\n" + R("R1.2", "Not rated", "Not supplied: who covers"),
-    c2: C("C2.1", "16 hours per year"), r2: R("R2.1", "Low", "V1"),
-    c3: C("C3.1", "3 days") + "\n" + C("C3.2"), r3: R("R3.1", "Medium", "D2.1"),
+    c1: C("vision-8.1", "Not supplied: the hours") + "\n" + C("vision-8.2", "1,200.50 USD one-off", "Paid by the club; driven by the tool count"),
+    r1: R("vision-9.1") + "\n" + R("vision-9.2", "Not rated", "Not supplied: who covers"),
+    c2: C("structure-7.1", "16 hours per year"), r2: R("structure-8.1", "Low", "vision-3.1"),
+    c3: C("detail.shed-8.1", "3 days") + "\n" + C("detail.shed-8.2"), r3: R("detail.shed-9.1", "Medium", "structure-11.1"),
   }), "--strict");
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.equal(r.code, 0);
   assert.match(r.out, /^INFO not-supplied: 2$/m);
 });
 
-test("topics: None. and a bare Not supplied: bullet pass; absent topics lint as before", () => {
+test("topics: None. and a bare Not supplied: bullet pass", () => {
   assert.deepEqual(crWarns(lintText(mk({ c1: "- Not supplied: what it costs.", r1: "- Not supplied: the risks." }))), []);
   assert.equal(lintText(mk(), "--strict").code, 0);
-  const old = "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\nN.\n\n### 2. Assumptions\n\nNone.\n\n### 3. Decisions\n\nNone.\n\n" + L2 + "### 1. Parts\n\nP.\n";
-  assert.equal(lintText(old, "--strict").code, 0);
 });
 
 test("cost-shape: a cost needs a valid amount and Paid by", () => {
-  assert.equal(warns(lintText(mk({ c1: C("C1.1", "40 USD per month", "Paid by the club; driven by use") })), "cost-shape").length, 0);
-  assert.equal(warns(lintText(mk({ c1: "- C1.1. Upkeep: 40 USD per month." })), "cost-shape").length, 1);
+  assert.equal(warns(lintText(mk({ c1: C("vision-8.1", "40 USD per month", "Paid by the club; driven by use") })), "cost-shape").length, 0);
+  assert.equal(warns(lintText(mk({ c1: "- 8.1. Upkeep: 40 USD per month." })), "cost-shape").length, 1);
   for (const amt of ["lots", "40", ""]) {
-    assert.equal(warns(lintText(mk({ c1: C("C1.1", amt) })), "cost-shape").length, 1, amt);
+    assert.equal(warns(lintText(mk({ c1: C("vision-8.1", amt) })), "cost-shape").length, 1, amt);
   }
-  assert.equal(warns(lintText(mk({ c1: "- C1.1. Upkeep: 40 USD. Paid by ." })), "cost-shape").length, 1);
-  assert.equal(warns(lintText(mk({ c1: "- C1.1. Upkeep: Not supplied: . Paid by the club." })), "cost-shape").length, 1);
+  assert.equal(warns(lintText(mk({ c1: "- 8.1. Upkeep: 40 USD. Paid by ." })), "cost-shape").length, 1);
+  assert.equal(warns(lintText(mk({ c1: "- 8.1. Upkeep: Not supplied: . Paid by the club." })), "cost-shape").length, 1);
   assert.equal(warns(lintText(mk({ c1: "Upkeep is dear." })), "cost-shape").length, 1);
-  assert.equal(warns(lintText(mk({ c1: "- R1.1. Upkeep: 40 USD. Paid by the club." })), "cost-shape").length, 1);
+  assert.equal(warns(lintText(mk({ c1: "- 9.1. Upkeep: 40 USD. Paid by the club." })), "cost-shape").length, 1);
 });
 
 test("cost-shape: a wrapped cost bullet is read whole", () => {
-  assert.deepEqual(crWarns(lintText(mk({ c1: "- C1.1. Upkeep: 40 USD per month.\n  Paid by the club." }))), []);
+  assert.deepEqual(crWarns(lintText(mk({ c1: "- 8.1. Upkeep: 40 USD per month.\n  Paid by the club." }))), []);
 });
 
 test("risk-shape: Given/when/then, severity and Answered by", () => {
-  assert.equal(warns(lintText(mk({ r1: R("R1.1") })), "risk-shape").length, 0);
-  for (const sev of ["High", "Medium", "Low", "Not rated"]) assert.equal(warns(lintText(mk({ r1: R("R1.1", sev) })), "risk-shape").length, 0, sev);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "Severe") })), "risk-shape").length, 1);
-  assert.equal(warns(lintText(mk({ r1: "- R1.1. Given a flood, when the shed fills, then tools rust. Answered by D1.1." })), "risk-shape").length, 1);
-  assert.equal(warns(lintText(mk({ r1: "- R1.1. Given a flood, then tools rust. Severity: High. Answered by D1.1." })), "risk-shape").length, 1);
-  assert.equal(warns(lintText(mk({ r1: "- R1.1. Given a flood, when the shed fills, then tools rust. Severity: High." })), "risk-shape").length, 1);
-  assert.equal(warns(lintText(mk({ r1: "- R1.1. Floods rust tools." })), "risk-shape").length, 1);
-  assert.equal(warns(lintText(mk({ r1: "- C1.1. Given a flood, when the shed fills, then tools rust. Severity: High. Answered by D1.1." })), "risk-shape").length, 1);
-});
-
-test("cr-id: layer number matches and ids count up in document order per layer", () => {
-  assert.deepEqual(crWarns(lintText(mk({ c1: C("C1.1") + "\n" + C("C1.2"), c3: C("C3.1") + "\n" + C("C3.2") }))), []);
-  assert.equal(warns(lintText(mk({ c1: C("C2.1") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ r2: R("R1.1") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ c1: C("C1.1") + "\n" + C("C1.1") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ c1: C("C1.2") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ c1: C("C1.1") + "\n" + C("C1.3") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ r1: R("R1.2") + "\n" + R("R1.1") })), "cr-id").length >= 1, true);
-  assert.equal(warns(lintText(mk({ c1: C("C1.1"), r1: R("R1.1") })), "cr-id").length, 0);
-});
-
-test("cr-id: Layer 3 ids count across entries and repeat across entries warns", () => {
-  const second = "\n### Yard (part)\n\n#### 1. Rules\n\n- V1. Given a, when b, then c.\n\n#### 3. Costs\n\n" + C("C3.1") + "\n\n#### 4. Risks\n\nNone.\n";
-  assert.equal(warns(lintText(mk({ c3: C("C3.1") }) + second), "cr-id").length, 1);
-  assert.equal(warns(lintText(mk({ c3: C("C3.1") }) + second.replace("C3.1", "C3.2")), "cr-id").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1") })), "risk-shape").length, 0);
+  for (const sev of ["High", "Medium", "Low", "Not rated"]) assert.equal(warns(lintText(mk({ r1: R("vision-9.1", sev) })), "risk-shape").length, 0, sev);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "Severe") })), "risk-shape").length, 1);
+  assert.equal(warns(lintText(mk({ r1: "- 9.1. Given a flood, when the shed fills, then tools rust. Answered by vision-12.1." })), "risk-shape").length, 1);
+  assert.equal(warns(lintText(mk({ r1: "- 9.1. Given a flood, then tools rust. Severity: High. Answered by vision-12.1." })), "risk-shape").length, 1);
+  assert.equal(warns(lintText(mk({ r1: "- 9.1. Given a flood, when the shed fills, then tools rust. Severity: High." })), "risk-shape").length, 1);
+  assert.equal(warns(lintText(mk({ r1: "- 9.1. Floods rust tools." })), "risk-shape").length, 1);
+  assert.equal(warns(lintText(mk({ r1: "- 8.1. Given a flood, when the shed fills, then tools rust. Severity: High. Answered by vision-12.1." })), "risk-shape").length, 1);
 });
 
 test("risk-ref: Answered by names an id that exists, or Not supplied:", () => {
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "A1.1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "V1; D1.1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "D1.9") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "V9") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "D1.1 and D1.9") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "the caretaker") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "Not supplied: the answer") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "vision-11.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "vision-3.1; vision-12.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "vision-12.9") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "vision-3.9") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "12.1 and vision-12.9") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "the caretaker") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "Not supplied: the answer") })), "risk-ref").length, 0);
 });
 
 test("risk-ref: an answer defined in an outer layer warns; V ids count as Layer 1", () => {
-  const outer = warns(lintText(mk({ r1: R("R1.1", "High", "D2.1") })), "risk-ref");
+  const outer = warns(lintText(mk({ r1: R("vision-9.1", "High", "structure-11.1") })), "risk-ref");
   assert.equal(outer.length, 1);
   assert.match(outer[0], /outward|outer/);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "D3.1") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r2: R("R2.1", "High", "D3.1") })), "risk-ref").length, 1);
-  assert.equal(warns(lintText(mk({ r2: R("R2.1", "High", "D1.1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r2: R("R2.1", "High", "D2.1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r3: R("R3.1", "High", "V1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r3: R("R3.1", "High", "D1.1") })), "risk-ref").length, 0);
-  assert.equal(warns(lintText(mk({ r1: R("R1.1", "High", "V1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "detail.shed-12.1") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r2: R("structure-8.1", "High", "detail.shed-12.1") })), "risk-ref").length, 1);
+  assert.equal(warns(lintText(mk({ r2: R("structure-8.1", "High", "vision-12.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r2: R("structure-8.1", "High", "structure-11.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r3: R("detail.shed-9.1", "High", "vision-3.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r3: R("detail.shed-9.1", "High", "vision-12.1") })), "risk-ref").length, 0);
+  assert.equal(warns(lintText(mk({ r1: R("vision-9.1", "High", "vision-3.1") })), "risk-ref").length, 0);
 });
 
 test("topics: a table line in Costs or Risks warns", () => {
@@ -536,13 +525,15 @@ test("topics: a table line in Costs or Risks warns", () => {
 
 test("topics: fenced content in a topic is ignored; other topics are not checked as costs", () => {
   assert.deepEqual(crWarns(lintText(mk({ c1: "None.\n\n```text\n| a | b |\n```" }))), []);
-  assert.deepEqual(crWarns(lintText(mk({ c1: C("C1.1") }).replace("- D1.1. Choice.", "- C9.9. Not a cost here. Choice."))), []);
+  assert.deepEqual(crWarns(lintText(mk({ c1: C("vision-8.1") }).replace("- 12.1. Choice.", "- 8.9. Not a cost here. Choice."))), []);
 });
 
 test("topics: each example is clean, and a mutation of each cost or risk warns", () => {
   const dir = path.join(here, "..", "skills", "strata-blueprints", "references");
   let mutated = 0;
-  const badLine = (line) => (line.startsWith("- C") ? line.replace(/ Paid by .*$/, "") : line.replace(/ Severity: \w+( rated)?\./, ""));
+  const COST = /^- (?:8|7)\.\d+\. .*Paid by/, RISK = /^- (?:9|8)\.\d+\. .*Severity:/;
+  const isCR = (l) => COST.test(l) || RISK.test(l);
+  const badLine = (line) => (COST.test(line) ? line.replace(/ Paid by .*$/, "") : line.replace(/ Severity: \w+( rated)?\./, ""));
   for (const f of fs.readdirSync(dir).filter((x) => /^strata-blueprints-example/.test(x))) {
     const full = path.join(dir, f);
     assert.equal(run(full, "--strict").code, 0, f);
@@ -553,7 +544,7 @@ test("topics: each example is clean, and a mutation of each cost or risk warns",
         fs.cpSync(full, tmp, { recursive: true });
         for (const n of fs.readdirSync(tmp).filter((x) => /^sbp-.*\.md$/.test(x)).sort()) {
           const md = fs.readFileSync(path.join(tmp, n), "utf8");
-          const line = md.split("\n").find((l) => /^- [CR]\d+\.\d+\. /.test(l));
+          const line = md.split("\n").find(isCR);
           if (!line) continue;
           fs.writeFileSync(path.join(tmp, n), md.replace(line, () => badLine(line)));
           assert.equal(crWarns(run(tmp)).length >= 1, true, `${f}/${n}`);
@@ -564,7 +555,7 @@ test("topics: each example is clean, and a mutation of each cost or risk warns",
       continue;
     }
     const md = fs.readFileSync(full, "utf8");
-    const line = md.split("\n").find((l) => /^- [CR]\d+\.\d+\. /.test(l));
+    const line = md.split("\n").find(isCR);
     if (!line) continue;
     const r = lintText(md.replace(line, () => badLine(line)));
     assert.equal(crWarns(r).length >= 1, true, f);
@@ -574,30 +565,27 @@ test("topics: each example is clean, and a mutation of each cost or risk warns",
 });
 
 // --- open concerns and the Given/When/Then cost form ----------------------
-const mko = (o = {}, c = {}) => {
-  const q = [o.o1, o.o2, o.o3]; let k = 0;
-  return mk(c).replace(/^(#{3,4}) 5\. Assumptions$/gm, (m, h) => { const b = q[k++]; return b === undefined ? m : `${h} 5. Open Concerns\n\n${b}\n\n${h} 6. Assumptions`; });
-};
-const ocWarns = (r) => r.lines.filter((l) => /^WARN (concern-shape|cr-id):/.test(l));
-const O = (id, raised = "Raised by the club") => `- ${id}. Given the shed may move, when the club votes, then C1.1 is priced again. ${raised}.`;
-const G = (id, amt = "40 USD per month", rest = "Paid by the club") => `- ${id}. Given the shed is open, when the club runs it, then it costs ${amt}. ${rest}.`;
+const mko = (o = {}, c = {}) => mk({ ...c, ...o });
+const ocWarns = (r) => r.lines.filter((l) => /^WARN concern-shape:/.test(l));
+const O = (id, raised = "Raised by the club") => `- ${num(id)}. Given the shed may move, when the club votes, then the cost is priced again. ${raised}.`;
+const G = (id, amt = "40 USD per month", rest = "Paid by the club") => `- ${num(id)}. Given the shed is open, when the club runs it, then it costs ${amt}. ${rest}.`;
 
 test("concern-shape: Given, when, then and Raised by are all needed", () => {
-  assert.deepEqual(ocWarns(lintText(mko({ o1: O("O1.1") }))), []);
+  assert.deepEqual(ocWarns(lintText(mko({ o1: O("vision-10.1") }))), []);
   for (const bad of [
-    "- O1.1. Given the shed may move, then C1.1 is priced again. Raised by the club.",
-    "- O1.1. Given the shed may move, when the club votes. Raised by the club.",
-    "- O1.1. When the club votes, then C1.1 is priced again. Raised by the club.",
-    "- O1.1. Given the shed may move, when the club votes, then C1.1 is priced again.",
-    "- O1.1. Given the shed may move, when the club votes, then C1.1 is priced again. Raised by .",
-    "- O1.1. The shed may move.",
+    "- 10.1. Given the shed may move, then the cost is priced again. Raised by the club.",
+    "- 10.1. Given the shed may move, when the club votes. Raised by the club.",
+    "- 10.1. When the club votes, then the cost is priced again. Raised by the club.",
+    "- 10.1. Given the shed may move, when the club votes, then the cost is priced again.",
+    "- 10.1. Given the shed may move, when the club votes, then the cost is priced again. Raised by .",
+    "- 10.1. The shed may move.",
     "The shed may move.",
-    "- R1.1. Given the shed may move, when the club votes, then C1.1 is priced again. Raised by the club.",
+    "- 9.1. Given the shed may move, when the club votes, then the cost is priced again. Raised by the club.",
   ]) assert.equal(warns(lintText(mko({ o1: bad })), "concern-shape").length, 1, bad);
 });
 
 test("concern-shape: well-formed concerns pass --strict in every layer; wrapped lines are read whole", () => {
-  const r = lintText(mko({ o1: O("O1.1") + "\n" + O("O1.2"), o2: O("O2.1"), o3: "- O3.1. Given the shed may move, when the club votes,\n  then C1.1 is priced again. Raised by the club." }), "--strict");
+  const r = lintText(mko({ o1: O("vision-10.1") + "\n" + O("vision-10.2"), o2: O("structure-9.1"), o3: "- 10.1. Given the shed may move, when the club votes,\n  then the cost is priced again. Raised by the club." }), "--strict");
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.equal(r.code, 0);
 });
@@ -608,27 +596,18 @@ test("concern-shape: None. is accepted; a table line warns", () => {
   assert.equal(warns(lintText(mko({ o1: "| Concern | Who |\n| --- | --- |\n| Shed | club |" })), "concern-shape").length >= 1, true);
 });
 
-test("cr-id: O ids are layer-scoped, unique and count up in document order", () => {
-  assert.equal(warns(lintText(mko({ o1: O("O2.1") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mko({ o1: O("O1.1") + "\n" + O("O1.1") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mko({ o1: O("O1.2") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mko({ o1: O("O1.1") + "\n" + O("O1.3") })), "cr-id").length, 1);
-  assert.equal(warns(lintText(mko({ o1: O("O1.1"), o2: O("O2.1"), o3: O("O3.1") })), "cr-id").length, 0);
-  assert.equal(warns(lintText(mko({ o1: O("O1.1") }, { c1: C("C1.1"), r1: R("R1.1") })), "cr-id").length, 0);
-});
-
 test("cost-shape: the Given, when, then cost form passes with an amount or Not supplied:", () => {
-  assert.deepEqual(crWarns(lintText(mk({ c1: G("C1.1") + "\n" + G("C1.2", "Not supplied: the hours") + "\n" + G("C1.3", "1,200 USD one-off", "Paid by the club; driven by use"), c3: G("C3.1", "3 hours") }))), []);
-  assert.equal(lintText(mk({ c1: G("C1.1") }), "--strict").code, 0);
+  assert.deepEqual(crWarns(lintText(mk({ c1: G("vision-8.1") + "\n" + G("vision-8.2", "Not supplied: the hours") + "\n" + G("vision-8.3", "1,200 USD one-off", "Paid by the club; driven by use"), c3: G("detail.shed-8.1", "3 hours") }))), []);
+  assert.equal(lintText(mk({ c1: G("vision-8.1") }), "--strict").code, 0);
 });
 
 test("cost-shape: a Given, when, then cost without Paid by or with a bad amount warns", () => {
-  assert.equal(warns(lintText(mk({ c1: "- C1.1. Given the shed is open, when the club runs it, then it costs 40 USD per month." })), "cost-shape").length, 1);
-  for (const amt of ["lots", "40", "Not supplied:", ""]) assert.equal(warns(lintText(mk({ c1: G("C1.1", amt) })), "cost-shape").length, 1, amt);
+  assert.equal(warns(lintText(mk({ c1: "- 8.1. Given the shed is open, when the club runs it, then it costs 40 USD per month." })), "cost-shape").length, 1);
+  for (const amt of ["lots", "40", "Not supplied:", ""]) assert.equal(warns(lintText(mk({ c1: G("vision-8.1", amt) })), "cost-shape").length, 1, amt);
 });
 
 test("cost-shape: a Given, when, then cost with an empty payer warns", () => {
-  assert.equal(warns(lintText(mk({ c1: "- C1.1. Given the shed is open, when the club runs it, then it costs 40 USD per month. Paid by ." })), "cost-shape").length, 1);
+  assert.equal(warns(lintText(mk({ c1: "- 8.1. Given the shed is open, when the club runs it, then it costs 40 USD per month. Paid by ." })), "cost-shape").length, 1);
 });
 
 test("lint: a directory path exits 2 with a one-line message and no stack trace", () => {
@@ -643,13 +622,13 @@ test("lint: a directory path exits 2 with a one-line message and no stack trace"
 
 test("cost-shape: natural amounts pass", () => {
   for (const amt of ["40 USD per week", "40 USD per month and more", "40 US dollars", "$1,200.50 USD per member per month", "about 40 hours", "about €40 EUR one-off", "12.5 hours per sprint"]) {
-    assert.equal(warns(lintText(mk({ c1: G("C1.1", amt) })), "cost-shape").length, 0, amt);
-    assert.equal(warns(lintText(mk({ c1: C("C1.1", amt) })), "cost-shape").length, 0, amt);
+    assert.equal(warns(lintText(mk({ c1: G("vision-8.1", amt) })), "cost-shape").length, 0, amt);
+    assert.equal(warns(lintText(mk({ c1: C("vision-8.1", amt) })), "cost-shape").length, 0, amt);
   }
 });
 
 test("cost-shape: the old cost form still passes; a document without the new topics lints as before", () => {
-  assert.deepEqual(crWarns(lintText(mk({ c1: C("C1.1") + "\n" + C("C1.2", "Not supplied: the hours") }))), []);
+  assert.deepEqual(crWarns(lintText(mk({ c1: C("vision-8.1") + "\n" + C("vision-8.2", "Not supplied: the hours") }))), []);
   assert.equal(lintText(mk(), "--strict").code, 0);
   assert.deepEqual(ocWarns(lintText(mk())), []);
 });
@@ -667,27 +646,54 @@ test("concern-shape: the three examples lint clean under --strict", () => {
 });
 
 test("cost-shape: the message names the Given, when, then form", () => {
-  const w = warns(lintText(mk({ c1: "- C1.1. Given the shed is open, when the club runs it, then it costs 40 USD per month." })), "cost-shape");
+  const w = warns(lintText(mk({ c1: "- 8.1. Given the shed is open, when the club runs it, then it costs 40 USD per month." })), "cost-shape");
   assert.equal(w.length, 1);
   assert.match(w[0], /Given/);
 });
 
-// --- costs, risks and open concerns may be omitted ---------------------------
-test("omission: a document without Costs, Risks and Open Concerns in every layer lints clean under --strict", () => {
-  const md = L1 + "### 1. Need\n\nA need.\n\n### 7. Assumptions\n\nNone.\n\n### 8. Decisions\n\nNone.\n\n"
-    + L2 + "### 1. Parts\n\nA part.\n\n### 6. Assumptions\n\nNone.\n\n### 7. Decisions\n\nNone.\n\n"
-    + L3 + "### Brakes (part)\n\n#### 1. Responsibility\n\nStops.\n\n#### 7. Assumptions\n\nNone.\n\n#### 8. Decisions\n\nNone.\n";
-  const r = lintText(md, "--strict");
-  assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
-  assert.equal(r.code, 0);
+// --- every topic is written in a written layer (plan ids, S1) ------------------
+const tw = (md) => warns(lintText(md), "topics");
+const full1 = fxT("###", T1), full2 = fxT("###", T2), full3 = "### Shed (part)\n\n" + fxT("####", T3);
+
+test("missing-topic: a written layer that lacks a topic warns once for each, and a full layer passes", () => {
+  assert.deepEqual(tw(L1 + full1 + L2 + full2 + L3 + full3), []);
+  assert.equal(lintText(L1 + full1 + L2 + full2 + L3 + full3, "--strict").code, 0);
+  // Layer 1 with only Need and Decisions lacks the other ten, one warning each, in guide order, at the layer heading.
+  const w = tw(L1 + "### 1. Need\n\nN.\n\n### 2. Decisions\n\nNone.\n\n" + L2 + full2);
+  assert.equal(w.length, 10);
+  assert.match(w[0], /^WARN topics: topic 'Target audience' is missing in Layer 1 \(line 1\)$/);
+  assert.match(w.at(-1), /topic 'Assumptions' is missing in Layer 1/);
+  assert.equal(lintText(L1 + "### 1. Need\n\nN.\n\n" + L2 + full2, "--strict").code, 1);
+  // A topic whose name is only close does not count; Layer 2 names its own missing topic.
+  assert.equal(tw(L1 + full1.replace("### 3. Value", "### 3. Values") + L2 + full2).length, 1);
+  const w2 = tw(L1 + full1 + L2 + full2.replace(/### 5\. Shared things\n\nNone\.\n/, ""));
+  assert.equal(w2.length, 1);
+  assert.match(w2[0], /topic 'Shared things' is missing in Layer 2/);
 });
 
-test("omission: only some of Costs, Risks and Open Concerns may be omitted", () => {
-  const md = L1 + "### 1. Need\n\nA need.\n\n### 7. Costs\n\nNone.\n\n### 8. Assumptions\n\nNone.\n\n### 9. Decisions\n\nNone.\n\n"
-    + L2 + "### 1. Parts\n\nA part.\n\n### 6. Risks\n\nNone.\n\n### 7. Assumptions\n\nNone.\n\n### 8. Decisions\n\nNone.\n";
-  const r = lintText(md, "--strict");
-  assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
-  assert.equal(r.code, 0);
+test("missing-topic: an entry is checked on its own, and a bare layer, an absent layer and a view are not", () => {
+  const e = tw(L1 + full1 + L2 + full2 + L3 + "### Shed (part)\n\n#### 1. Responsibility\n\nR.\n\n#### 4. Rules\n\nR.\n\n### Frame (part)\n\n" + fxT("####", T3));
+  assert.equal(e.length, 10);
+  assert.match(e[0], /topic 'Concepts and states' is missing in the entry 'Shed' \(line \d+\)$/);
+  assert.equal(e.every((l) => /the entry 'Shed'/.test(l)), true);
+  // A bare layer (no topic heading), an absent layer, a Layer 3 with no entry and a view are not checked.
+  assert.deepEqual(tw(L1 + "A need, with no topic heading.\n\n" + L2), []);
+  assert.deepEqual(tw(L1 + full1), []);
+  assert.deepEqual(tw(L1 + full1 + L2 + full2 + L3), []);
+  assert.deepEqual(tw(L1 + full1 + L2 + full2 + "## View: Flow\n\n### 1. Need\n\nN.\n"), []);
+  // A heading of a topic that is not in the layer still counts as a topic heading: the layer is checked.
+  assert.equal(tw(L1 + "### 1. Needs\n\nN.\n\n" + L2 + full2).length, 12);
+});
+
+test("missing-topic: Costs, Risks and Open Concerns must appear in every written layer", () => {
+  const without = (md, names) => md.replace(new RegExp(`#{3,4} \\d+\\. (${names.join("|")})\\n\\nNone\\.\\n\\n?`, "g"), "");
+  const doc = L1 + full1 + L2 + full2 + L3 + full3;
+  assert.deepEqual(tw(doc), []);
+  const w = tw(without(doc, ["Costs", "Risks", "Open Concerns"]));
+  assert.equal(w.length, 9);
+  for (const name of ["Costs", "Risks", "Open Concerns"]) assert.equal(w.filter((l) => l.includes(`topic '${name}'`)).length, 3, name);
+  assert.equal(lintText(without(doc, ["Open Concerns"]), "--strict").code, 1);
+  assert.equal(lintText(without(doc, ["Costs"]), "--strict").code, 1);
 });
 
 // --- folder mode (skill-optimization S1; plan D2, D3, D15) ------------------------
@@ -700,13 +706,13 @@ Status: draft
 
 Scope: the whole club.
 
-### 1. Need
+### 1. Value
 
-- V1. Given a member, when they join, then they are listed.
+- 3.1. Given a member, when they join, then they are listed.
 
 ### 2. Decisions
 
-- D1. Keep lists. Reason: simple.
+- 12.1. Keep lists. Reason: simple.
 `;
 const fxStructure = `# Club
 
@@ -726,13 +732,13 @@ Scope: the whole club.
 
 ### 6. Scenario paths
 
-- V1. Given a member, when they join, then Ledger adds a record.
+- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record.
 
 ## View: Lifecycle
 
 A member joins, then rests.
 `;
-const fxCost = (id) => `\n#### 8. Costs\n\n- ${id}. Given a busy week, when the part runs, then it costs 5 hours. Paid by the club.\n`;
+const fxCost = (id) => `\n#### 8. Costs\n\n- ${num(id)}. Given a busy week, when the part runs, then it costs 5 hours. Paid by the club.\n`;
 const fxLedger = `# Club
 
 ## Layer 3: Detail
@@ -747,7 +753,7 @@ Holds the records.
 
 #### 4. Rules
 
-- V1. Given a member, when they join, then a record is added.
+- 4.1. Realizes vision-3.1. Given a member, when they join, then a record is added.
 `;
 const fxRota = `# Club
 
@@ -761,6 +767,18 @@ Scope: one part.
 
 Plans the shifts.
 `;
+// The same stack with every topic written (each missing one reads None.), so strict runs stay clean under the topics check.
+const fxFull = {
+  "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
+    fxT("###", T1, { Value: "- 3.1. Given a member, when they join, then they are listed.", Decisions: "- 12.1. Keep lists. Reason: simple." }),
+  "sbp-structure.md": "# Club\n\n## Layer 2: Structure\n\nScope: the whole club.\n\n" +
+    fxT("###", T2, { Parts: "- Ledger (part): holds the records.\n- Rota (part): plans the shifts.", Standing: "- Ledger: sbp-detail-ledger.md\n- Rota: sbp-detail-rota.md", "Scenario paths": "- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record." }) +
+    "\n## View: Lifecycle\n\nA member joins, then rests.\n",
+  "sbp-detail-ledger.md": "# Club\n\n## Layer 3: Detail\n\nScope: one part.\n\n### Ledger (part)\n\n" +
+    fxT("####", T3, { Responsibility: "Holds the records.", Rules: "- 4.1. Realizes vision-3.1. Given a member, when they join, then a record is added." }),
+  "sbp-detail-rota.md": "# Club\n\n## Layer 3: Detail\n\nScope: one part.\n\n### Rota (part)\n\n" +
+    fxT("####", T3, { Responsibility: "Plans the shifts." }),
+};
 // Build a stack folder in a temp dir; an override of null removes the file; a key ending in "/" makes a folder.
 function fxStack(over = {}) {
   const files = { "sbp-vision.md": fxVision, "sbp-structure.md": fxStructure, "sbp-detail-ledger.md": fxLedger, "sbp-detail-rota.md": fxRota, ...over };
@@ -776,15 +794,24 @@ function fxWith(over, fn) { const dir = fxStack(over); try { return fn(dir); } f
 const fxWarns = (over, check, ...flags) => fxWith(over, (d) => warns(run(d, ...flags), check));
 
 test("folder: a clean stack passes --strict with no warning and the same summary line", () => {
-  const r = fxWith({}, (d) => run(d, "--strict"));
+  const r = fxWith(fxFull, (d) => run(d, "--strict"));
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.equal(r.code, 0);
   assert.match(r.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
   assert.ok(r.lines.some((l) => /^INFO not-supplied: 0$/.test(l)));
 });
 
+test("folder: a detail file that lacks a topic warns with its file name", () => {
+  const w = fxWarns({ ...fxFull, "sbp-detail-rota.md": fxFull["sbp-detail-rota.md"].replace(/#### 5\. Inside\n\nNone\.\n\n/, "") }, "topics");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /topic 'Inside' is missing in the entry 'Rota' \(sbp-detail-rota\.md line 7\)$/);
+  const v = fxWarns({ ...fxFull, "sbp-vision.md": fxFull["sbp-vision.md"].replace(/### 7\. Vocabulary\n\nNone\.\n\n/, "") }, "topics");
+  assert.equal(v.length, 1);
+  assert.match(v[0], /topic 'Vocabulary' is missing in Layer 1 \(sbp-vision\.md line 6\)$/);
+});
+
 test("folder: a trailing slash on the folder path works", () => {
-  const r = fxWith({}, (d) => run(d + "/", "--strict"));
+  const r = fxWith(fxFull, (d) => run(d + "/", "--strict"));
   assert.equal(r.code, 0);
 });
 
@@ -858,22 +885,6 @@ test("folder standing: 'described here' warns in folder mode", () => {
   assert.match(w[0], /described here/);
 });
 
-test("folder: cr-id counts across files in Parts order, and repeats warn", () => {
-  const rota = (id) => fxRota + fxCost(id);
-  const ledger = (id) => fxLedger + fxCost(id);
-  // Parts order Ledger, Rota: Ledger holds C3.1 and Rota holds C3.2.
-  assert.equal(fxWarns({ "sbp-detail-ledger.md": ledger("C3.1"), "sbp-detail-rota.md": rota("C3.2") }, "cr-id").length, 0);
-  // Swapped ids in the same Parts order warn.
-  assert.ok(fxWarns({ "sbp-detail-ledger.md": ledger("C3.2"), "sbp-detail-rota.md": rota("C3.1") }, "cr-id").length >= 1);
-  // Parts order Rota, Ledger puts Rota first, although the file names sort the other way.
-  const swapped = fxStructure.replace("- Ledger (part): holds the records.\n- Rota (part): plans the shifts.", "- Rota (part): plans the shifts.\n- Ledger (part): holds the records.");
-  assert.equal(fxWarns({ "sbp-structure.md": swapped, "sbp-detail-ledger.md": ledger("C3.2"), "sbp-detail-rota.md": rota("C3.1") }, "cr-id").length, 0);
-  assert.ok(fxWarns({ "sbp-structure.md": swapped, "sbp-detail-ledger.md": ledger("C3.1"), "sbp-detail-rota.md": rota("C3.2") }, "cr-id").length >= 1);
-  // The same id in two files warns as a repeat.
-  const rep = fxWarns({ "sbp-detail-ledger.md": ledger("C3.1"), "sbp-detail-rota.md": rota("C3.1") }, "cr-id");
-  assert.ok(rep.some((l) => /repeats/.test(l) && /sbp-detail-rota\.md line/.test(l)), rep.join("\n"));
-});
-
 test("folder: ring warns by layer with a file label; a view section is not a layer", () => {
   const w = fxWarns({ "sbp-vision.md": fxVision.replace("simple.", "simple, see Layer 3.") }, "ring");
   assert.equal(w.length, 1);
@@ -882,7 +893,7 @@ test("folder: ring warns by layer with a file label; a view section is not a lay
 });
 
 test("folder: a '## View:' section at the end of the structure file draws no warning", () => {
-  const r = fxWith({ "sbp-structure.md": fxStructure + "\n### Notes\n\nMore.\n" }, (d) => run(d, "--strict"));
+  const r = fxWith({ ...fxFull, "sbp-structure.md": fxFull["sbp-structure.md"] + "\n### Notes\n\nMore.\n" }, (d) => run(d, "--strict"));
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.equal(r.code, 0);
   assert.match(r.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
@@ -891,7 +902,7 @@ test("folder: a '## View:' section at the end of the structure file draws no war
 test("folder: scenario-trace 'no rule in Layer 3' runs only when a detail file exists", () => {
   const noRule = fxWarns({ "sbp-detail-ledger.md": fxLedger.replace(/#### 4\. Rules[\s\S]*$/, "") }, "scenario-trace");
   assert.equal(noRule.length, 1, noRule.join("\n"));
-  assert.match(noRule[0], /V1 has no rule in Layer 3/);
+  assert.match(noRule[0], /vision-3\.1 has no rule in Layer 3/);
   const none = fxWarns({ "sbp-detail-ledger.md": null, "sbp-detail-rota.md": null }, "scenario-trace");
   assert.equal(none.length, 0, none.join("\n"));
 });
@@ -910,7 +921,7 @@ test("folder: a folder with none of the three names exits 2 with one stderr line
 
 test("folder: a subfolder is ignored, and so are README.md and a file named for a view", () => {
   const r = fxWith({
-    "README.md": "TODO\n", ["sbp-" + "view-x.md"]: "TODO\n",
+    ...fxFull, "README.md": "TODO\n", ["sbp-" + "view-x.md"]: "TODO\n",
   }, (d) => { fs.mkdirSync(path.join(d, "sub")); fs.writeFileSync(path.join(d, "sub", "sbp-detail-extra.md"), "TODO\n"); return run(d, "--strict"); });
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.match(r.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
@@ -929,7 +940,7 @@ test("folder: an unreadable detail file exits 2 with one stderr line", { skip: p
 
 test("folder: CRLF files lint clean", () => {
   const crlf = {};
-  for (const [k, v] of Object.entries({ "sbp-vision.md": fxVision, "sbp-structure.md": fxStructure, "sbp-detail-ledger.md": fxLedger, "sbp-detail-rota.md": fxRota })) crlf[k] = v.replace(/\n/g, "\r\n");
+  for (const [k, v] of Object.entries(fxFull)) crlf[k] = v.replace(/\n/g, "\r\n");
   const r = fxWith(crlf, (d) => run(d, "--strict"));
   assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
   assert.equal(r.code, 0);
@@ -952,54 +963,54 @@ const IMP = [
   "# T", "",
   "## Layer 1: Vision", "", "Scope: all.", "",
   "### 1. Need", "",
-  "- V1. Given a member, when they join, then they are listed.", "",
+  "- 3.1. Given a member, when they join, then they are listed.", "",
   "### 2. Decisions", "",
-  "- D1.1. Keep lists. Reason: V1.", "",
+  "- 12.11. Keep lists. Reason: vision-3.1.", "",
   "## Layer 2: Structure", "", "Scope: all.", "",
   "### 1. Parts", "", "- Rota (part): plans.", "",
   "### 6. Scenario paths", "",
-  "- V1. Given a member, when they join, then Rota plans it.", "",
+  "- 6.1. Realizes vision-3.1. Given a member, when they join, then Rota plans it.", "",
   "### 7. Decisions", "",
-  "- D2.1. Lists are kept in order. Reason: follows D1.1.", "",
+  "- 11.1. Lists are kept in order. Reason: follows vision-12.11.", "",
   "## Layer 3: Detail", "", "Scope: one part.", "",
   "### Rota (part)", "",
   "#### 4. Rules", "",
-  "- V1. Given a member, when they join, then a shift is made.",
-  "- D3.1. Order by date. Reason: D2.1 and D1.1 both ask for it.",
+  "- 4.1. Realizes vision-3.1. Given a member, when they join, then a shift is made.",
+  "- 4.2. Order by date. Reason: structure-11.1 and vision-12.11 both ask for it.",
   "",
   "#### 12. Decisions", "",
-  "A loose paragraph that cites D3.1.", "",
+  "A loose paragraph that cites detail.rota-4.2.", "",
 ].join("\n");
 
 test("impact: V1 reaches paths and rules across layers at depth 1, with place and label", () => {
-  const r = fxImp(IMP, "V1");
+  const r = fxImp(IMP, "vision-3.1");
   assert.equal(r.code, 0);
-  assert.equal(r.lines[0], `impact V1: defined in Layer 1, line ${fxLine(IMP, "- V1. Given a member, when they join, then they are listed.")}`);
-  assert.equal(r.lines[1], "V1");
-  const l2 = r.lines.find((l) => /then Rota plans it/.test(l));
-  assert.match(l2, /^ {2}d1 {2}line \d+ {2}Layer 2 > Scenario paths {2}- {2}V1\. Given/);
+  assert.equal(r.lines[0], `impact vision-3.1: defined in Layer 1, line ${fxLine(IMP, "- 3.1. Given a member, when they join, then they are listed.")}`);
+  assert.equal(r.lines[1], "vision-3.1");
+  const l2 = r.lines.find((l) => /then Rota pl/.test(l));
+  assert.match(l2, /^ {2}d1 {2}line \d+ {2}Layer 2 > Scenario paths {2}structure-6\.1 {2}6\.1\. Realizes vision-3\.1\. Given/);
   assert.match(l2, new RegExp(`line ${fxLine(IMP, "then Rota plans it")} `));
-  const l3 = r.lines.find((l) => /a shift is made/.test(l));
-  assert.match(l3, /^ {2}d1 {2}line \d+ {2}Layer 3 > Rota \(part\) > Rules {2}- /);
-  assert.match(r.lines.find((l) => /Reason: V1\./.test(l)), /^ {2}d1 {2}line \d+ {2}Layer 1 > Decisions {2}D1\.1 {2}D1\.1\. Keep lists/);
+  const l3 = r.lines.find((l) => /then a shi/.test(l));
+  assert.match(l3, /^ {2}d1 {2}line \d+ {2}Layer 3 > Rota \(part\) > Rules {2}detail\.rota-4\.1 {2}4\.1\. Realizes vision-3\.1\. Given/);
+  assert.match(r.lines.find((l) => /Reason: vision-3\.1\./.test(l)), /^ {2}d1 {2}line \d+ {2}Layer 1 > Decisions {2}vision-12\.11 {2}12\.11\. Keep lists/);
 });
 
 test("impact: the seed's own element is never listed; there are no lint lines", () => {
-  const r = fxImp(IMP, "V1");
+  const r = fxImp(IMP, "vision-3.1");
   assert.ok(!r.lines.some((l) => /then they are listed/.test(l)));
   assert.ok(!r.lines.some((l) => /^(WARN|strata-blueprints-lint:|INFO not-supplied)/.test(l)));
 });
 
 test("impact: D1.1 is transitive, each element once, under the parent that reaches it first", () => {
-  const r = fxImp(IMP, "D1.1");
+  const r = fxImp(IMP, "vision-12.11");
   const at = (needle) => r.lines.findIndex((l) => l.includes(needle));
   const d2 = r.lines[at("Lists are kept in order")];
   assert.match(d2, /^ {2}d1 {2}/);
-  // D3.1 cites D2.1 and D1.1: reached at depth 1 directly, and not repeated under D2.1.
+  // detail.rota-4.2 cites structure-11.1 and vision-12.11: reached at depth 1 directly, and not repeated under structure-11.1.
   const d3 = r.lines.filter((l) => /Order by date/.test(l));
   assert.equal(d3.length, 1);
   assert.match(d3[0], /^ {2}d1 {2}/);
-  // The loose paragraph cites D3.1: depth 2, nested under D3.1 with four spaces.
+  // The loose paragraph cites detail.rota-4.2: depth 2, nested under it with four spaces.
   const para = r.lines.filter((l) => /A loose paragraph/.test(l));
   assert.equal(para.length, 1);
   assert.match(para[0], /^ {4}d2 {2}/);
@@ -1008,48 +1019,48 @@ test("impact: D1.1 is transitive, each element once, under the parent that reach
 });
 
 test("impact: D2.1 reaches D3.1 at d1 and the paragraph at d2; the order follows assembly", () => {
-  const r = fxImp(IMP, "D2.1");
+  const r = fxImp(IMP, "structure-11.1");
   assert.match(r.lines.find((l) => /Order by date/.test(l)), /^ {2}d1 /);
   assert.match(r.lines.find((l) => /A loose paragraph/.test(l)), /^ {4}d2 /);
   assert.match(r.lines.at(-1), /^INFO impact: 2 element\(s\) reached, deepest 2$/);
 });
 
 test("impact: D1 does not reach the citers of D1.1", () => {
-  const md = IMP.replace("- D1.1. Keep lists.", "- D1. Keep the lists.\n- D1.1. Keep lists.");
-  const r = fxImp(md, "D1");
+  const md = IMP.replace("- 12.11. Keep lists.", "- 12.1. Keep the lists.\n- 12.11. Keep lists.");
+  const r = fxImp(md, "vision-12.1");
   assert.equal(r.code, 0);
   assert.match(r.lines.at(-1), /^INFO impact: 0 element\(s\) reached, deepest 0$/);
 });
 
 test("impact: a citation loop is reported once and the exit stays 0", () => {
-  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- D1. Use X as D2 says. Reason: see D2.\n- D2. Use Y. Reason: follows D1.\n";
-  const r = fxImp(md, "D1");
+  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- 12.1. Use X as vision-12.2 says. Reason: see vision-12.2.\n- 12.2. Use Y. Reason: follows vision-12.1.\n";
+  const r = fxImp(md, "vision-12.1");
   assert.equal(r.code, 0);
   const cyc = r.lines.filter((l) => l.startsWith("WARN impact: cycle "));
   assert.equal(cyc.length, 1, r.out);
-  assert.match(cyc[0], /^WARN impact: cycle D1 \.\.\. D2$/);
+  assert.match(cyc[0], /^WARN impact: cycle vision-12\.1 \.\.\. vision-12\.2$/);
   assert.match(r.lines.at(-1), /^INFO impact: 1 element\(s\) reached, deepest 1$/);
 });
 
 test("impact: an element without an id is listed with '-'", () => {
-  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- V1. Given a, when b, then c.\n\nThe club follows V1 in every case.\n";
-  const r = fxImp(md, "V1");
-  const l = r.lines.find((x) => /The club follows V1/.test(x));
-  assert.match(l, /^ {2}d1 {2}line 9 {2}Layer 1 > Need {2}- {2}The club follows V1/);
+  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- 3.1. Given a, when b, then c.\n\nThe club follows vision-3.1 in every case.\n";
+  const r = fxImp(md, "vision-3.1");
+  const l = r.lines.find((x) => /The club follows vision-3\.1/.test(x));
+  assert.match(l, /^ {2}d1 {2}line 9 {2}Layer 1 > Need {2}- {2}The club follows vision-3\.1/);
 });
 
 test("impact: an id that is defined and not cited exits 0 with zero reached", () => {
-  const r = fxImp("## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- D1. Alone. Reason: none.\n", "D1");
+  const r = fxImp("## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- 12.1. Alone. Reason: none.\n", "vision-12.1");
   assert.equal(r.code, 0);
-  assert.equal(r.lines[0], "impact D1: defined in Layer 1, line 7");
+  assert.equal(r.lines[0], "impact vision-12.1: defined in Layer 1, line 7");
   assert.match(r.lines.at(-1), /^INFO impact: 0 element\(s\) reached, deepest 0$/);
 });
 
 test("impact: an id that is cited and not defined exits 1 and still lists the citers", () => {
-  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- D1. Uses D9. Reason: D9.\n";
-  const r = fxDoc(md, (f) => ({ ...fxImpact(["D9", f]), f }));
+  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 2. Decisions\n\n- 12.1. Uses vision-12.9. Reason: vision-12.9.\n";
+  const r = fxDoc(md, (f) => ({ ...fxImpact(["vision-12.9", f]), f }));
   assert.equal(r.code, 1);
-  assert.equal(r.lines[0], `WARN impact: D9 is not defined in ${r.f}`);
+  assert.equal(r.lines[0], `WARN impact: vision-12.9 is not defined in ${r.f}`);
   assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 7 /.test(l)));
   assert.match(r.lines.at(-1), /^INFO impact: 1 element\(s\) reached, deepest 1$/);
 });
@@ -1057,46 +1068,46 @@ test("impact: an id that is cited and not defined exits 1 and still lists the ci
 test("impact: id token boundaries", () => {
   const md = [
     "## Layer 1: Vision", "", "Scope: all.", "", "### 1. Need", "",
-    "- V1. Given a, when b, then c.", "- V10. Given a, when b, then c.", "",
+    "- 3.1. Given a, when b, then c.", "- 3.10. Given a, when b, then c.", "",
     "### 11. Assumptions", "",
-    "- A1.1. Basis: one. If wrong: none.", "- A1.10. Basis: ten. If wrong: none.", "",
+    "- 11.1. Basis: one. If wrong: none.", "- 11.10. Basis: ten. If wrong: none.", "",
     "### 12. Decisions", "",
-    "- D1. Cites the ten. Reason: A1.10 only.",
-    "- D2. Cites the one at a sentence end. Reason: A1.1.",
-    "- D3. Cites V10 only. Reason: V10.",
-    "- D4. Hides it in a span. Reason: `V1` and `A1.1`.",
-    "- D5. Word glued: xV1 and V1x and 2.A1.1 here. Reason: none.",
-    "", "```", "V1 A1.1 in a fence", "```", "",
+    "- 12.1. D1. Cites the ten. Reason: vision-11.10 only.",
+    "- 12.2. D2. Cites the one at a sentence end. Reason: vision-11.1.",
+    "- 12.3. D3. Cites vision-3.10 only. Reason: vision-3.10.",
+    "- 12.4. D4. Hides it in a span. Reason: `vision-3.1` and `vision-11.1`.",
+    "- 12.5. D5. Word glued: xvision-3.1 and vision-3.1x and 2.vision-11.1 here. Reason: none.",
+    "", "```", "vision-3.1 vision-11.1 in a fence", "```", "",
   ].join("\n");
-  const one = fxImp(md, "A1.1").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
+  const one = fxImp(md, "vision-11.1").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
   assert.deepEqual(one, ["D2."]);
-  const ten = fxImp(md, "A1.10").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
+  const ten = fxImp(md, "vision-11.10").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
   assert.deepEqual(ten, ["D1."]);
-  const v1 = fxImp(md, "V1");
+  const v1 = fxImp(md, "vision-3.1");
   assert.equal(v1.lines.filter((l) => /^ {2}d1 /.test(l)).length, 0, v1.out);
-  const v10 = fxImp(md, "V10").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
+  const v10 = fxImp(md, "vision-3.10").lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
   assert.deepEqual(v10, ["D3."]);
 });
 
 test("impact: labels for a part rule and for text outside any layer", () => {
-  const md = "# T\n\nVersion: V1 is the seed.\n\n## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- V1. Given a, when b, then c.\n\n## View: Flow\n\nThe flow honours V1.\n\n## Layer 3: Detail\n\nScope: x.\n\n### Rota (part)\n\n#### 4. Rules\n\n- V1. Given a, when b, then c.\n";
-  const r = fxImp(md, "V1");
-  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 3 {2}Other {2}- {2}Version: V1 is the seed\.$/.test(l)), r.out);
-  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 15 {2}Other {2}- {2}The flow honours V1\.$/.test(l)), r.out);
+  const md = "# T\n\nVersion: vision-3.1 is the seed.\n\n## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- 3.1. Given a, when b, then c.\n\n## View: Flow\n\nThe flow honours vision-3.1.\n\n## Layer 3: Detail\n\nScope: x.\n\n### Rota (part)\n\n#### 4. Rules\n\n- 4.1. Realizes vision-3.1. Given a, when b, then c.\n";
+  const r = fxImp(md, "vision-3.1");
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 3 {2}Other {2}- {2}Version: vision-3\.1 is the seed\.$/.test(l)), r.out);
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 15 {2}Other {2}- {2}The flow honours vision-3\.1\.$/.test(l)), r.out);
   assert.ok(r.lines.some((l) => /Layer 3 > Rota \(part\) > Rules/.test(l)), r.out);
 });
 
 test("impact: a nested Reason line counts for its parent element", () => {
-  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- V1. Given a, when b, then c.\n\n### 2. Decisions\n\n- D1. Use lists.\n  - Reason: because of V1.\n";
-  const r = fxImp(md, "V1");
+  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- 3.1. Given a, when b, then c.\n\n### 2. Decisions\n\n- 12.1. Use lists.\n  - Reason: because of vision-3.1.\n";
+  const r = fxImp(md, "vision-3.1");
   const l = r.lines.find((x) => /Use lists/.test(x));
-  assert.match(l, /^ {2}d1 {2}line 11 {2}Layer 1 > Decisions {2}D1 {2}D1\. Use lists\. - Reason: because of V1\.$/);
+  assert.match(l, /^ {2}d1 {2}line 11 {2}Layer 1 > Decisions {2}vision-12\.1 {2}12\.1\. Use lists\. - Reason: because of vision-3\.1\.$/);
 });
 
 test("impact: the text is cut to 80 characters with '...'", () => {
-  const long = "D1. " + "word ".repeat(40) + "cites V1.";
-  const md = `## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- V1. Given a, when b, then c.\n\n### 2. Decisions\n\n- ${long}\n`;
-  const l = fxImp(md, "V1").lines.find((x) => /^ {2}d1 /.test(x));
+  const long = "12.1. " + "word ".repeat(40) + "cites vision-3.1.";
+  const md = `## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n- 3.1. Given a, when b, then c.\n\n### 2. Decisions\n\n- ${long}\n`;
+  const l = fxImp(md, "vision-3.1").lines.find((x) => /^ {2}d1 /.test(x));
   const text = l.split("  ").at(-1);
   assert.equal(text.length, 83);
   assert.ok(text.endsWith("..."));
@@ -1106,7 +1117,7 @@ test("impact: the text is cut to 80 characters with '...'", () => {
 test("impact: usage errors exit 2 with an empty stdout and one stderr line", () => {
   const doc = IMP;
   fxDoc(doc, (f) => {
-    const cases = [[], ["V1"], ["D1.", f], ["x1", f], ["V1", f + ".missing"], ["--x", "V1", f], ["V1", f, "--strict"], ["V1", f, "extra"], ["--strict", "V1", f]];
+    const cases = [[], ["vision-3.1"], ["vision-12.1.", f], ["x1", f], ["vision-3.1", f + ".missing"], ["--x", "vision-3.1", f], ["vision-3.1", f, "--strict"], ["vision-3.1", f, "extra"], ["--strict", "vision-3.1", f]];
     for (const c of cases) {
       const r = fxImpact(c);
       assert.equal(r.code, 2, JSON.stringify(c));
@@ -1118,18 +1129,18 @@ test("impact: usage errors exit 2 with an empty stdout and one stderr line", () 
 });
 
 test("impact: a folder shows 'file line n' places and reaches across files", () => {
-  const r = fxWith({}, (d) => fxImpact(["V1", d]));
+  const r = fxWith({}, (d) => fxImpact(["vision-3.1", d]));
   assert.equal(r.code, 0);
-  assert.equal(r.lines[0], "impact V1: defined in Layer 1, sbp-vision.md line 12");
-  assert.ok(r.lines.some((l) => /^ {2}d1 {2}sbp-structure\.md line 19 {2}Layer 2 > Scenario paths {2}- /.test(l)), r.out);
-  assert.ok(r.lines.some((l) => /^ {2}d1 {2}sbp-detail-ledger\.md line 15 {2}Layer 3 > Ledger \(part\) > Rules {2}- /.test(l)), r.out);
+  assert.equal(r.lines[0], "impact vision-3.1: defined in Layer 1, sbp-vision.md line 12");
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}sbp-structure\.md line 19 {2}Layer 2 > Scenario paths {2}structure-6\.1 {2}6\.1\. Realizes /.test(l)), r.out);
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}sbp-detail-ledger\.md line 15 {2}Layer 3 > Ledger \(part\) > Rules {2}detail\.ledger-4\.1 {2}4\.1\. Realizes /.test(l)), r.out);
   assert.match(r.lines.at(-1), /^INFO impact: 2 element\(s\) reached, deepest 1$/);
 });
 
 test("impact: an empty folder exits 2 with one stderr line", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-"));
   try {
-    const r = fxImpact(["V1", dir]);
+    const r = fxImpact(["vision-3.1", dir]);
     assert.equal(r.code, 2);
     assert.equal(r.out, "");
     assert.equal(r.err.trim().split("\n").length, 1);
@@ -1139,10 +1150,359 @@ test("impact: an empty folder exits 2 with one stderr line", () => {
 test("single document: a file named V1 lints as before", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-"));
   try {
-    const f = path.join(dir, "V1");
+    const f = path.join(dir, "vision-3.1");
     fs.writeFileSync(f, L1 + L2);
     const r = run(f);
     assert.equal(r.code, 0);
     assert.match(r.lines.at(-1), /^strata-blueprints-lint: \d+ warning\(s\)$/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// --- ids as addresses (plan ids, S2) -------------------------------------------
+const iw = (md) => warns(lintText(md), "id");
+const irw = (md) => warns(lintText(md), "id-ref");
+const GWT = "Given a, when b, then c.";
+const item = (h, n, name) => `${h} ${n}. ${name}\n\n`;
+const sec = (layerHead, h, name, body) => layerHead + item(h, 1, name) + body + "\n";
+const ENTRY = (part) => `### ${part} (part)\n\n`;
+
+test("id: the topic number must match the topic the item sits under, and Construction items are numbered and need no Reason", () => {
+  const a = iw(L1 + item("###", 9, "Risks") + "- 8.1. Given a, when b, then c. Severity: High. Answered by Not supplied: x.\n\n" + L2);
+  assert.equal(a.length, 1);
+  assert.match(a[0], /vision-8\.1 is numbered for topic 8, but sits under Risks/);
+  // The number is read from the topic's name, not from the digit in the heading.
+  assert.deepEqual(iw(L1 + item("###", 4, "Risks") + "- 9.1. Given a, when b, then c. Severity: High. Answered by Not supplied: x.\n\n" + L2), []);
+  assert.deepEqual(iw(L1 + L2 + item("###", 6, "Scenario paths") + `- 6.1. ${GWT}\n`), []);
+  assert.equal(iw(L1 + L2 + item("###", 6, "Scenario paths") + `- 3.1. ${GWT}\n`).length, 1);
+  assert.equal(iw(L1 + L2 + item("###", 8, "Risks") + "- 9.1. Given a, when b, then c. Severity: Low. Answered by Not supplied: x.\n").length, 1);
+  assert.equal(iw(L1 + L2 + L3 + ENTRY("Brakes") + item("####", 7, "Construction") + "- 12.1. Fit the pads.\n").length, 1);
+  // A heading that names no topic opens no topic: the number is not checked.
+  assert.deepEqual(iw(L1 + item("###", 1, "Diagrams") + "- 9.4. Anything.\n" + L2), []);
+  // Construction items carry ids and need no Reason.
+  const cons = L1 + L2 + L3 + ENTRY("Brakes") + item("####", 7, "Construction") + "- 7.1. Fit the pads with the supplied bolts.\n- 7.2. Use steel cable.\n";
+  assert.deepEqual(iw(cons), []);
+  assert.deepEqual(warns(lintText(cons), "reasons"), []);
+  assert.deepEqual(warns(lintText(cons), "id-ref"), []);
+});
+
+test("id: a repeat warns, and a gap or a count out of order does not", () => {
+  const rep = iw(L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.1. Given d, when e, then f.\n\n` + L2);
+  assert.equal(rep.length, 1);
+  assert.match(rep[0], /vision-3\.1 repeats the one on line 7/);
+  assert.match(rep[0], /\(line 8\)$/);
+  // The same count under another topic is another id.
+  assert.deepEqual(iw(L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n\n` + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: r.\n\n" + L2), []);
+  // Gaps and order are not checked.
+  assert.deepEqual(iw(L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.4. ${GWT}\n- 3.2. ${GWT}\n- 3.10. ${GWT}\n\n` + L2), []);
+  assert.deepEqual(iw(L1 + item("###", 3, "Value") + `- 3.7. ${GWT}\n\n` + L2), []);
+});
+
+test("id: parts are separate documents, so two parts may both number 4.1, and a part's name must be a part in Layer 2 Parts", () => {
+  const two = L1 + L2 + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n\n` + ENTRY("Frame") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
+  assert.deepEqual(iw(two), []);
+  // When Parts lists a part, the slug must name one.
+  const parts = L1 + L2 + item("###", 1, "Parts") + "- Brakes (part): stops.\n- Frame (part): holds.\n\n" + L3;
+  const ok = parts + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
+  assert.deepEqual(iw(ok), []);
+  const bad = iw(ok.replace("### Brakes (part)", "### Pads (part)"));
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /detail\.pads-4\.1 names 'pads', which is not a part in Layer 2 Parts/);
+  // With no part listed in Parts the slug is not checked against it.
+  assert.deepEqual(iw(L1 + L2 + item("###", 1, "Parts") + "None.\n\n" + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`), []);
+});
+
+test("id: a part name that is not one word warns", () => {
+  const md = L1 + L2 + item("###", 1, "Parts") + "- Tool shed (part): keeps tools.\n- Brakes (part): stops.\n- Pad2 (part): grips.\n- Fore-arm (part): holds.\n\n";
+  const w = iw(md);
+  assert.equal(w.length, 2);
+  assert.match(w[0], /part name 'Tool shed' is not one word \(line 11\)$/);
+  assert.match(w[1], /part name 'Fore-arm' is not one word/);
+  assert.deepEqual(iw(L1 + L2 + item("###", 1, "Parts") + "- Brakes (part): stops.\n- **Shed** (part): keeps tools.\n\n"), []);
+});
+
+test("id: an item under a topic that needs ids warns when it has none", () => {
+  const need = [
+    [1, 3, "Value"], [1, 8, "Costs"], [1, 9, "Risks"], [1, 10, "Open Concerns"], [1, 11, "Assumptions"], [1, 12, "Decisions"],
+    [2, 6, "Scenario paths"], [2, 7, "Costs"], [2, 8, "Risks"], [2, 9, "Open Concerns"], [2, 10, "Assumptions"], [2, 11, "Decisions"],
+    [3, 4, "Rules"], [3, 6, "Limits"], [3, 7, "Construction"], [3, 8, "Costs"], [3, 9, "Risks"], [3, 10, "Open Concerns"], [3, 11, "Assumptions"], [3, 12, "Decisions"],
+  ];
+  // The fixture writes the number: the document at the start of an item is dropped (see num).
+  const doc = (layer, n, name, text) => doc0(layer, n, name, text.replace(/^- (?:vision|structure|detail\.[a-z0-9]+)-(?=\d+\.\d+\.)/gm, "- "));
+  const doc0 = (layer, n, name, body) => layer === 1 ? L1 + item("###", n, name) + body + "\n" + L2
+    : layer === 2 ? L1 + L2 + item("###", n, name) + body
+    : L1 + L2 + L3 + ENTRY("Brakes") + item("####", n, name) + body;
+  const own = { 1: "vision", 2: "structure", 3: "detail.brakes" };
+  for (const [layer, n, name] of need) {
+    const w = iw(doc(layer, n, name, "- An item with no id.\n"));
+    assert.equal(w.length, 1, `${layer} ${name}`);
+    assert.match(w[0], new RegExp(`an item under ${name} has no number \\(line \\d+\\)$`));
+    assert.deepEqual(iw(doc(layer, n, name, `- ${own[layer]}-${n}.1. An item.\n`)), [], `${layer} ${name}`);
+  }
+  // A wrapped item is one item, and a paragraph item needs an id too.
+  assert.equal(iw(doc(1, 3, "Value", "Given a, when b,\nthen c.\n")).length, 1);
+  assert.deepEqual(iw(doc(1, 3, "Value", `- 3.1. Given a, when b,\n  then c.\n`)), []);
+  // Other topics need none, and no open topic needs none.
+  assert.deepEqual(iw(doc(1, 1, "Need", "- An item with no id.\n")), []);
+  assert.deepEqual(iw(doc(2, 3, "Seams between parts", "- An item with no id.\n")), []);
+  assert.deepEqual(iw(doc(3, 5, "Inside", "- An item with no id.\n")), []);
+  assert.deepEqual(iw(L1 + "- An item with no topic open.\n" + L2), []);
+});
+
+test("id: fences, backticks, views, None, Not supplied and Title lines carry no checked id", () => {
+  const costs = (body) => L1 + item("###", 8, "Costs") + body + "\n" + L2;
+  const bad = `- 3.1. Upkeep: 40 USD. Paid by the club.\n`;
+  assert.equal(iw(costs(bad)).length, 1);
+  // Exempt lines under a topic that needs ids.
+  assert.deepEqual(iw(costs("None.\n")), []);
+  assert.deepEqual(iw(costs("- Not supplied: what it costs.\n")), []);
+  assert.deepEqual(iw(costs("Not supplied: what it costs.\n")), []);
+  assert.deepEqual(iw(costs("Title: Costs by month.\n")), []);
+  assert.deepEqual(iw(costs("| Cost | Amount |\n| --- | --- |\n| Upkeep | 40 USD |\n")), []);
+  // A fenced block and an id in backticks are ignored.
+  assert.deepEqual(iw(costs("Title: Sample.\n```\n" + bad + "```\n")), []);
+  assert.deepEqual(iw(costs("- 8.1. Upkeep: 40 USD. Paid by the club. Shown as `structure-3.1`.\n")), []);
+  assert.equal(iw(costs("- `vision-8.1` Upkeep: 40 USD. Paid by the club.\n")).length, 1);
+  // A view and text outside a layer are not checked.
+  assert.deepEqual(iw(L1 + L2 + "## View: Flow\n\n" + item("###", 8, "Costs") + bad + "- A view item with no id.\n"), []);
+  assert.deepEqual(iw("# T\n\n- 3.1. Before any layer.\n\n" + L1 + L2), []);
+});
+
+test("id-ref: a citation must exist and point inward, never to another part", () => {
+  const full = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n\n` + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: see vision-3.1.\n\n" +
+    L2 + item("###", 11, "Decisions") + "- 11.1. Choice. Reason: follows vision-12.1 and vision-3.1.\n\n" +
+    L3 + ENTRY("Brakes") + item("####", 12, "Decisions") + "- 12.1. Choice. Reason: follows structure-11.1 and vision-12.1.\n\n" +
+    ENTRY("Frame") + item("####", 12, "Decisions") + "- 12.1. Choice. Reason: follows structure-11.1.\n";
+  assert.deepEqual(irw(full), []);
+  // Undefined.
+  const und = irw(full.replace("see vision-3.1.", "see vision-12.9."));
+  assert.equal(und.length, 1);
+  assert.match(und[0], /vision-12\.9 is not defined/);
+  // Outward: Layer 1 cites Layer 2 and Layer 3, Layer 2 cites Layer 3.
+  const out1 = irw(full.replace("see vision-3.1.", "see structure-11.1."));
+  assert.equal(out1.length, 1);
+  assert.match(out1[0], /structure-11\.1 is defined in structure, which is outward of Layer 1/);
+  assert.equal(irw(full.replace("see vision-3.1.", "see detail.brakes-12.1.")).length, 1);
+  const out2 = irw(full.replace("follows vision-12.1 and vision-3.1.", "follows detail.brakes-12.1."));
+  assert.equal(out2.length, 1);
+  assert.match(out2[0], /detail\.brakes-12\.1 is defined in detail\.brakes, which is outward of Layer 2/);
+  // Layer 3 cites its own part, structure and vision; never another part.
+  const cross = irw(full.replace("follows structure-11.1.\n", "follows detail.brakes-12.1.\n"));
+  assert.equal(cross.length, 1);
+  assert.match(cross[0], /detail\.brakes-12\.1 belongs to another part, and the entry 'Frame' may not cite it/);
+  // Backticks and fences are not citations.
+  assert.deepEqual(irw(full.replace("see vision-3.1.", "see `vision-12.9`.")), []);
+  assert.deepEqual(irw(full + "\nTitle: t.\n```\nvision-12.9\n```\n"), []);
+  // A risk's Answered by: risk-ref keeps undefined and outward, id-ref reports only the cross-part case.
+  const risk = (ans) => full.replace(ENTRY("Frame") + item("####", 12, "Decisions"), `${ENTRY("Frame")}${item("####", 9, "Risks")}- 9.1. Given a, when b, then c. Severity: Low. Answered by ${ans}.\n\n#### 12. Decisions\n\n`);
+  assert.deepEqual(irw(risk("vision-12.9")), []);
+  assert.equal(warns(lintText(risk("vision-12.9")), "risk-ref").length, 1);
+  const xr = irw(risk("detail.brakes-12.1"));
+  assert.equal(xr.length, 1);
+  assert.match(xr[0], /belongs to another part/);
+  assert.deepEqual(irw(risk("structure-11.1")), []);
+});
+
+test("scenario-trace: a Realizes sentence is the trace and the line still reads Given when then", () => {
+  const l1 = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.2. Given d, when e, then f.\n\n`;
+  const l2 = (body) => L2 + item("###", 6, "Scenario paths") + body;
+  const l3 = (body) => L3 + ENTRY("Brakes") + item("####", 4, "Rules") + body;
+  const path1 = `- 6.1. Realizes vision-3.1. ${GWT}\n`;
+  const path2 = "- 6.2. Realizes vision-3.2. Given d, when e, then f.\n";
+  const rule1 = `- 4.1. Realizes vision-3.1. ${GWT}\n`;
+  const rule2 = "- 4.2. Realizes vision-3.2. Given d, when e, then f.\n";
+  const st = (md) => warns(lintText(md), "scenario-trace");
+  assert.deepEqual(st(l1 + l2(path1 + path2) + l3(rule1 + rule2)), []);
+  // The Realizes sentence is the trace: the scenario's words with no Realizes do not trace it, and a bare mention does not.
+  const lack = st(l1 + l2(path1 + `- 6.2. ${"Given d, when e, then f."}\n`));
+  assert.equal(lack.length, 1);
+  assert.match(lack[0], /vision-3\.2 has no path in Layer 2/);
+  assert.equal(st(l1 + l2(path1 + "- 6.2. See vision-3.2. Given d, when e, then f.\n")).length, 1);
+  const norule = st(l1 + l2(path1 + path2) + l3(rule1 + "- 4.2. Given d, when e, then f.\n"));
+  assert.equal(norule.length, 1);
+  assert.match(norule[0], /vision-3\.2 has no rule in Layer 3/);
+  // The path's own id is no scenario: a Layer 2 path is not traced down by itself.
+  assert.deepEqual(st(l1 + l2(path1 + path2)), []);
+  // A Realizes line still reads Given, when, then.
+  const form = (body) => warns(lintText(l1 + l2(body + path2)), "scenario-form");
+  assert.equal(form(`- 6.1. Realizes vision-3.1. Given a it stops.\n`).length, 1);
+  assert.deepEqual(form(path1), []);
+  assert.deepEqual(form("- 6.1. A path that realizes nothing, with no Given.\n"), []);
+  assert.equal(form("- 6.1. Given a it stops.\n").length, 1);
+  // A line that realizes no scenario has its own id and no Realizes: it needs nothing more.
+  assert.deepEqual(iw(l1 + l2(path1 + path2 + `- 6.3. ${GWT}\n`)), []);
+});
+
+test("folder: a detail file's entry must be a part in Layer 2 Parts, a repeat in one file warns, and a cross-part citation warns", () => {
+  const rota = (rules) => fxFull["sbp-detail-rota.md"].replace(/#### 4\. Rules\n\nNone\./, `#### 4. Rules\n\n${rules}`);
+  const ok = { ...fxFull, "sbp-detail-rota.md": rota(`- 4.1. Realizes vision-3.1. Given a member, when they join, then a shift is made.`) };
+  assert.deepEqual(fxWarns(ok, "id"), []);
+  assert.deepEqual(fxWarns(ok, "id-ref"), []);
+  assert.deepEqual(fxWarns(ok, "scenario-trace"), []);
+  assert.equal(fxWith(ok, (d) => run(d, "--strict")).code, 0);
+  // A file that cites the other part's id warns.
+  const cross = fxWarns({ ...ok, "sbp-detail-rota.md": rota(`- 4.1. Given a member, when they join, then a shift follows detail.ledger-4.1.`) }, "id-ref");
+  assert.equal(cross.length, 1);
+  assert.match(cross[0], /detail\.ledger-4\.1 belongs to another part, and the entry 'Rota' may not cite it \(sbp-detail-rota\.md line \d+\)$/);
+  // The same count in two files is two ids; a repeat inside one file warns.
+  const dup = fxWarns({ ...ok, "sbp-detail-rota.md": rota(`- 4.1. Given a, when b, then c.\n- 4.1. Given d, when e, then f.`) }, "id");
+  assert.equal(dup.length, 1);
+  assert.match(dup[0], /detail\.rota-4\.1 repeats the one on sbp-detail-rota\.md line \d+ \(sbp-detail-rota\.md line \d+\)$/);
+  // A file named by a part with a slug outside Parts warns, and a '## View:' in the structure file draws nothing.
+  assert.equal(fxWarns({ ...ok, "sbp-detail-rota.md": rota(`- 4.1. Given a, when b, then c.`).replace("### Rota (part)", "### Zzz (part)") }, "id").length, 1);
+  assert.deepEqual(fxWarns({ ...ok, "sbp-structure.md": ok["sbp-structure.md"] + "\n### 1. Costs\n\n- No id in a view.\n" }, "id"), []);
+});
+
+test("impact: full ids keep their boundaries, vision-9.1 against vision-9.10 and vision-19.1, detail slugs and decimals in prose", () => {
+  const md = [
+    "## Layer 1: Vision", "", "Scope: all.", "", "### 9. Risks", "",
+    `- 9.1. ${GWT} Severity: Low. Answered by Not supplied: x.`,
+    `- 9.10. ${GWT} Severity: Low. Answered by Not supplied: x.`,
+    `- 19.1. ${GWT} Severity: Low. Answered by Not supplied: x.`, "",
+    "### 12. Decisions", "",
+    "- 12.1. D1. Cites nine-one. Reason: vision-9.1 only.",
+    "- 12.2. D2. Cites nine-ten. Reason: vision-9.10.",
+    "- 12.3. D3. Cites nineteen. Reason: vision-19.1.",
+    "- 12.4. D4. At a sentence end. Reason: vision-9.1.",
+    "- 12.5. D5. In a span. Reason: `vision-9.1`.",
+    "- 12.6. D6. Glued: xvision-9.1, sbp-vision-9.1, vision-9.1.2, vision-9.1x and section 9.1 and 0.5 are no citations. Reason: none.",
+    "", "## Layer 3: Detail", "", "Scope: x.", "", "### Rota (part)", "", "#### 7. Construction", "",
+    "- 7.1. A construction item.", "",
+    "#### 12. Decisions", "",
+    "- 12.1. D7. Cites the item by its slug id. Reason: detail.rota-7.1.",
+    "- 12.2. D8. Glued slug. Reason: xdetail.rota-7.1, sbp-detail.rota-7.1 and a.detail.rota-7.1 are no citations.",
+    "", "```", "vision-9.1 in a fence", "```", "",
+  ].join("\n");
+  const d1 = (id) => fxImp(md, id).lines.filter((l) => /^ {2}d1 /.test(l)).map((l) => l.match(/D\d\./)?.[0]);
+  assert.deepEqual(d1("vision-9.1"), ["D1.", "D4."]);
+  assert.deepEqual(d1("vision-9.10"), ["D2."]);
+  assert.deepEqual(d1("vision-19.1"), ["D3."]);
+  assert.deepEqual(d1("detail.rota-7.1"), ["D7."]);
+  // A decimal or a bare number is no id.
+  for (const bad of ["9.1", "0.5", "section 9.1", "vision-9", "vision-9.", "vision-0.1", "vision-9.0", "vision-9.1.2", "V1", "A1.1", "vision-9.1x", "xvision-9.1", "detail-4.1"]) {
+    const r = fxDoc(md, (f) => fxImpact([bad, f]));
+    assert.equal(r.code, 2, bad);
+    assert.equal(r.out, "", bad);
+    assert.match(r.err, /^strata-blueprints-lint: not an id: /, bad);
+  }
+  // The seed's own id, defined once, is found by its full form.
+  assert.match(fxImp(md, "vision-9.1").lines[0], /^impact vision-9\.1: defined in Layer 1, line 7$/);
+});
+
+// --- items are written with their local number (plan ids-local, S1) ------------
+test("id: a number is the item's id under the document where it sits", () => {
+  const doc = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n\n` + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: see vision-3.1.\n\n" +
+    L2 + item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${GWT}\n\n` + item("###", 11, "Decisions") + "- 11.1. Choice. Reason: follows vision-3.1 and vision-12.1.\n\n" +
+    L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. Realizes vision-3.1. ${GWT}\n\n` + item("####", 12, "Decisions") + "- 12.1. Choice. Reason: follows structure-11.1 and detail.brakes-4.1.\n";
+  assert.deepEqual(iw(doc), []);
+  assert.deepEqual(irw(doc), []);
+  // The document is the place: structure-3.1 and detail.brakes-6.1 are no items here, so citing them warns.
+  assert.equal(irw(doc.replace("see vision-3.1.", "see structure-3.1.")).length, 1);
+  assert.match(irw(doc.replace("see vision-3.1.", "see detail.brakes-6.1."))[0], /detail\.brakes-6\.1 is not defined|outward/);
+  // A number in Layer 2 is not a Layer 1 id.
+  assert.match(irw(doc.replace("see vision-3.1.", "see vision-6.1."))[0], /vision-6\.1 is not defined/);
+  // Outside a layer, under a view, and in Layer 3 with no open entry a number is no id and draws no warning.
+  assert.deepEqual(iw("# T\n\n- 3.1. Before any layer.\n\n" + L1 + L2), []);
+  assert.deepEqual(iw(L1 + L2 + "## View: Flow\n\n" + item("###", 8, "Costs") + "- 8.1. Upkeep.\n- A view item.\n"), []);
+  assert.deepEqual(iw(L1 + L2 + L3 + `- 4.1. ${GWT}\n`), []);
+});
+
+test("id: two parts or two files may both number 6.1, and a repeat in one document warns", () => {
+  const two = L1 + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + "- 6.1. A limit.\n\n" + ENTRY("Frame") + item("####", 6, "Limits") + "- 6.1. Another limit.\n";
+  assert.deepEqual(iw(two), []);
+  const rep = iw(L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.1. Given d, when e, then f.\n\n` + L2);
+  assert.equal(rep.length, 1);
+  assert.match(rep[0], /vision-3\.1 repeats the one on line 7 \(line 8\)$/);
+  const rota = (rules) => fxFull["sbp-detail-rota.md"].replace(/#### 4\. Rules\n\nNone\./, `#### 4. Rules\n\n${rules}`);
+  const files = { ...fxFull, "sbp-detail-rota.md": rota(`- 4.1. Given a, when b, then c.`) };
+  assert.deepEqual(fxWarns(files, "id"), []);
+  const dup = fxWarns({ ...files, "sbp-detail-rota.md": rota(`- 4.1. Given a, when b, then c.\n- 4.1. Given d, when e, then f.`) }, "id");
+  assert.equal(dup.length, 1);
+  assert.match(dup[0], /detail\.rota-4\.1 repeats the one on sbp-detail-rota\.md line \d+ \(sbp-detail-rota\.md line \d+\)$/);
+});
+
+test("id: a full id at the start of an item warns and reads as the number", () => {
+  const md = L1 + item("###", 3, "Value") + `- vision-3.1. ${GWT}\n\n` + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: see vision-3.1.\n\n" + L2;
+  const w = iw(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /write '3\.1\.' at the start of the item; the document goes only in a citation \(line 7\)$/);
+  assert.deepEqual(irw(md), []);
+  const r = lintText(L1 + item("###", 11, "Assumptions") + "- vision-11.1. Fact.\n\n" + L2);
+  assert.equal(warns(r, "reasons").length, 1);
+  const a = iw(L1 + L2 + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- detail.brakes-4.1. ${GWT}\n`);
+  assert.equal(a.length, 1);
+  assert.match(a[0], /write '4\.1\.'/);
+});
+
+test("id: a number for another topic warns, and decimals that are not numbers are not read", () => {
+  const a = iw(L1 + item("###", 9, "Risks") + "- 8.1. Given a, when b, then c. Severity: High. Answered by Not supplied: x.\n\n" + L2);
+  assert.equal(a.length, 1);
+  assert.match(a[0], /vision-8\.1 is numbered for topic 8, but sits under Risks/);
+  // The topic is read from its name, not from the digit in the heading.
+  assert.deepEqual(iw(L1 + item("###", 4, "Risks") + "- 9.1. Given a, when b, then c. Severity: High. Answered by Not supplied: x.\n\n" + L2), []);
+  // Not numbers: they leave an item without one.
+  for (const text of ["99.9% of nights are quiet.", "0.5 hours is allowed.", "1.05 is the ratio.", "See section 6.1 for more.", "x 6.1. mid-line."]) {
+    const w = iw(L1 + item("###", 3, "Value") + `- ${text}\n\n` + L2);
+    assert.equal(w.length, 1, text);
+    assert.match(w[0], /an item under Value has no number/, text);
+  }
+  // A decimal that reads as a number (default 1a) warns by its topic.
+  const d = iw(L1 + item("###", 5, "Success measures") + "- 2.5 seconds to load.\n\n" + L2);
+  assert.equal(d.length, 1);
+  assert.match(d[0], /vision-2\.5 is numbered for topic 2, but sits under Success measures/);
+  // A zero count or topic is not a number.
+  assert.equal(iw(L1 + item("###", 3, "Value") + "- 3.0. Given a, when b, then c.\n\n" + L2).length, 1);
+});
+
+test("id: a bare number is never a citation", () => {
+  const l1 = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n\n` + item("###", 9, "Risks") + "- 9.1. Given a, when b, then c. Severity: Low. Answered by 12.1.\n\n" + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: see section 3.1 and 6.9.\n\n";
+  const r = lintText(l1 + L2 + item("###", 6, "Scenario paths") + `- 6.1. Realizes 3.1. ${GWT}\n`);
+  assert.deepEqual(warns(r, "id-ref"), []);
+  assert.deepEqual(warns(r, "id"), []);
+  assert.equal(warns(r, "risk-ref").length, 1);
+  assert.match(warns(r, "risk-ref")[0], /'Answered by' names no id/);
+  const tr = warns(r, "scenario-trace");
+  assert.equal(tr.length, 1);
+  assert.match(tr[0], /vision-3\.1 has no path in Layer 2/);
+  // The full id after Realizes traces it.
+  const ok = lintText(l1 + L2 + item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${GWT}\n`);
+  assert.deepEqual(warns(ok, "scenario-trace"), []);
+});
+
+test("impact: a numbered item is found by its full id, and a bare number is not an id", () => {
+  const md = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n\n` + item("###", 12, "Decisions") + "- 12.1. Choice. Reason: see vision-3.1.\n\n" +
+    L2 + item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${GWT}\n`;
+  const r = fxImp(md, "vision-3.1");
+  assert.equal(r.code, 0);
+  assert.equal(r.lines[0], `impact vision-3.1: defined in Layer 1, line ${fxLine(md, "- 3.1. " + GWT)}`);
+  const l2 = r.lines.find((l) => /Realizes/.test(l));
+  assert.match(l2, /^ {2}d1 {2}line \d+ {2}Layer 2 > Scenario paths {2}structure-6\.1 {2}6\.1\. Realizes vision-3\.1\. Given/);
+  assert.match(r.lines.at(-1), /^INFO impact: 2 element\(s\) reached, deepest 1$/);
+  const bare = fxDoc(md, (f) => fxImpact(["3.1", f]));
+  assert.equal(bare.code, 2);
+  assert.match(bare.err, /^strata-blueprints-lint: not an id: 3\.1/);
+  // The document is part of the address: structure-3.1 is not the item written 3.1 in Layer 1.
+  const other = fxImp(md, "structure-3.1");
+  assert.equal(other.code, 1);
+  assert.match(other.out, /WARN impact: structure-3\.1 is not defined/);
+});
+
+test("folder: a detail file's numbers belong to its part", () => {
+  const rota = (rules) => fxFull["sbp-detail-rota.md"].replace(/#### 4\. Rules\n\nNone\./, `#### 4. Rules\n\n${rules}`);
+  const ok = { ...fxFull, "sbp-detail-rota.md": rota(`- 4.1. Realizes vision-3.1. Given a member, when they join, then a shift is made.`) };
+  assert.deepEqual(fxWarns(ok, "id"), []);
+  assert.deepEqual(fxWarns(ok, "id-ref"), []);
+  assert.equal(fxWith(ok, (d) => run(d, "--strict")).code, 0);
+  // Ledger and Rota both number 4.1; --impact finds each by its own part's id.
+  const led = fxWith(ok, (d) => fxImpact(["detail.ledger-4.1", d]));
+  assert.match(led.lines[0], /^impact detail\.ledger-4\.1: defined in Layer 3, sbp-detail-ledger\.md line \d+$/);
+  const rot = fxWith(ok, (d) => fxImpact(["detail.rota-4.1", d]));
+  assert.match(rot.lines[0], /^impact detail\.rota-4\.1: defined in Layer 3, sbp-detail-rota\.md line \d+$/);
+  // A file may not cite the other part's id.
+  const cross = fxWarns({ ...ok, "sbp-detail-rota.md": rota(`- 4.1. Given a member, when they join, then a shift follows detail.ledger-4.1.`) }, "id-ref");
+  assert.equal(cross.length, 1);
+  assert.match(cross[0], /detail\.ledger-4\.1 belongs to another part, and the entry 'Rota' may not cite it \(sbp-detail-rota\.md line \d+\)$/);
+  // An entry that is not a part in Layer 2 Parts warns by its name.
+  const bad = fxWarns({ ...ok, "sbp-detail-rota.md": ok["sbp-detail-rota.md"].replace("### Rota (part)", "### Pads (part)").replace(/#### 4\. Rules\n\n/, "#### 4. Rules\n\n") }, "id");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /detail\.pads-4\.1 names 'pads', which is not a part in Layer 2 Parts/);
 });

@@ -37,7 +37,7 @@ Load a file when its job comes up, and no sooner.
 ## AUTHOR
 1. Load the core guide. Start from the template that fits the job (core guide, How to fill it out).
 2. Interview the owner, unless the owner has already specified the subject in full. Follow the core guide's Procedure, How to interview, and keep the question log. Load each layer's guide file when the interview reaches that layer, and ask each topic's `Ask the owner`. To fill `Not supplied:` items in an existing blueprint, make them the agenda.
-3. Write layer by layer, from each topic's `How to write it`. The core guide's Short stacks says which topics and layers a subject needs; load a layer's guide file only for a layer you write. Its Views across the layers, Formatting and A stack in separate files apply where they come up.
+3. Write layer by layer, from each topic's `How to write it`. The core guide's Short stacks says which layers a subject needs and which topics are required; load a layer's guide file only for a layer you write. Its Views across the layers, Formatting and A stack in separate files apply where they come up.
 4. Check each layer: run its `Check` lines and its `Check (whole layer)`, and fix every no, or note why.
 5. Audit: follow the core guide's Procedure, Audit.
 6. Run `node scripts/strata-blueprints-lint.mjs <blueprint.md or folder>`. It reports warnings and a count of `Not supplied:` items; fix or explain each warning.

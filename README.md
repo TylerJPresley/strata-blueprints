@@ -35,7 +35,7 @@ Each of the three layers has a fixed place for each kind of content, so a model 
 | Layer | Answers | Holds | Example |
 |-------|---------|-------|---------|
 | Vision | Why does it exist? | Need, value, audience, success measures, limits | Households on one street have no yard and nowhere to grow food together. A household that joins holds a piece of ground. |
-| Structure | What are its parts? | Parts, seams between them and with the outside, scenario paths | Membership, Plots, Water, Tool shed, Rota. |
+| Structure | What are its parts? | Parts, seams between them and with the outside, scenario paths | Membership, Plots, Water, Shed, Rota. |
 | Detail | How does one part work? | Rules, pieces, seams, construction, limits | See the to-do app example for Detail; the garden example stops at Layer 2. |
 
 ### How the layers work together
@@ -48,9 +48,9 @@ Each layer rests on the layers above it. A change to Vision reaches every layer 
 
 - Changes cascade top down. When Vision changes, every path in Structure and every rule in Detail that cites it reopens and must be settled. Find each with `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact <id> <blueprint>` (core guide, section "How the layers depend on each other").
 
-- Every layer holds costs, risks and open concerns. Costs and risks are layer-scoped with ids (C1.1, R2.2) so a change to one reopens answers that cite it. An unsettled question is an Open Concern with who raised it (core guide, section "Element types").
+- Every layer holds costs, risks and open concerns. Every item in the cited topics is numbered under its topic (`8.1`) and cited by its id, the document in front (`vision-8.1`, `structure-8.2`), so a change to one reopens answers that cite it. An unsettled question is an Open Concern with who raised it (core guide, section "Element types").
 
-- Events flow through the layers. Every key scenario is written in Vision as Given/When/Then with an id (V1, V2, ...). Each scenario's path through Structure cites that id, keeping the Given and when text the same. Each rule in Detail that realizes it cites the same id. Following one id shows the whole thread from intent to construction (core guide, section "How to fill it out").
+- Events flow through the layers. Every key scenario is written in Vision as Given/When/Then and numbered under its topic (`3.1`, `3.2`, ...), and cited by its id (`vision-3.1`, `vision-3.2`, ...). Each scenario's path through Structure says `Realizes` and that id, keeping the Given and when text the same. Each rule in Detail that realizes it says the same. Following one id shows the whole thread from intent to construction (core guide, section "How to fill it out").
 
 - Decisions are written with their reason. Every choice about means, rules or trade-offs is stated as a decision with why it was chosen, so a later change to the reason reopens it (core guide, section "Rules for the layers").
 
@@ -77,7 +77,7 @@ The skill folder is the single home of the standard. SKILL.md tells an agent whi
 | Layer 1 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-1.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-1.md) | Blank Layer 1 only. | Starting Layer 1 alone or Layer 1 of a separate-file stack. |
 | Layer 2 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-2.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-2.md) | Blank Layer 2 only. | Starting Layer 2 alone or Layer 2 of a separate-file stack. |
 | Layer 3 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md) | Blank entries for one part's Detail. | Starting Layer 3 for one or more parts. |
-| Lint script | [skills/strata-blueprints/scripts/strata-blueprints-lint.mjs](skills/strata-blueprints/scripts/strata-blueprints-lint.mjs) | Checks layer structure, topic order, scenario ids, costs, risks, concerns and assumptions. Run it on a document or folder. | Checking a blueprint for warnings. |
+| Lint script | [skills/strata-blueprints/scripts/strata-blueprints-lint.mjs](skills/strata-blueprints/scripts/strata-blueprints-lint.mjs) | Checks layer structure, topic order, ids, costs, risks, concerns and assumptions. Run it on a document or folder. | Checking a blueprint for warnings. |
 | Lint reference | [docs/lint.md](docs/lint.md) | What each lint check does, how to run it with `--strict` and `--impact`, and exit codes. | Understanding lint output or running it in a gate. |
 
 ### Worked examples

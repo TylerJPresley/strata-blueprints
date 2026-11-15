@@ -79,54 +79,54 @@ Load while interviewing for, writing or checking Layer 2.
   - **Scenario paths**
     - **How to write it:**
       - For: shows that every key scenario can be carried out by the parts, which is how the division is tested.
-      - Write: one line per Layer 1 value scenario, keeping its id and its Given and when text word for word, and showing the parts it crosses in the order they act.
+      - Write: one line per Layer 1 value scenario, with its own number, then `Realizes` and the scenario's full id, keeping its Given and when text word for word, and showing the parts it crosses in the order they act.
       - Example:
-        - V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access admits the keeper and Ledger saves the new item under the keeper.
-        - V2. Given some commitments have a day or time they are due, when the keeper looks, then Ledger supplies the due values and Timing ranks them into today, overdue and upcoming.
-      - Mistake: rewording the Given or when text. The path keeps the scenario's words so it can be traced by its id.
+        - 6.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access admits the keeper and Ledger saves the new item under the keeper.
+        - 6.2. Realizes vision-3.2. Given some commitments have a day or time they are due, when the keeper looks, then Ledger supplies the due values and Timing ranks them into today, overdue and upcoming.
+      - Mistake: rewording the Given or when text. The path keeps the scenario's words so it can be traced by the `Realizes` id.
     - **Ask the owner:** walk one typical case from start to end, then one failure. Follow-up: where it ends. Not supplied: a step the owner skipped.
     - **Check:**
-      - [ ] Does every key scenario have a path through the parts, citing its id where it has one?
+      - [ ] Does every key scenario have a path through the parts that says `Realizes` and its id?
   - **Costs**
     - **How to write it:**
       - For: records what the division takes to build, run and change, and who pays, so the cost of a part or a seam is visible where the division is decided.
-      - Write: as in Layer 1, numbered C2.1, C2.2 and so on. A cost here belongs to a part, a seam or the whole division. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `7.1`, `7.2` and so on. A cost here belongs to a part, a seam or the whole division. When there are none, write `None.`
       - Example:
-        - C2.1. Given the app needs a number of screens, when the phone app and the web page are built, then it costs 4,800 USD one-off. Paid by the maintainer.
-        - C2.2. Given keepers receive a number of alerts, when the notification channel sends them, then it costs 15 USD per month. Paid by the maintainer.
+        - 7.1. Given the app needs a number of screens, when the phone app and the web page are built, then it costs 4,800 USD one-off. Paid by the maintainer.
+        - 7.2. Given keepers receive a number of alerts, when the notification channel sends them, then it costs 15 USD per month. Paid by the maintainer.
       - Mistake: pricing a tool or a material. A means and its price belong in Layer 3.
     - **Ask the owner:** what does each part or seam cost, at what condition or volume, at which moment (build, run or change), and what amount, paid by whom? Follow-up: the unit, whether it recurs (per month, per year or once), and what moves it. Not supplied: any condition, volume, amount or payer not given.
     - **Check:**
-      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic left out or `None.`?
+      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic `None.`?
   - **Risks**
     - **How to write it:**
       - For: records what could go wrong in how the work is divided, and what answers it.
-      - Write: as in Layer 1, numbered R2.1, R2.2 and so on. An answer is an id from Layer 1 or Layer 2. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `8.1`, `8.2` and so on. An answer is an id from Layer 1 or Layer 2. When there are none, write `None.`
       - Example:
-        - R2.1. Given the keeper changes the same grouping on two devices while offline, when both devices reconnect, then one change can overwrite the other. Severity: Medium. Answered by D2.2.
-        - R2.2. Given Access cannot be reached, when a keeper opens the app, then they reach nothing. Severity: Not rated. Answered by Not supplied: what the keeper sees when Access is down.
+        - 8.1. Given the keeper changes the same grouping on two devices while offline, when both devices reconnect, then one change can overwrite the other. Severity: Medium. Answered by structure-11.2.
+        - 8.2. Given Access cannot be reached, when a keeper opens the app, then they reach nothing. Severity: Not rated. Answered by Not supplied: what the keeper sees when Access is down.
       - Mistake: a risk with no situation or no harm, or an answer that names no id.
     - **Ask the owner:** what could go wrong in how the work is divided, at a part or a seam? Follow-up: how bad, and which decision or assumption answers it. Not supplied: any severity or answer not given.
     - **Check:**
-      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic left out or `None.`?
+      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic `None.`?
   - **Open Concerns**
     - **How to write it:**
       - For: records the concerns about how the work is divided that were raised and that nobody has settled yet, so none is lost. It is not a Risk, not a `Not supplied:` and not an Assumption. When settled, it moves into a Decision, an Assumption or a rule and leaves this list.
-      - Write: as in Layer 1, numbered O2.1, O2.2 and so on. A concern here belongs to a part, a seam or the whole division. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `9.1`, `9.2` and so on. A concern here belongs to a part, a seam or the whole division. When there are none, write `None.`
       - Example:
-        - O2.1. Given Notifier messages a keeper when the app is not open, when the maintainer says which channels a keeper may choose, then the seam between Notifier and the outside is fixed and C2.2 can be checked. Raised by the maintainer.
-        - O2.2. Given Folders and Presence both hold who may see a grouping, when the maintainer says which of them is the judge, then the seam between them is fixed. Raised by a keeper.
+        - 9.1. Given Notifier messages a keeper when the app is not open, when the maintainer says which channels a keeper may choose, then the seam between Notifier and the outside is fixed and structure-7.2 can be checked. Raised by the maintainer.
+        - 9.2. Given Folders and Presence both hold who may see a grouping, when the maintainer says which of them is the judge, then the seam between them is fixed. Raised by a keeper.
       - Mistake: a concern that is really a risk, an assumption or a missing fact, or a concern with no one who raised it.
     - **Ask the owner:** what is still unsettled, who raised it, and what would settle it? Follow-up: what follows once it is settled. Not supplied: a concern nobody raised stays out; never invent one.
     - **Check:**
-      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic left out or `None.`?
+      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic `None.`?
   - **Assumptions**
     - **How to write it:**
       - For: records what the division takes as true without proof, so a reader can challenge it.
-      - Write: as in Layer 1, numbered so each is unique in the document (such as A2.1), with `Basis:` and `If wrong:`. Record what a part's edges rest on.
+      - Write: as in Layer 1, each with its number (such as `10.1`), with `Basis:` and `If wrong:`. Record what a part's edges rest on.
       - Example:
-        - A2.1. A commitment belongs to exactly one grouping at a time. Basis: the keeper arranges commitments into groups they think in. If wrong: Folders and Ledger would need a many-to-many seam.
-        - A2.2. The clock and calendar can be read at any moment the app is open. Basis: every device the keeper uses keeps its own time. If wrong: Timing would need a seam to a time source of its own.
+        - 10.1. A commitment belongs to exactly one grouping at a time. Basis: the keeper arranges commitments into groups they think in. If wrong: Folders and Ledger would need a many-to-many seam.
+        - 10.2. The clock and calendar can be read at any moment the app is open. Basis: every device the keeper uses keeps its own time. If wrong: Timing would need a seam to a time source of its own.
       - Mistake: stating an assumption as settled fact. An assumption says what would change if it is wrong.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**
@@ -134,10 +134,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Decisions**
     - **How to write it:**
       - For: records what was chosen in the division, each with its reason.
-      - Write: as in Layer 1, numbered so each is unique in the document (such as D2.1), with `Reason:`. Record why a part is a part of its own, and why two parts were kept apart.
+      - Write: as in Layer 1, each with its number (such as `11.1`), with `Reason:`. Record why a part is a part of its own, and why two parts were kept apart.
       - Example:
-        - D2.1. "Due" is judged by one part, Timing, rather than by each part that cares about time. Reason: one judge keeps "due" meaning the same everywhere.
-        - D2.2. Keeping devices in step is one part, Presence, separate from the parts that hold the data. Reason: reconciling changes made apart is one hard job, and concentrating it keeps each data part simple.
+        - 11.1. "Due" is judged by one part, Timing, rather than by each part that cares about time. Reason: one judge keeps "due" meaning the same everywhere.
+        - 11.2. Keeping devices in step is one part, Presence, separate from the parts that hold the data. Reason: reconciling changes made apart is one hard job, and concentrating it keeps each data part simple.
       - Mistake: recording the division without the reasons for it. A reader cannot tell a deliberate cut from an accident.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**

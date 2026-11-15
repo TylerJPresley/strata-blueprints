@@ -13,7 +13,25 @@ const TOPICS = {
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   3: ["Responsibility", "Concepts and states", "Seams", "Rules", "Inside", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
 };
-const REASON_TOPICS = ["Assumptions", "Decisions"];
+// Topics whose items carry a number (each item, written <topic>.<count>, at the start of its line).
+const NEEDS_ID = {
+  1: ["Value", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
+  2: ["Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
+  3: ["Rules", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
+};
+const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : 3);
+const topicNo = (layer, name) => (TOPICS[layer] ? TOPICS[layer].indexOf(name) + 1 || null : null);
+
+// An item is written with its number, <topic>.<count>: 9.1, 6.2, 7.1. Its id is the document it sits in plus the number:
+// vision-9.1, structure-6.2, detail.ledger-7.1. A citation writes the id in full.
+const NUMBER = /^\**([1-9]\d*)\.([1-9]\d*)(?!\w|-|\.\d)(?=[.:)*\s]|$)/;
+const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
+const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
+const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`);
+const START = (s) => NUMBER.test(s) || OWNID.test(s);
+const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
+const clean = (s) => s.replace(/`[^`]*`/g, " ");
+const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
 const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
 if (process.argv[2] === "--impact") runImpact(process.argv.slice(3));
@@ -28,39 +46,16 @@ const warnAt = (check, detail, loc) => { count++; console.log(`WARN ${check}: ${
 const warn = (check, detail, n) => warnAt(check, detail, target.where(n));
 if (target.folder) folderChecks(target.folder, warnAt);
 const MARK = /^(?:[-*+]|\d+[.)])\s+/;
-const indentOf = (s) => s.length - s.trimStart().length;
-const ID = /^\**(?:([AD])|(Assumption|Decision)\s+[AD]?)(\d+(?:\.\d+)*)([.:)]*\**[.:)]*)(?=\s|$)/;
-const idOf = (s) => { const m = s.match(ID); return m ? { kind: m[1] || m[2][0], num: m[3], closed: /[.:)]/.test(m[4]) } : null; };
-const itemText = (i) => {
-  const base = indentOf(rows[i]);
-  let text = rows[i];
-  for (let j = i + 1; j < rows.length; j++) {
-    const r = rows[j], rt = r.trim();
-    if (rt === "" || /^#{1,6}\s/.test(rt) || rt.startsWith("```") || rt.startsWith("~~~")) break;
-    const lead = rt.replace(MARK, "");
-    if (idOf(lead) || (indentOf(r) <= base && MARK.test(rt))) break;
-    text += " " + rt;
-  }
-  return text;
-};
 
 let fence = null;            // { lang, open } while inside a fenced block
 let layer = null;            // current layer number, null outside any layer
 let seen = [];               // layer numbers seen, in order
 let pendingScope = null;     // line of a layer heading still awaiting its Scope: line
 let lastTopic = -1;
-let inReasons = false;
 let entry = null;            // current Detail entry's part name, or null
 let lastEntryTopic = -1;     // last entry topic index seen
-const l1Ids = new Map();     // scenario id -> Layer 1 definition line
-const l2Cites = new Set();   // ids cited in Layer 2
-const l3Cites = new Set();   // ids cited in Layer 3
-const defined = new Map();   // A and D ids defined in a layer, as 'A1.2' -> layer
-let cr = null;               // open Costs or Risks topic: { kind, layer, items }
-const crTopics = [];         // every Costs and Risks topic, checked at the end
-const crIds = new Map();     // C and R id -> line
-const crLast = {};           // last count used per kind and layer
-const riskRefs = [];         // answering ids cited by risks, checked at the end
+const units = [];            // written layers (1, 2) and Layer 3 entries: { layer, name, line, heads }, checked at the end
+let unit = null;             // the open unit, or null
 
 for (let i = 0; i < rows.length; i++) {
   const line = rows[i], n = i + 1, t = line.trim();
@@ -80,8 +75,8 @@ for (let i = 0; i < rows.length; i++) {
 
   const h2 = t.match(/^## (.*)$/);
   if (h2) {
-    pendingScope = null; lastTopic = -1; layer = null; inReasons = false;
-    entry = null; lastEntryTopic = -1; cr = null;
+    pendingScope = null; lastTopic = -1; layer = null;
+    entry = null; lastEntryTopic = -1; unit = null;
     if (/^Layer\b/.test(h2[1])) {
       const m = h2[1].match(/^Layer (\d+): (.+)$/);
       if (!m || +m[1] < 1 || +m[1] > 3 || NAMES[m[1] - 1] !== m[2].trim()) {
@@ -90,6 +85,7 @@ for (let i = 0; i < rows.length; i++) {
         const num = +m[1];
         if (seen.length && num <= seen.at(-1)) warn("layer-heading", `Layer ${num} is out of order`, n);
         seen.push(num); layer = num; pendingScope = n;
+        if (num < 3) { unit = { layer: num, name: null, line: n, heads: new Set() }; units.push(unit); }
       }
     }
     continue;
@@ -101,20 +97,8 @@ for (let i = 0; i < rows.length; i++) {
     pendingScope = null;
   }
 
-  if (/^#{1,6}\s/.test(t)) {
-    cr = null;
-    const m = t.match(/^(###|####)\s+\d+\.\s+(Costs|Risks|Open Concerns)\s*$/);
-    if (m && layer && (layer < 3 ? m[1] === "###" : m[1] === "####" && entry !== null)) {
-      cr = { kind: m[2] === "Open Concerns" ? "O" : m[2][0], layer, items: [] }; crTopics.push(cr);
-    }
-  } else if (cr) {
-    const prev = cr.items.at(-1);
-    if (prev && !MARK.test(t) && !t.startsWith("|") && prev.t.length && !prev.t.startsWith("|")) prev.t += " " + t;
-    else cr.items.push({ n, t });
-  }
-
-  if (/^#{3,6}\s/.test(t)) inReasons = REASON_TOPICS.includes(t.replace(/^#{3,6}\s+(?:\d+\.\s+)?/, ""));
   const h3 = t.match(/^### (\d+)\. (.+?)\s*$/);
+  if (h3 && layer && layer < 3 && unit) unit.heads.add(h3[2]);
   if (h3 && layer) {
     const idx = TOPICS[layer].indexOf(h3[2]);
     if (idx < 0) warn("topic-order", `'${h3[2]}' is not a Layer ${layer} topic`, n);
@@ -124,13 +108,14 @@ for (let i = 0; i < rows.length; i++) {
 
   const h3part = t.match(/^### (.+?) \(part\)\s*$/);
   if (t.startsWith("### ")) {
-    if (layer === 3 && h3part) { entry = h3part[1]; lastEntryTopic = -1; }
-    else { entry = null; }
+    if (layer === 3 && h3part) { entry = h3part[1]; lastEntryTopic = -1; unit = { layer: 3, name: entry, line: n, heads: new Set() }; units.push(unit); }
+    else { entry = null; if (layer === 3) unit = null; }
   }
 
   if (entry !== null) {
     const h4 = t.match(/^#### (\d+)\. (.+?)\s*$/);
     if (h4) {
+      if (unit) unit.heads.add(h4[2]);
       const idx = TOPICS[3].indexOf(h4[2]);
       if (idx < 0) warn("topic-order", `'${h4[2]}' is not a Layer 3 topic in the entry '${entry}'`, n);
       else if (idx < lastEntryTopic) warn("topic-order", `'${h4[2]}' is out of order in the entry '${entry}'`, n);
@@ -142,104 +127,154 @@ for (let i = 0; i < rows.length; i++) {
     if (+m[1] > layer && !/^## /.test(t)) warn("ring", `Layer ${layer} refers outward to Layer ${m[1]}`, n);
   }
 
-  const body = t.replace(/^(?:[-*+]|\d+[.)])\s+/, "");
-  const idMatch = body.match(/^(V\d+)\.\s+(Given .*)$/);
-  if (idMatch) {
-    const id = idMatch[1];
-    if (layer === 1) { if (!l1Ids.has(id)) l1Ids.set(id, n); }
-    else if (layer === 2) l2Cites.add(id);
-    else if (layer === 3) l3Cites.add(id);
-  }
-  const scenText = idMatch ? idMatch[2] : body;
-  if (scenText.startsWith("Given") && !/^Given .+, when .+, then .+/.test(scenText)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", n);
-
-  const id = idOf(body);
-  if (layer && id && (id.closed || inReasons) && id.kind) { const k = id.kind + id.num; if (!defined.has(k)) defined.set(k, layer); };
-  if (id && (id.closed || inReasons) && !itemText(i).includes("Not supplied:")) {
-    const text = itemText(i);
-    if (id.kind === "A" && !(text.includes("Basis:") && text.includes("If wrong:"))) warn("reasons", "assumption needs 'Basis:' and 'If wrong:'", n);
-    if (id.kind === "D" && !text.includes("Reason:")) warn("reasons", "decision needs 'Reason:'", n);
-  }
-
   notSupplied += (line.replace(/`[^`]*`/g, "").match(/Not supplied:/g) || []).length;
 }
 
 if (!seen.includes(1)) warn("layer-heading", "missing '## Layer 1: Vision'", 1);
 if (!seen.includes(2)) warn("layer-heading", `missing '## Layer 2: ${NAMES[1]}'`, 1);
 
-if (l1Ids.size) {
-  for (const [id, n] of l1Ids) {
-    if (seen.includes(2) && !l2Cites.has(id)) warn("scenario-trace", `${id} has no path in Layer 2`, n);
-    if (seen.includes(3) && !l3Cites.has(id)) warn("scenario-trace", `${id} has no rule in Layer 3`, n);
+for (const u of units) {
+  if (!u.heads.size) continue;
+  for (const name of TOPICS[u.layer]) {
+    if (!u.heads.has(name)) warn("topics", `topic '${name}' is missing in ${u.name === null ? `Layer ${u.layer}` : `the entry '${u.name}'`}`, u.line);
+  }
+}
+
+// --- ids, citations, reasons, costs, risks and open concerns ---------------
+const els = readElements(rows);
+assignOwn(els);
+for (const e of els) {
+  e.cites = [];
+  for (const c of e.body.matchAll(TOKEN)) if (c[1] !== (e.own && e.own.id) && c[1] !== e.oldTok) e.cites.push({ id: c[1], at: c.index });
+  e.topicNo = e.layer ? topicNo(e.layer, e.topic) : null;
+}
+// scenario-form: a scenario reads Given, when, then, after its own id and after a Realizes sentence.
+for (const e of els) {
+  const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
+  if (scen.startsWith("Given") && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
+}
+const live = els.filter((e) => e.layer !== null);
+const defined = new Map();             // id -> element, any own id in layers 1 to 3
+const slugsListed = [];                // part names from Layer 2 Parts
+for (const e of live) if (e.own && !defined.has(e.own.id)) defined.set(e.own.id, e);
+for (const e of live) {
+  if (e.layer !== 2 || e.topic !== "Parts" || e.table) continue;
+  const pm = e.text.replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
+  if (pm) slugsListed.push({ name: pm[1].replace(/\*+$/, "").trim(), n: e.n });
+}
+for (const p of slugsListed) if (!/^[A-Za-z0-9]+$/.test(p.name)) warn("id", `part name '${p.name}' is not one word`, p.n);
+const partSlugs = new Set(slugsListed.map((p) => p.name.toLowerCase()));
+
+const firstOf = new Map();
+for (const e of live) {
+  if (!e.own) {
+    const exempt = e.table || /^(None\.|Not supplied:|Title:)/.test(e.body);
+    if (e.topic && !exempt && !(e.layer === 3 && e.entry === null) && NEEDS_ID[e.layer].includes(e.topic)) warn("id", `an item under ${e.topic} has no number`, e.n);
+    continue;
+  }
+  const { id, doc, topic } = e.own;
+  if (e.oldForm) warn("id", `write '${topic}.${e.own.item}.' at the start of the item; the document goes only in a citation`, e.n);
+  if (e.layer === 3 && partSlugs.size && !partSlugs.has(doc.slice(7))) warn("id", `${id} names '${doc.slice(7)}', which is not a part in Layer 2 Parts`, e.n);
+  if (e.topicNo !== null && topic !== e.topicNo) warn("id", `${id} is numbered for topic ${topic}, but sits under ${e.topic}`, e.n);
+  if (firstOf.has(id)) warn("id", `${id} repeats the one on ${target.where(firstOf.get(id).n)}`, e.n);
+  else firstOf.set(id, e);
+}
+
+// id-ref: each citation points to a defined id, inward, and never into another part.
+for (const e of live) {
+  const ab = e.body.indexOf("Answered by ");
+  const risks = e.topic === "Risks";
+  for (const c of e.cites) {
+    const p = parseId(c.id);
+    const answer = risks && ab >= 0 && c.at > ab;
+    if (e.layer === 3 && e.entry !== null && p.doc.startsWith("detail.") && p.doc !== `detail.${e.entry.toLowerCase()}`) {
+      warn("id-ref", `${c.id} belongs to another part, and the entry '${e.entry}' may not cite it`, e.n);
+      continue;
+    }
+    if (answer) continue;
+    if (!defined.has(c.id)) warn("id-ref", `${c.id} is not defined`, e.n);
+    else if (DOC_LAYER(p.doc) > e.layer) warn("id-ref", `${c.id} is defined in ${p.doc}, which is outward of Layer ${e.layer}`, e.n);
+  }
+}
+
+// reasons: Assumptions need Basis and If wrong, Decisions need Reason; read from the id's topic number.
+for (const e of live) {
+  if (!e.own || e.body.includes("Not supplied:")) continue;
+  const l = e.layer;
+  const a = l === 2 ? 10 : 11, d = l === 2 ? 11 : 12;
+  if (e.own.topic === a && !(e.body.includes("Basis:") && e.body.includes("If wrong:"))) warn("reasons", "assumption needs 'Basis:' and 'If wrong:'", e.n);
+  if (e.own.topic === d && !e.body.includes("Reason:")) warn("reasons", "decision needs 'Reason:'", e.n);
+}
+
+// scenario-trace: a Layer 1 value scenario is traced by a Realizes sentence in Layer 2 and in Layer 3.
+{
+  const traced = { 2: new Set(), 3: new Set() };
+  for (const e of live) {
+    if (e.layer < 2) continue;
+    for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) traced[e.layer].add(m[1]);
+  }
+  for (const e of live) {
+    if (e.layer !== 1 || !e.own || e.own.topic !== 3) continue;
+    if (seen.includes(2) && !traced[2].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no path in Layer 2`, e.n);
+    if (seen.includes(3) && !traced[3].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no rule in Layer 3`, e.n);
   }
 }
 
 // --- costs and risks topics ----------------------------------------------
 const AMOUNT = /^(?:[A-Za-z]+ )*[$€£¥]?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s+[A-Za-z][^\n]*$/;
 const validAmount = (s) => /^Not supplied:\s*\S/.test(s) || AMOUNT.test(s);
-const ANSWER_ID = /\b(?:[AD]\d+(?:\.\d+)*|V\d+)\b/g;
 const SEVERITY = ["High", "Medium", "Low", "Not rated"];
+const SHAPE = { Costs: { check: "cost-shape", no: { 1: 8, 2: 7, 3: 8 } }, Risks: { check: "risk-shape", no: { 1: 9, 2: 8, 3: 9 } }, "Open Concerns": { check: "concern-shape", no: { 1: 10, 2: 9, 3: 10 } } };
 
-function checkCr(topic) {
-  const check = { C: "cost-shape", R: "risk-shape", O: "concern-shape" }[topic.kind];
-  const label = { C: "Costs", R: "Risks", O: "Open Concerns" }[topic.kind];
-  for (const { n, t } of topic.items) {
-    const body = t.replace(MARK, "");
-    if (t.startsWith("|")) { warn(check, "a table line; write the topic as a list", n); continue; }
-    if (body === "None." || /^Not supplied:\s*\S/.test(body)) continue;
-    const idm = body.match(/^([CRO])(\d+)\.(\d+)\.\s+(.*)$/);
-    if (!idm || idm[1] !== topic.kind) {
-      warn(check, `a line under ${label} must be 'None.' or start '${topic.kind}${topic.layer}.<n>.'`, n);
+for (const e of live) {
+  const sh = e.topic && SHAPE[e.topic];
+  if (!sh || (e.layer === 3 && e.entry === null)) continue;
+  const check = sh.check, label = e.topic, kind = e.topic;
+  if (e.table) { warn(check, "a table line; write the topic as a list", e.n); continue; }
+  if (e.body === "None." || /^Not supplied:\s*\S/.test(e.body)) continue;
+  const mine = e.own && e.own.topic === sh.no[e.layer];
+  const im = e.own && e.body.slice(e.ownEnd).match(/^\.\s+(.*)$/);
+  if (!mine || !im) {
+    warn(check, `a line under ${label} must be 'None.' or start '${sh.no[e.layer]}.<n>.'`, e.n);
+    continue;
+  }
+  const own = `${e.own.topic}.${e.own.item}`;
+  const rest = im[1].trim();
+  if (kind === "Costs") {
+    const pb = rest.indexOf(". Paid by ");
+    const head = pb > 0 ? rest.slice(0, pb) : "";
+    const payer = pb > 0 ? rest.slice(pb + 10) : "";
+    let ok = /^\S.*\.$/.test(payer);
+    const gwt = head.match(/^Given .+, when .+, then it costs (.+)$/);
+    if (gwt) ok = ok && validAmount(gwt[1].trim());
+    else if (ok) {
+      ok = false;
+      for (let k = head.indexOf(": "); k >= 0; k = head.indexOf(": ", k + 1)) if (validAmount(head.slice(k + 2).trim())) { ok = true; break; }
+    }
+    if (!ok) warn(check, `a cost must read '${own}. Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '${own}. <What>: <amount>. Paid by <who>.' is also accepted)`, e.n);
+  } else if (kind === "Open Concerns") {
+    const rb = rest.indexOf(". Raised by ");
+    const who = rb > 0 ? rest.slice(rb + 12) : "";
+    if (rb <= 0 || !/^Given .+, when .+, then .+/.test(rest.slice(0, rb)) || !/^\S.*\.$/.test(who)) {
+      warn(check, `an open concern must read '${own}. Given ..., when ..., then .... Raised by <who>.'`, e.n);
+    }
+  } else {
+    const sv = rest.indexOf(". Severity: "), ab = rest.indexOf(". Answered by ");
+    const sev = sv > 0 && ab > sv ? rest.slice(sv + 12, ab) : "";
+    const ans = ab > 0 ? rest.slice(ab + 14) : "";
+    if (sv <= 0 || ab <= sv || !/^Given .+, when .+, then .+/.test(rest.slice(0, sv)) || !SEVERITY.includes(sev) || !/^\S.*\.$/.test(ans)) {
+      warn(check, `a risk must read '${own}. Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'`, e.n);
       continue;
     }
-    const key = idm[1] + idm[2] + "." + idm[3];
-    if (+idm[2] !== topic.layer) warn("cr-id", `${key} does not carry the layer number ${topic.layer}`, n);
-    else {
-      const last = crLast[idm[1] + topic.layer] || 0;
-      if (crIds.has(key)) warn("cr-id", `${key} repeats the one on line ${crIds.get(key)}`, n);
-      else if (+idm[3] !== last + 1) warn("cr-id", `${key} should be ${idm[1]}${topic.layer}.${last + 1} (ids count up in document order)`, n);
-      if (!crIds.has(key)) crIds.set(key, n);
-      crLast[idm[1] + topic.layer] = Math.max(last, +idm[3]);
-    }
-    const rest = idm[4].trim();
-    if (topic.kind === "C") {
-      const pb = rest.indexOf(". Paid by ");
-      const head = pb > 0 ? rest.slice(0, pb) : "";
-      const payer = pb > 0 ? rest.slice(pb + 10) : "";
-      let ok = /^\S.*\.$/.test(payer);
-      const gwt = head.match(/^Given .+, when .+, then it costs (.+)$/);
-      if (gwt) ok = ok && validAmount(gwt[1].trim());
-      else if (ok) {
-        ok = false;
-        for (let k = head.indexOf(": "); k >= 0; k = head.indexOf(": ", k + 1)) if (validAmount(head.slice(k + 2).trim())) { ok = true; break; }
-      }
-      if (!ok) warn(check, "a cost must read 'C<n>. Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form 'C<n>. <What>: <amount>. Paid by <who>.' is also accepted)", n);
-    } else if (topic.kind === "O") {
-      const rb = rest.indexOf(". Raised by ");
-      const who = rb > 0 ? rest.slice(rb + 12) : "";
-      if (rb <= 0 || !/^Given .+, when .+, then .+/.test(rest.slice(0, rb)) || !/^\S.*\.$/.test(who)) {
-        warn(check, "an open concern must read 'O<n>. Given ..., when ..., then .... Raised by <who>.'", n);
-      }
-    } else {
-      const sv = rest.indexOf(". Severity: "), ab = rest.indexOf(". Answered by ");
-      const sev = sv > 0 && ab > sv ? rest.slice(sv + 12, ab) : "";
-      const ans = ab > 0 ? rest.slice(ab + 14) : "";
-      if (sv <= 0 || ab <= sv || !/^Given .+, when .+, then .+/.test(rest.slice(0, sv)) || !SEVERITY.includes(sev) || !/^\S.*\.$/.test(ans)) {
-        warn(check, "a risk must read 'R<n>. Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'", n);
-        continue;
-      }
-      if (ans.startsWith("Not supplied:")) continue;
-      const toks = ans.match(ANSWER_ID) || [];
-      if (!toks.length) warn("risk-ref", "'Answered by' names no id and does not begin 'Not supplied:'", n);
-      for (const tok of toks) riskRefs.push({ tok, n, layer: topic.layer });
+    if (ans.startsWith("Not supplied:")) continue;
+    const toks = [...ans.matchAll(TOKEN)].map((m) => m[1]);
+    if (!toks.length) warn("risk-ref", "'Answered by' names no id and does not begin 'Not supplied:'", e.n);
+    for (const tok of toks) {
+      const at = defined.has(tok) ? DOC_LAYER(parseId(tok).doc) : null;
+      if (at === null) warn("risk-ref", `${tok} is not defined in a layer`, e.n);
+      else if (at > e.layer) warn("risk-ref", `${tok} is defined in Layer ${at}, outward of Layer ${e.layer}`, e.n);
     }
   }
-}
-for (const topic of crTopics) checkCr(topic);
-for (const { tok, n, layer: from } of riskRefs) {
-  const at = tok[0] === "V" ? (l1Ids.has(tok) ? 1 : null) : (defined.get(tok) ?? null);
-  if (at === null) warn("risk-ref", `${tok} is not defined in a layer`, n);
-  else if (at > from) warn("risk-ref", `${tok} is defined in Layer ${at}, outward of Layer ${from}`, n);
 }
 
 console.log(`INFO not-supplied: ${notSupplied}`);
@@ -250,6 +285,71 @@ process.exit(strict && count ? 1 : 0);
 // Folder mode and impact mode. Function declarations, hoisted; they use no
 // constant that is defined after the first call.
 // =========================================================================
+
+// The elements of a text: a bullet with its wrapped and nested lines, a paragraph, or a table row.
+// Each carries its first line, its layer, topic and open entry, and whether it is a table row.
+function readElements(rows) {
+  const els = [];
+  let cur = null, layer = null, topic = null, entry = null, fence = null;
+  const close = () => { cur = null; };
+  const start = (n, text, indent, list, table = false) => { cur = { n, text, indent, list, table, layer, topic, entry }; els.push(cur); };
+  for (let i = 0; i < rows.length; i++) {
+    const line = rows[i], t = line.trim(), n = i + 1;
+    const f = t.match(/^(```|~~~)/);
+    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
+    if (f) { fence = f[1]; close(); continue; }
+    if (t === "") { close(); continue; }
+    if (/^#{1,6}\s/.test(t)) {
+      close();
+      if (/^## /.test(t)) {
+        const m = t.match(/^## Layer ([123]): (.+)$/);
+        layer = m && NAMES[m[1] - 1] === m[2].trim() ? +m[1] : null;
+        topic = null; entry = null;
+      } else if (/^### /.test(t)) {
+        const pe = t.match(/^### (.+?) \(part\)\s*$/);
+        const tp = t.match(/^### \d+\. (.+?)\s*$/);
+        if (layer === 3 && pe) { entry = pe[1]; topic = null; }
+        else if (tp) { topic = tp[1]; if (layer === 3) entry = null; }
+        else { topic = null; if (layer === 3) entry = null; }
+      } else if (/^#### /.test(t) && layer === 3 && entry !== null) {
+        const tp = t.match(/^#### \d+\. (.+?)\s*$/);
+        topic = tp ? tp[1] : null;
+      }
+      continue;
+    }
+    if (t.startsWith("|")) {
+      close();
+      if (!/^\|[\s:|-]+\|?$/.test(t)) { start(n, t, 0, false, true); close(); }
+      continue;
+    }
+    const indent = line.length - line.trimStart().length;
+    const mk = t.match(/^(?:[-*+]|\d+[.)])\s+(.*)$/);
+    if (mk && indent <= 1) { start(n, mk[1], indent, true); continue; }
+    if (cur && !(indent <= 1 && START(clean(t)))) { cur.text += " " + t; continue; }
+    if (mk) start(n, mk[1], indent, true); else start(n, t, indent, false);
+  }
+  for (const e of els) e.text = e.text.trim();
+  return els;
+}
+
+// Each element that starts with its number gets its full id: the document it sits in plus the number. A full id at the start
+// (the old form) is read as that number and flagged by the id check. With no document (outside a layer, in a view, in Layer 3
+// with no open entry) the number is not an id.
+function assignOwn(els) {
+  for (const e of els) {
+    e.body = clean(e.text).trim();
+    e.own = null; e.oldForm = false; e.oldTok = null; e.ownEnd = 0;
+    const nm = e.body.match(NUMBER), fm = nm ? null : e.body.match(OWNID);
+    if (fm) e.oldTok = fm[1];
+    const doc = docOf(e);
+    if (!doc) continue;
+    let topic, item;
+    if (nm) { topic = +nm[1]; item = +nm[2]; e.ownEnd = nm[0].length; }
+    else if (fm) { const p = parseId(fm[1]); topic = p.topic; item = p.item; e.oldForm = true; e.ownEnd = fm[0].length; }
+    else continue;
+    e.own = { id: `${doc}-${topic}.${item}`, doc, topic, item };
+  }
+}
 
 function die(msg) { console.error(`strata-blueprints-lint: ${msg}`); process.exit(2); }
 
@@ -393,67 +493,24 @@ function folderChecks(f, warnAt) {
 
 // --impact <id> <file or folder>
 function runImpact(args) {
-  const IDTOK = String.raw`(?:V\d+|[ACDOR]\d+(?:\.\d+)*)`;
-  const tokRe = new RegExp(String.raw`(?<![\w.])${IDTOK}(?!\w|\.\d)`, "g");
   const opts = args.filter((a) => a.startsWith("--"));
   if (opts.length) die(`unknown option in --impact mode: ${opts[0]}`);
   if (args.length < 1) die("--impact needs an id and a file or folder");
   const [id, arg] = args;
-  if (!new RegExp(`^${IDTOK}$`).test(id)) die(`not an id: ${id}`);
+  if (!new RegExp(`^${IDCORE}$`).test(id)) die(`not an id: ${id}`);
   if (arg === undefined) die("--impact needs a file or folder after the id");
   if (args.length > 2) die(`unexpected extra argument: ${args[2]}`);
   const target = loadTarget(arg);
-  const els = [];
-  let cur = null, layer = null, topic = null, entry = null, fence = null;
-  const close = () => { cur = null; };
-  const start = (n, text, indent, list) => { cur = { n, text, indent, list, layer, label: null, topic, entry }; els.push(cur); };
-  const rows = target.rows;
-  for (let i = 0; i < rows.length; i++) {
-    const line = rows[i], t = line.trim(), n = i + 1;
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
-    if (f) { fence = f[1]; close(); continue; }
-    if (t === "") { close(); continue; }
-    if (/^#{1,6}\s/.test(t)) {
-      close();
-      if (/^## /.test(t)) {
-        const m = t.match(/^## Layer ([123]): (.+)$/);
-        layer = m && NAMES[m[1] - 1] === m[2].trim() ? +m[1] : null;
-        topic = null; entry = null;
-      } else if (/^### /.test(t)) {
-        const pe = t.match(/^### (.+?) \(part\)\s*$/);
-        const tp = t.match(/^### \d+\. (.+?)\s*$/);
-        if (layer === 3 && pe) { entry = pe[1]; topic = null; }
-        else if (tp) { topic = tp[1]; if (layer === 3) entry = null; }
-        else { topic = null; if (layer === 3) entry = null; }
-      } else if (/^#### /.test(t) && layer === 3 && entry !== null) {
-        const tp = t.match(/^#### \d+\. (.+?)\s*$/);
-        topic = tp ? tp[1] : null;
-      }
-      continue;
-    }
-    if (t.startsWith("|")) {
-      close();
-      if (!/^\|[\s:|-]+\|?$/.test(t)) { start(n, t, 0, false); close(); }
-      continue;
-    }
-    const indent = line.length - line.trimStart().length;
-    const mk = t.match(/^(?:[-*+]|\d+[.)])\s+(.*)$/);
-    if (mk && indent <= 1) { start(n, mk[1], indent, true); continue; }
-    if (cur) { cur.text += " " + t; continue; }
-    if (mk) start(n, mk[1], indent, true); else start(n, t, indent, false);
-  }
+  const els = readElements(target.rows);
   // Element facts: label, own id, cites.
-  const clean = (s) => s.replace(/`[^`]*`/g, " ");
   for (const e of els) {
-    const text = e.text.trim();
-    e.text = text;
     e.label = e.layer === null ? "Other"
       : `Layer ${e.layer} > ${e.entry !== null ? (e.topic ? `${e.entry} (part) > ${e.topic}` : `${e.entry} (part)`) : (e.topic || "-")}`;
-    const c = clean(text);
-    const first = c.match(new RegExp(String.raw`^\**(?:(?:Assumption|Decision)\s+)?(${IDTOK})(?!\w|\.\d)`));
-    e.id = first && !(first[1][0] === "V" && e.layer !== 1) ? first[1] : null;
-    e.cites = [...new Set((c.match(tokRe) || []).filter((x) => x !== e.id))];
+  }
+  assignOwn(els);
+  for (const e of els) {
+    e.id = e.own ? e.own.id : null;
+    e.cites = [...new Set([...e.body.matchAll(TOKEN)].map((m) => m[1]).filter((x) => x !== e.id && x !== e.oldTok))];
   }
   const defs = new Map(), dups = [];
   for (const e of els) if (e.id) { if (defs.has(e.id)) dups.push([e.id, defs.get(e.id), e]); else defs.set(e.id, e); }

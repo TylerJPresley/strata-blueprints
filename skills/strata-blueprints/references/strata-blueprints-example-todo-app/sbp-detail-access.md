@@ -23,9 +23,9 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 4. Rules
 
-- V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access confirms the open session and attaches the keeper's identity so the item is saved as theirs.
-- Given a device presents a proof that does not match an active account, when Access checks it, then Access refuses and no session opens.
-- Given several wrong proofs arrive for one account in a short time, when the next arrives, then Access locks the account against further attempts and tells the keeper.
+- 4.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access confirms the open session and attaches the keeper's identity so the item is saved as theirs.
+- 4.2. Given a device presents a proof that does not match an active account, when Access checks it, then Access refuses and no session opens.
+- 4.3. Given several wrong proofs arrive for one account in a short time, when the next arrives, then Access locks the account against further attempts and tells the keeper.
 
 #### 5. Inside
 
@@ -34,14 +34,14 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 6. Limits
 
-- Admitting a keeper, proof in hand, completes within two seconds (Layer 1, Trustworthy with identity).
-- A keeper's held secret is never readable by anyone, including the maker (Layer 1, Private by default).
-- A proof crossing from a device cannot be read or replayed by a third party (Layer 1, Trustworthy with identity).
+- 6.1. Admitting a keeper, proof in hand, completes within two seconds (Layer 1, Trustworthy with identity).
+- 6.2. A keeper's held secret is never readable by anyone, including the maker (Layer 1, Private by default).
+- 6.3. A proof crossing from a device cannot be read or replayed by a third party (Layer 1, Trustworthy with identity).
 
 #### 7. Construction
 
-- D1.1. The keeper's secret is stored only as a slow one-way hash with a per-account salt, never in the clear. Reason: meets "the held secret is never readable" even if the store is copied.
-- D1.2. Every proof and admission crosses over an encrypted transport, and a session is carried by a signed, expiring credential the device returns on each request. Reason: meets "cannot be read or replayed" and keeps the two-second admission without re-proving each time.
+- 7.1. The keeper's secret is stored only as a slow one-way hash with a per-account salt, never in the clear. Reason: meets "the held secret is never readable" even if the store is copied.
+- 7.2. Every proof and admission crosses over an encrypted transport, and a session is carried by a signed, expiring credential the device returns on each request. Reason: meets "cannot be read or replayed" and keeps the two-second admission without re-proving each time.
 - Not supplied: how long a session stays open before the keeper must prove themselves again.
 
 #### 8. Costs
@@ -58,8 +58,8 @@ None.
 
 #### 11. Assumptions
 
-- A1.1. A keeper proves themselves once per device and is then trusted until the session ends, rather than proving on every action. Basis: the keeper adds items many times a day and would abandon the app if made to re-prove each time. If wrong: the admission limit and session rules would tighten.
+- 11.1. A keeper proves themselves once per device and is then trusted until the session ends, rather than proving on every action. Basis: the keeper adds items many times a day and would abandon the app if made to re-prove each time. If wrong: the admission limit and session rules would tighten.
 
 #### 12. Decisions
 
-- D1.3. An account is locked, not silently throttled, after repeated wrong proofs. Reason: a lock the keeper is told about protects the account and keeps the keeper informed, meeting "only the rightful keeper reaches their commitments".
+- 12.1. An account is locked, not silently throttled, after repeated wrong proofs. Reason: a lock the keeper is told about protects the account and keeps the keeper informed, meeting "only the rightful keeper reaches their commitments".

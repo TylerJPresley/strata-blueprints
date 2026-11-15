@@ -45,35 +45,35 @@ Scope: the whole app, divided into its parts, with the seams between them and wi
 
 ### 6. Scenario paths
 
-- V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access admits the keeper, Ledger saves the new item under the keeper, and Presence carries it to the keeper's other devices.
-- V2. Given the keeper has many commitments, when they open the app, then Access admits the keeper and Folders returns the keeper's groupings in order, each holding its own Ledger.
-- V3. Given some commitments have a day or time they are due, when the keeper looks, then Ledger supplies the due values and Timing ranks them into today, overdue and upcoming for the keeper to see.
-- V4. Given a commitment is due soon and the app is not open, when its due time approaches, then Timing marks it due and Notifier sends the keeper a message through the chosen notification channel.
-- V5. Given the keeper finishes a commitment, when they mark it done, then Ledger records it done so it leaves the active view, Folders still lists it as kept, and Presence carries the change to other devices.
-- V6. Given the keeper added commitments on their phone, when they open the app on their computer, then Presence brings the computer up to date from the changes Ledger and Folders recorded, under the same Access.
-- V7. Given a grouping is shared with another person, when either person changes it, then Ledger or Folders records the change under the shared grouping and Presence carries it to every person the grouping is shared with.
+- 6.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Access admits the keeper, Ledger saves the new item under the keeper, and Presence carries it to the keeper's other devices.
+- 6.2. Realizes vision-3.2. Given the keeper has many commitments, when they open the app, then Access admits the keeper and Folders returns the keeper's groupings in order, each holding its own Ledger.
+- 6.3. Realizes vision-3.3. Given some commitments have a day or time they are due, when the keeper looks, then Ledger supplies the due values and Timing ranks them into today, overdue and upcoming for the keeper to see.
+- 6.4. Realizes vision-3.4. Given a commitment is due soon and the app is not open, when its due time approaches, then Timing marks it due and Notifier sends the keeper a message through the chosen notification channel.
+- 6.5. Realizes vision-3.5. Given the keeper finishes a commitment, when they mark it done, then Ledger records it done so it leaves the active view, Folders still lists it as kept, and Presence carries the change to other devices.
+- 6.6. Realizes vision-3.6. Given the keeper added commitments on their phone, when they open the app on their computer, then Presence brings the computer up to date from the changes Ledger and Folders recorded, under the same Access.
+- 6.7. Realizes vision-3.7. Given a grouping is shared with another person, when either person changes it, then Ledger or Folders records the change under the shared grouping and Presence carries it to every person the grouping is shared with.
 
 ### 7. Costs
 
-- C2.1. Given the app needs a number of screens, when the phone app and the web page are built, then it costs 4,800 USD one-off. Paid by the maintainer.
-- C2.2. Given keepers receive a number of alerts, when the notification channel sends them, then it costs 15 USD per month. Paid by the maintainer.
+- 7.1. Given the app needs a number of screens, when the phone app and the web page are built, then it costs 4,800 USD one-off. Paid by the maintainer.
+- 7.2. Given keepers receive a number of alerts, when the notification channel sends them, then it costs 15 USD per month. Paid by the maintainer.
 
 ### 8. Risks
 
-- R2.1. Given the keeper changes the same grouping on two devices while offline, when both devices reconnect, then one change can overwrite the other. Severity: Medium. Answered by D3.
+- 8.1. Given the keeper changes the same grouping on two devices while offline, when both devices reconnect, then one change can overwrite the other. Severity: Medium. Answered by structure-11.2.
 
 ### 9. Open Concerns
 
-- O2.1. Given Notifier messages a keeper when the app is not open, when the maintainer says which channels a keeper may choose, then the seam between Notifier and the outside is fixed and C2.2 can be checked. Raised by the maintainer.
+- 9.1. Given Notifier messages a keeper when the app is not open, when the maintainer says which channels a keeper may choose, then the seam between Notifier and the outside is fixed and structure-7.2 can be checked. Raised by the maintainer.
 
 ### 10. Assumptions
 
-- A3. A commitment belongs to exactly one grouping at a time. Basis: the keeper arranges commitments into groups they think in, and a single home keeps "what is in this group" unambiguous. If wrong: Folders and Ledger would need a many-to-many seam.
+- 10.1. A commitment belongs to exactly one grouping at a time. Basis: the keeper arranges commitments into groups they think in, and a single home keeps "what is in this group" unambiguous. If wrong: Folders and Ledger would need a many-to-many seam.
 
 ### 11. Decisions
 
-- D2. "Due" is judged by one part, Timing, rather than by each part that cares about time. Reason: the clock is a shared thing, and one judge keeps "due", "overdue" and "upcoming" meaning the same for both the keeper's view and the alerts.
-- D3. Keeping devices and shared people in step is one part, Presence, separate from the parts that own the data. Reason: reconciling changes made apart is a single hard job; concentrating it keeps each data part simple and the reachable-anywhere quality in one place.
+- 11.1. "Due" is judged by one part, Timing, rather than by each part that cares about time. Reason: the clock is a shared thing, and one judge keeps "due", "overdue" and "upcoming" meaning the same for both the keeper's view and the alerts.
+- 11.2. Keeping devices and shared people in step is one part, Presence, separate from the parts that own the data. Reason: reconciling changes made apart is a single hard job; concentrating it keeps each data part simple and the reachable-anywhere quality in one place.
 - Not supplied: whether a shared grouping has an owner who alone may unshare it, or any member may.
 
 ## View: Lifecycle

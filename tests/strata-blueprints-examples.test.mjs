@@ -48,14 +48,13 @@ const MANIFEST = {
     full: false,
     layer3: true,
     // An RFP gives Detail only where the town fixes a limit or a rule, and leaves
-    // Construction to the bidder: its title, Layer 3 topics and path shape differ.
+    // Construction and Inside to the bidder: its title and path shape differ.
     rfp: true,
-    layer3Topics: ["Responsibility", "Rules", "Limits", "Construction", "Assumptions", "Decisions"],
     minPathParts: 1,
     values: 6,
-    notSupplied: [13, 13],
+    notSupplied: [17, 17],
     lifecycle: false,
-    allow: ["booking", "bookings", "staff desk"],
+    allow: ["booking", "bookings", "desk"],
     means: ["server", "servers", "client", "clients", "cloud", "database", "API",
       "HTTP", "HTTPS", "REST", "JSON", "SQL", "SQLite", "Postgres", "push",
       "WebSocket", "JavaScript", "TypeScript", "Swift", "Kotlin", "React", "token",
@@ -89,9 +88,16 @@ const LAYER2_TOPICS = GUIDE_TOPICS[1];
 const LAYER3_TOPICS = GUIDE_TOPICS[2];
 
 // --- Parsing helpers. ---
-const SCEN = /^\s*(?:[-*+]|\d+[.)])\s+(?:V\d+\.\s+)?Given (.+?), when (.+?), then (.+)$/;
-// A separate regex reads the optional scenario id (V1, V2 ...) off a line.
-const SCEN_ID = /^\s*(?:[-*+]|\d+[.)])\s+(V\d+)\.\s+Given /;
+// An item is written with its number, <topic>.<item>: 3.1, 6.1, 4.2. Its id puts the document in front, for a citation:
+// vision-3.1, structure-6.1, detail.ledger-4.2.
+const ID = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
+const NUM = String.raw`[1-9]\d*\.[1-9]\d*`;
+const OWN = String.raw`(?:${ID}|${NUM})`;
+const SCEN = new RegExp(String.raw`^\s*(?:[-*+]|\d+[.)])\s+(?:${OWN}\.\s+)?(?:Realizes ${ID}\.\s+)?Given (.+?), when (.+?), then (.+)$`);
+// A separate regex reads the scenario id off a line: the id after "Realizes " when there is one, else the written number.
+const SCEN_ID = new RegExp(String.raw`^\s*(?:[-*+]|\d+[.)])\s+(?:${OWN}\.\s+Realizes\s+)?(${OWN})\.\s+Given `);
+// A Layer 1 number read as the id it stands for.
+const fid = (id) => (id && /^\d/.test(id) ? `vision-${id}` : id);
 
 function normWs(s) { return s.replace(/\s+/g, " ").trim(); }
 
@@ -402,10 +408,10 @@ function checkExample(file, spec) {
     add("value-count", `Layer 1 has ${valuePairs.length} Value scenarios, expected ${spec.values}`);
   }
 
-  // scenario-id (every example): Layer 1 Value ids are exactly V1..Vn in order
+  // scenario-id (every example): Layer 1 Value numbers are exactly 3.1..3.n in order
   // and every Value line carries one.
   for (let i = 0; i < valuePairs.length; i++) {
-    const want = `V${i + 1}`;
+    const want = `3.${i + 1}`;
     if (valuePairs[i].id === null) {
       add("scenario-id", `Layer 1 Value line ${i + 1} has no scenario id: ${valuePairs[i].raw.trim()}`);
     } else if (valuePairs[i].id !== want) {
@@ -415,7 +421,7 @@ function checkExample(file, spec) {
 
   // path-for-value: multiset of (id,G,W) in Layer 1 Value equals Layer 2 paths; no dup.
   const pathPairs = l2 ? scenarioPairs(topicBody(l2.lines, "Scenario paths")) : [];
-  const key = (p) => (p.id || "") + "\u0000" + p.g + "\u0000" + p.w;
+  const key = (p) => (fid(p.id) || "") + "\u0000" + p.g + "\u0000" + p.w;
   const vKeys = valuePairs.map(key).sort();
   const pKeys = pathPairs.map(key).sort();
   if (new Set(pKeys).size !== pKeys.length) add("path-for-value", "a Layer 2 path (id,G,W) tuple is duplicated");
@@ -469,13 +475,13 @@ function checkExample(file, spec) {
   // same (G,W) in an entry of a part that path names.
   if ((spec.full || spec.rfp) && l3 && multiEntry) {
     for (const v of valuePairs) {
-      const path = pathPairs.find((p) => p.id === v.id && p.g === v.g && p.w === v.w);
+      const path = pathPairs.find((p) => fid(p.id) === fid(v.id) && p.g === v.g && p.w === v.w);
       const pathParts = path ? partNames.filter((n) => namesPart(path.t, n)) : [];
       let matched = false;
       for (const e of entries) {
         if (!pathParts.includes(e.name)) continue;
         const rules = scenarioPairs(topicBody(e.lines, "Rules"));
-        if (rules.some((r) => r.id === v.id && r.g === v.g && r.w === v.w)) { matched = true; break; }
+        if (rules.some((r) => fid(r.id) === fid(v.id) && r.g === v.g && r.w === v.w)) { matched = true; break; }
       }
       if (!matched) add("rule-for-path", `value ${v.id || "(no id)"} has no matching Layer 3 rule in a named part: Given ${v.g}, when ${v.w}`);
     }
@@ -552,15 +558,21 @@ function checkExample(file, spec) {
     if (scopeLine !== want) add("scope-form", `Layer 3 Scope line is '${scopeLine}', expected '${want}'`);
   }
 
-  // ids-unique: A, C, D, O and R ids across Layer 3 entries are unique in the document.
+  // ids-unique: every number that opens an item is unique in its document (Layer 1, Layer 2, or one Layer 3 part).
   {
     const ids = [];
-    let fence = false;
+    let fence = false, doc = null;
     for (const l of rows) {
-      if (/^```/.test(l.trim())) fence = !fence;
+      const t = l.trim();
+      if (/^```/.test(t)) fence = !fence;
       if (fence) continue;
-      const m = l.trim().match(/^(?:[-*+]|\d+[.)])\s+([ACDOR]\d+\.\d+)\./);
-      if (m) ids.push(m[1]);
+      const lh = t.match(/^## Layer (\d)/);
+      if (lh) doc = lh[1] === "1" ? "vision" : lh[1] === "2" ? "structure" : null;
+      const pe = t.match(/^### (.+?) \(part\)\s*$/);
+      if (pe && doc !== "vision" && doc !== "structure") doc = `detail.${pe[1].toLowerCase()}`;
+      if (/^### /.test(t) && !pe && (doc || "").startsWith("detail.")) doc = null;
+      const m = t.match(new RegExp(String.raw`^(?:[-*+]|\d+[.)])\s+(${NUM})\.`));
+      if (m && doc) ids.push(`${doc}-${m[1]}`);
     }
     const seen = new Set();
     for (const id of ids) {
@@ -665,9 +677,9 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for rule-delete");
     for (let i = r[0]; i < r[1]; i++) {
-      if (/^\s*[-*+]\s+V\d+\.\s+Given /.test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
+      if (new RegExp(String.raw`^\s*[-*+]\s+${OWN}\.\s+Realizes ${ID}\.\s+Given `).test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
     }
-    throw new Error("no Layer 3 rule citing a V id for rule-delete");
+    throw new Error("no Layer 3 rule that realizes a scenario for rule-delete");
   },
   "seams-heading"(text) {
     // Delete the Seams heading of the first Layer 3 entry.
@@ -884,9 +896,9 @@ const MUTATIONS = {
   "ids-unique"(text) {
     const rows = text.split("\n");
     for (let i = 0; i < rows.length; i++) {
-      if (/^(?:[-*+]|\d+[.)])\s+D\d+\.\d+\./.test(rows[i].trim())) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
+      if (new RegExp(String.raw`^(?:[-*+]|\d+[.)])\s+(?:12|11)\.\d+\.`).test(rows[i].trim())) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
     }
-    throw new Error("no D-id line for ids-unique");
+    throw new Error("no decision id line for ids-unique");
   },
   "not-supplied-count"(text) {
     if (!/Not supplied:/.test(text)) throw new Error("no 'Not supplied:' for not-supplied-count");
@@ -922,14 +934,14 @@ const MUTATIONS = {
       if (/^###\s+3\.\s+Value\s*$/.test(rows[i].trim())) { inValue = true; continue; }
       if (inValue && /^###/.test(rows[i].trim())) break;
       if (inValue && SCEN_ID.test(rows[i])) {
-        rows[i] = rows[i].replace(/(\s*(?:[-*+]|\d+[.)])\s+)V\d+\.\s+(Given )/, "$1$2");
+        rows[i] = rows[i].replace(new RegExp(String.raw`(\s*(?:[-*+]|\d+[.)])\s+)${OWN}\.\s+(Given )`), "$1$2");
         return rows.join("\n");
       }
     }
     throw new Error("no Layer 1 Value line with an id for scenario-id");
   },
   "path-id-wrong"(text) {
-    // Rename the id on the first Layer 2 path to V99.
+    // Rename the id the first Layer 2 path realizes to vision-3.99.
     const rows = text.split("\n");
     const r = layerRange(rows, 2);
     if (!r) throw new Error("no Layer 2 for path-id-wrong");
@@ -938,14 +950,14 @@ const MUTATIONS = {
       if (/^###\s+\d+\.\s+Scenario paths\s*$/.test(rows[i].trim())) { inScen = true; continue; }
       if (inScen && /^###/.test(rows[i].trim())) break;
       if (inScen && SCEN_ID.test(rows[i])) {
-        rows[i] = rows[i].replace(/(\s*(?:[-*+]|\d+[.)])\s+)V\d+\.(\s+Given )/, "$1V99.$2");
+        rows[i] = rows[i].replace(new RegExp(String.raw`(Realizes )${ID}(\.\s+Given )`), "$1vision-3.99$2");
         return rows.join("\n");
       }
     }
     throw new Error("no Layer 2 path with an id for path-id-wrong");
   },
   "rule-id-wrong"(text) {
-    // Rename the first value's id to V99 on every Layer 3 line carrying it.
+    // Rename the first value's id to vision-3.99 on every Layer 3 line that realizes it.
     const rows = text.split("\n");
     const layers = splitLayers(text);
     const l1 = layers.find((l) => l.num === 1);
@@ -953,12 +965,12 @@ const MUTATIONS = {
     if (!r || !l1) throw new Error("no Layer 1/3 for rule-id-wrong");
     const firstValue = scenarioPairs(topicBody(l1.lines, "Value"))[0];
     if (!firstValue || !firstValue.id) throw new Error("no first value id for rule-id-wrong");
-    const id = firstValue.id;
+    const id = fid(firstValue.id);
     let changed = false;
     for (let i = r[0]; i < r[1]; i++) {
       const idm = rows[i].match(SCEN_ID);
-      if (idm && idm[1] === id) {
-        rows[i] = rows[i].replace(new RegExp(`((?:[-*+]|\\d+[.)])\\s+)${id}\\.(\\s+Given )`), "$1V99.$2");
+      if (idm && fid(idm[1]) === id) {
+        rows[i] = rows[i].replace(new RegExp(`(Realizes )${id.replace(".", "\\.")}(\\.\\s+Given )`), "$1vision-3.99$2");
         changed = true;
       }
     }
@@ -1026,7 +1038,7 @@ const GARDEN_ROWS = [
   ["idea-layer3", "idea-layer3"],
 ];
 
-// An RFP has Layer 3 (no idea-layer3 mutation applies) and a six-topic entry.
+// An RFP has Layer 3 (no idea-layer3 mutation applies) and a twelve-topic entry.
 const RFP_ROWS = [...GARDEN_ROWS.filter(([id]) => id !== "idea-layer3"), ["rule-delete", "rule-for-path"]];
 
 let TMP;
@@ -1226,14 +1238,19 @@ function checkHowTo(text) {
         add("howto-example-size", `${where} Example has ${e.samples.length} sample line(s), expected 2 or 3`);
       }
       for (const s of e.samples) {
-        const body = s.replace(/^V\d+\.\s+/, "");
+        if (new RegExp(String.raw`^${ID}\.`).test(s)) {
+          add("howto-form", `${where} sample starts with a full id, write the local number: ${s}`);
+        }
+        const body = s.replace(new RegExp(String.raw`^(?:${NUM}\.\s+Realizes ${ID}\.\s+|${NUM}\.\s+(?=Given ))`), "");
         if (/^Given/.test(body) && !/^Given .+, when .+, then .+/.test(body)) {
           add("howto-form", `${where} sample is not Given, when, then: ${s}`);
         }
-        if (/^A\d+\.\d+\./.test(body) && !(body.includes("Basis:") && body.includes("If wrong:"))) {
+        const assumptionTopic = { 1: 11, 2: 10, 3: 11 }[g.layer];
+        const decisionTopic = { 1: 12, 2: 11, 3: 12 }[g.layer];
+        if (assumptionTopic && new RegExp(String.raw`^${assumptionTopic}\.[1-9]\d*\.`).test(s) && !(body.includes("Basis:") && body.includes("If wrong:"))) {
           add("howto-form", `${where} assumption sample lacks Basis: or If wrong:: ${s}`);
         }
-        if (/^D\d+\.\d+\./.test(body) && !body.includes("Reason:")) {
+        if (decisionTopic && new RegExp(String.raw`^${decisionTopic}\.[1-9]\d*\.`).test(s) && !body.includes("Reason:")) {
           add("howto-form", `${where} decision sample lacks Reason:: ${s}`);
         }
         const lower = s.toLowerCase();
@@ -1305,13 +1322,13 @@ const HOWTO_MUTATIONS = [
     return true;
   }, "Layer 1 Example with two or more lines")],
   [", then removed from a Given sample", "howto-form", (t) => mutateHowTo(t, 1, (rows, r) => {
-    const i = rowIn(rows, r, /^ {8}- (?:V\d+\. )?Given .+, when .+, then /);
+    const i = rowIn(rows, r, /^ {8}- (?:3\.\d+\. )?Given .+, when .+, then /);
     if (i < 0) return false;
     rows[i] = rows[i].replace(", then", "");
     return true;
   }, "Layer 1 Given sample")],
   ["If wrong: removed from an A sample", "howto-form", (t) => mutateHowTo(t, 1, (rows, r) => {
-    const i = rowIn(rows, r, /^ {8}- A\d+\.\d+\..*If wrong:/);
+    const i = rowIn(rows, r, /^ {8}- 11\.\d+\..*If wrong:/);
     if (i < 0) return false;
     rows[i] = rows[i].replace(" If wrong:", "");
     return true;

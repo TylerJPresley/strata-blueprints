@@ -11,7 +11,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   1. **Responsibility:** what the part is accountable for.
   2. **Concepts and states:** what the part works with, and the states it moves through.
   3. **Seams:** for each Layer 2 seam this part takes part in, named by that seam `<From> to <To>`, what this part offers or needs there, whatever the means. It may name what crosses, and why, in a few words so the entry reads alone; Layer 2 owns the full account and this entry does not copy it.
-  4. **Rules:** how the part acts, as scenarios, each citing the Layer 1 id it realizes where it has one. Each scenario can be run as a check.
+  4. **Rules:** how the part acts, as scenarios, each saying which Layer 1 scenario it realizes where it realizes one. Each scenario can be run as a check.
   5. **Inside:** the part's pieces, each with a name and typed as a piece (beside the name or by this topic), with no specific means.
   6. **Limits:** the checkable share of the Layer 1 qualities for this part, means-neutral.
   7. **Construction:** the specific means (tools, materials, methods), how the pieces are assembled, how the part is run where it matters, and the exact formats, values and tolerances at each seam; values are chosen to meet the Limits. Written where Rules and Seams leave a gap a maker needs closed.
@@ -57,14 +57,14 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Rules**
     - **How to write it:**
       - For: states how the part acts, as scenarios that can each be run as a check.
-      - Write: one scenario per line, Given, when, then, about this part. A rule that realizes a Layer 1 value starts with its id and keeps its Given and when text. Add rules for the edges and failures the owner gave.
+      - Write: one scenario per line, Given, when, then, about this part, each with its own number. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave.
       - Example:
-        - V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
-        - Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
+        - 4.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
+        - 4.2. Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
       - Mistake: a rule nobody can check ("Ledger is reliable"). Each rule states a situation, an event and a result that can be observed.
     - **Ask the owner:** the rules for this part, each with its threshold, trigger and renewal. Follow-up: the edge (smallest, longest, none, missed) and what happens when broken or missed. Not supplied: the value or the broken case.
     - **Check:**
-      - [ ] Is every rule a scenario that can be run as a check, citing its Layer 1 id where it has one?
+      - [ ] Is every rule a scenario that can be run as a check, with its own number and `Realizes` and its Layer 1 id where it realizes one?
   - **Inside**
     - **How to write it:**
       - For: names the pieces the part is made of, so a maker sees its inner shape without any means.
@@ -79,10 +79,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Limits**
     - **How to write it:**
       - For: gives the checkable share of the Layer 1 qualities that this part must meet, so makers can check it.
-      - Write: one bullet per limit, a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. Name no means.
+      - Write: one bullet per limit, with its number (`6.1`), a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. Name no means.
       - Example:
-        - A commitment is confirmed saved within one second of the keeper writing it (Layer 1, Prompt).
-        - A saved commitment survives a closed app, a dead battery and a lost connection (Layer 1, Durable).
+        - 6.1. A commitment is confirmed saved within one second of the keeper writing it (Layer 1, Prompt).
+        - 6.2. A saved commitment survives a closed app, a dead battery and a lost connection (Layer 1, Durable).
       - Mistake: "fast" or "reliable" with nothing to check, or a limit citing a quality that does not state it. Every limit can be checked.
     - **Ask the owner:** speed, time, counts and retention for this part, together. Follow-up: the worst acceptable value. Not supplied: any limit not given.
     - **Check:**
@@ -90,9 +90,9 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Construction**
     - **How to write it:**
       - For: closes the gaps a maker still has after Rules and Seams: the specific means, how the pieces are assembled, and the exact formats, values and tolerances at each seam.
-      - Write: only where a gap remains. Record each choice, as a decision or in a sentence, naming the means or value and, where a Limit drives it, that Limit as the reason. Write `Not supplied:` for a value nobody has chosen.
+      - Write: only where a gap remains. Record each choice as an item with its number (`7.1`), naming the means or value and, where a Limit drives it, that Limit as the reason. Write `Not supplied:` for a value nobody has chosen.
       - Example:
-        - D3.1. Each change is written to durable local storage before the save is confirmed, and only then offered to Presence. Reason: meets "survives a lost connection" and lets the one-second confirm happen without waiting for the network.
+        - 7.1. Each change is written to durable local storage before the save is confirmed, and only then offered to Presence. Reason: meets "survives a lost connection" and lets the one-second confirm happen without waiting for the network.
         - Not supplied: how long a session stays open before the keeper must prove themselves again.
       - Mistake: naming a means in Rules or Seams, or a value with no Limit behind it. Means and values are named here, each chosen to meet a Limit.
     - **Ask the owner:** sizes, counts, materials, stack, set-up values, fasteners and schedules for this part, together. Follow-up: the tolerance. Not supplied: any "not decided" value; it stays `Not supplied:`.
@@ -101,43 +101,43 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Costs**
     - **How to write it:**
       - For: records what this part takes to build, run and change, so a maker and the owner know its price before it is made.
-      - Write: as in Layer 1, numbered C3.1, C3.2 and so on, unique in the document. Name a tool or a material only where it is what costs. Write `Not supplied:` for an amount nobody gave. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `8.1`, `8.2` and so on. Name a tool or a material only where it is what costs. Write `Not supplied:` for an amount nobody gave. When there are none, write `None.`
       - Example:
-        - C3.1. Given a number of keepers use the app, when their commitments are held and served, then it costs 35 USD per month. Paid by the maintainer.
-        - C3.2. Given the stored form of a commitment changes, when stored commitments are carried forward, then it costs Not supplied: the hours one change needs. Paid by the maintainer.
+        - 8.1. Given a number of keepers use the app, when their commitments are held and served, then it costs 35 USD per month. Paid by the maintainer.
+        - 8.2. Given the stored form of a commitment changes, when stored commitments are carried forward, then it costs Not supplied: the hours one change needs. Paid by the maintainer.
       - Mistake: a cost with no amount and no `Not supplied:`, a cost with no Given or when, or a price unrelated to what this part uses.
     - **Ask the owner:** what does this part cost, at what condition or volume, at which moment (build, run or change), and what amount, paid by whom? Follow-up: the unit, whether it recurs (per month, per year or once), and what moves it. Not supplied: any condition, volume, amount or payer not given.
     - **Check:**
-      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic left out or `None.`?
+      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic `None.`?
   - **Risks**
     - **How to write it:**
       - For: records what could go wrong with this part and what answers it.
-      - Write: as in Layer 1, numbered R3.1, R3.2 and so on, unique in the document. An answer is an id from any layer, such as a decision in Construction that meets a Limit, or the V id of a rule. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `9.1`, `9.2` and so on. An answer is an id of this part, of Layer 2 or of Layer 1, such as a Construction item that meets a Limit, or a rule. When there are none, write `None.`
       - Example:
-        - R3.1. Given a keeper edits a commitment on two devices while offline, when both reconnect, then one edit can overwrite the other. Severity: Medium. Answered by D3.2.
-        - R3.2. Given the stored form of a commitment must change, when the change is rolled out, then existing commitments can be left unreadable. Severity: High. Answered by Not supplied: how a change in stored form is carried forward.
+        - 9.1. Given a keeper edits a commitment on two devices while offline, when both reconnect, then one edit can overwrite the other. Severity: Medium. Answered by detail.ledger-12.1.
+        - 9.2. Given the stored form of a commitment must change, when the change is rolled out, then existing commitments can be left unreadable. Severity: High. Answered by Not supplied: how a change in stored form is carried forward.
       - Mistake: a risk the part cannot cause or answer. A risk about the whole subject goes in Layer 1; one about the division goes in Layer 2.
     - **Ask the owner:** what could go wrong with this part, and how bad? Follow-up: which decision, rule or limit answers it. Not supplied: any severity or answer not given.
     - **Check:**
-      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic left out or `None.`?
+      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic `None.`?
   - **Open Concerns**
     - **How to write it:**
       - For: records the concerns about this part that were raised and that nobody has settled yet, and that must be settled before the work is done, so none is lost. It is not a Risk, not a `Not supplied:` and not an Assumption. When settled, it moves into a Decision, an Assumption or a rule and leaves this list.
-      - Write: as in Layer 1, numbered O3.1, O3.2 and so on, unique in the document. Say what would settle it and what it feeds, such as a Limit, a decision in Construction or a rule. When there are none, leave the topic out, or write `None.`
+      - Write: as in Layer 1, with numbers `10.1`, `10.2` and so on. Say what would settle it and what it feeds, such as a Limit, a decision in Construction or a rule. When there are none, write `None.`
       - Example:
-        - O3.1. Given a keeper may stay signed in for a long time, when the maintainer says how long a session lasts, then the session length is chosen as a Limit and recorded as a decision. Raised by the maintainer.
-        - O3.2. Given the stored form of a commitment must change, when the maintainer says whether old versions of the app must keep working, then the way stored changes are carried forward is chosen. Raised by a reviewer of the part.
+        - 10.1. Given a keeper may stay signed in for a long time, when the maintainer says how long a session lasts, then the session length is chosen as a Limit and recorded as a decision. Raised by the maintainer.
+        - 10.2. Given the stored form of a commitment must change, when the maintainer says whether old versions of the app must keep working, then the way stored changes are carried forward is chosen. Raised by a reviewer of the part.
       - Mistake: a concern that is really a risk, an assumption or a missing fact, or a concern with no one who raised it.
     - **Ask the owner:** what is still unsettled, who raised it, and what would settle it? Follow-up: what follows once it is settled. Not supplied: a concern nobody raised stays out; never invent one.
     - **Check:**
-      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic left out or `None.`?
+      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic `None.`?
   - **Assumptions**
     - **How to write it:**
       - For: records what the part's rules rest on, each with its reason.
-      - Write: as in the other layers, with ids unique in the document (such as A3.1). An assumption gives `Basis:` and `If wrong:`.
+      - Write: as in the other layers, with numbers (such as `11.1`). An assumption gives `Basis:` and `If wrong:`.
       - Example:
-        - A3.1. A keeper holds hundreds, not millions, of live commitments, so the whole set can be held on a single device. Basis: personal task-keeping, from Layer 1. If wrong: the store and the one-second confirm would need a different approach.
-        - A3.2. The keeper's device knows the keeper's current time zone. Basis: consumer devices track the local zone as the keeper travels. If wrong: the keeper would have to set a zone by hand for "today" to be right.
+        - 11.1. A keeper holds hundreds, not millions, of live commitments, so the whole set can be held on a single device. Basis: personal task-keeping, from Layer 1. If wrong: the store and the one-second confirm would need a different approach.
+        - 11.2. The keeper's device knows the keeper's current time zone. Basis: consumer devices track the local zone as the keeper travels. If wrong: the keeper would have to set a zone by hand for "today" to be right.
       - Mistake: an assumption with no `If wrong:`. Without it a reader cannot tell what would change.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**
@@ -145,10 +145,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Decisions**
     - **How to write it:**
       - For: records the decisions about the part's shape that Construction does not hold, each with its reason.
-      - Write: as in the other layers, with ids unique in the document (such as D3.2). A decision gives `Reason:`. A means or a value chosen to meet a Limit is recorded in Construction.
+      - Write: as in the other layers, with numbers (such as `12.1`). A decision gives `Reason:`. A means or a value chosen to meet a Limit is recorded in Construction.
       - Example:
-        - D3.2. The change log is kept rather than only the current value of each commitment. Reason: a change made offline can be reconciled only if the order of changes is known.
-        - D3.3. A commitment due "today" with no time is treated as due at the end of the keeper's day. Reason: it is not overdue until the day is over, which matches how the keeper reads "due today".
+        - 12.1. The change log is kept rather than only the current value of each commitment. Reason: a change made offline can be reconciled only if the order of changes is known.
+        - 12.2. A commitment due "today" with no time is treated as due at the end of the keeper's day. Reason: it is not overdue until the day is over, which matches how the keeper reads "due today".
       - Mistake: a decision with no `Reason:`, or a means or value recorded here that Construction holds.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**

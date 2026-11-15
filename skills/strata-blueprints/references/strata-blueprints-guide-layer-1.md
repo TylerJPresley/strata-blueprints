@@ -45,10 +45,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Value**
     - **How to write it:**
       - For: shows what the subject gives each audience, as scenarios that the layers below trace.
-      - Write: one scenario per line, Given, when, then, from the audience's side. Give each an id (V1, V2, ...) when Layer 2 paths and Layer 3 rules should cite it.
+      - Write: one scenario per line, Given, when, then, from the audience's side. Give each its number (`3.1`, `3.2`, ...); Layer 2 paths and Layer 3 rules say they realize it by its full id (`vision-3.1`).
       - Example:
-        - V1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then it is saved and shows up as something to do.
-        - V2. Given some commitments have a day or time they are due, when the keeper looks, then they see what is due today and what is overdue, in due order.
+        - 3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then it is saved and shows up as something to do.
+        - 3.2. Given some commitments have a day or time they are due, when the keeper looks, then they see what is due today and what is overdue, in due order.
       - Mistake: describing how the subject works ("the app stores tasks in lists") instead of what the audience gets.
     - **Ask the owner:** what does each audience gain? Follow-up: what would they lose without it. Not supplied: the gain for a group.
     - **Check:**
@@ -100,43 +100,43 @@ Load while interviewing for, writing or checking Layer 1.
   - **Costs**
     - **How to write it:**
       - For: records what the subject takes to build, run and change, and who pays, so the people who fund it can weigh it.
-      - Write: one bullet per cost: `- C1.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [amount, or Not supplied: the figure]. Paid by [who].` The amount is a number (commas and decimals allowed, with an optional currency symbol or a word like "about" before it) and a unit, optionally with a cadence such as "per month" or "per member per month", or `Not supplied:` followed by what is needed. The Given carries what moves the cost, as the owner gave it. Number each cost with `C`, the layer number and a count (C1.1, C1.2), unique in the document. At this layer a cost belongs to the whole subject. Write the bullets as a list, never as a table. When there are none, leave the topic out, or write `None.`
+      - Write: one bullet per cost: `- 8.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [amount, or Not supplied: the figure]. Paid by [who].` The amount is a number (commas and decimals allowed, with an optional currency symbol or a word like "about" before it) and a unit, optionally with a cadence such as "per month" or "per member per month", or `Not supplied:` followed by what is needed. The Given carries what moves the cost, as the owner gave it. Give each cost its number (`8.1`, `8.2`). At this layer a cost belongs to the whole subject. Write the bullets as a list, never as a table. When there are none, write `None.`
       - Example:
-        - C1.1. Given the app is kept running, when the maintainer spends time on it, then it costs Not supplied: the hours each month. Paid by the maintainer.
-        - C1.2. Given a number of keepers use the app, when it is run for them, then it costs 50 USD per month. Paid by the maintainer.
+        - 8.1. Given the app is kept running, when the maintainer spends time on it, then it costs Not supplied: the hours each month. Paid by the maintainer.
+        - 8.2. Given a number of keepers use the app, when it is run for them, then it costs 50 USD per month. Paid by the maintainer.
       - Mistake: a figure the owner did not give, a cost with no Given or when, or a cost with no one to pay it. What is missing is written `Not supplied:`.
     - **Ask the owner:** what does the subject cost overall, at what condition or volume, at which moment (build, run or change), and what amount, paid by whom? Follow-up: the unit, whether it recurs (per month, per year or once), and what moves it. Not supplied: any condition, volume, amount or payer not given.
     - **Check:**
-      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic left out or `None.`?
+      - [ ] Is each cost written with its amount (or `Not supplied:`) and who pays it, or is the topic `None.`?
   - **Risks**
     - **How to write it:**
       - For: records what could go wrong for the whole subject and what answers it, so a reader sees the harm and what holds it.
-      - Write: one bullet per risk: `- R1.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].` Give the severity the owner gave; write `Not rated` when none was given. A rule that realizes a value is cited by its V id; a limit, or a rule with no id, is cited through the decision that records it. An answer is an id from this layer; a V id counts as a Layer 1 id. Number each risk with `R`, the layer number and a count, unique in the document. When there are none, leave the topic out, or write `None.`
+      - Write: one bullet per risk: `- 9.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].` Give the severity the owner gave; write `Not rated` when none was given. An answer is the id of a decision, an assumption, a rule or a limit of this layer. Give each risk its number (`9.1`, `9.2`). When there are none, write `None.`
       - Example:
-        - R1.1. Given a keeper shares a grouping with the wrong person, when that person opens it, then the keeper's commitments are read by someone they did not intend. Severity: High. Answered by D1.1.
-        - R1.2. Given the one maintainer is away, when the app stops working, then keepers wait for a fix. Severity: Low. Answered by Not supplied: who covers for the maintainer.
+        - 9.1. Given a keeper shares a grouping with the wrong person, when that person opens it, then the keeper's commitments are read by someone they did not intend. Severity: High. Answered by vision-12.1.
+        - 9.2. Given the one maintainer is away, when the app stops working, then keepers wait for a fix. Severity: Low. Answered by Not supplied: who covers for the maintainer.
       - Mistake: a worry with no situation or no harm, or an answer that names no id. A risk says when it goes wrong and what follows; what is missing is written `Not supplied:`.
     - **Ask the owner:** what could go wrong for the subject as a whole, and for whom? Follow-up: how bad (high, medium or low), and which decision, assumption or rule answers it. Not supplied: any severity or answer not given; a risk with no severity is written Not rated.
     - **Check:**
-      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic left out or `None.`?
+      - [ ] Does each risk give a situation, a harm, a severity and an answer that names an id (or `Not supplied:`), or is the topic `None.`?
   - **Open Concerns**
     - **How to write it:**
       - For: records concerns that were raised and that nobody has settled yet, and that must be settled before the work is done, so none is lost. It is not a Risk (something that could go wrong, rated), not a `Not supplied:` (a missing fact at one spot) and not an Assumption (taken as true). When settled, it moves into a Decision, an Assumption or a rule and leaves this list. Valid in every layer; it weighs most in Layer 3 and least in Layer 1.
-      - Write: one bullet per concern: `- O1.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].` Number each concern with `O`, the layer number and a count (O1.1, O1.2), unique in the document. At this layer a concern belongs to the whole subject. Write the bullets as a list, never as a table. When there are none, leave the topic out, or write `None.`
+      - Write: one bullet per concern: `- 10.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].` Give each concern its number (`10.1`, `10.2`). At this layer a concern belongs to the whole subject. Write the bullets as a list, never as a table. When there are none, write `None.`
       - Example:
-        - O1.1. Given keepers may want their commitments in more than one language, when the maintainer says whether the app must be translated, then the qualities are re-weighed and the costs that follow from them are priced again. Raised by a keeper.
-        - O1.2. Given the one maintainer may be away for long, when the maintainer says who covers for them, then R1.2 gets its answer. Raised by a keeper.
+        - 10.1. Given keepers may want their commitments in more than one language, when the maintainer says whether the app must be translated, then the qualities are re-weighed and the costs that follow from them are priced again. Raised by a keeper.
+        - 10.2. Given the one maintainer may be away for long, when the maintainer says who covers for them, then vision-9.2 gets its answer. Raised by a keeper.
       - Mistake: a concern that is really a risk, an assumption or a missing fact (use that topic), or a concern with no one who raised it. A concern is settled by a later event and then moves out of this list.
     - **Ask the owner:** what is still unsettled, who raised it, and what would settle it? Follow-up: what follows once it is settled. Not supplied: a concern nobody raised stays out; never invent one.
     - **Check:**
-      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic left out or `None.`?
+      - [ ] Is each open concern written as a Given, when, then with who raised it, or is the topic `None.`?
   - **Assumptions**
     - **How to write it:**
       - For: records what this layer takes as true without proof, so a reader can challenge it.
-      - Write: one bullet per assumption, numbered so it is unique in the document (such as A1.1). Give `Basis:` (why we think so) and `If wrong:` (what would change). Keep both labels in the assumption's own bullet, on its line or in lines nested under it, with no blank line between them. Write `Not supplied: <what is needed>` for a fact nobody has given. When there are none, write `None.`
+      - Write: one bullet per assumption, with its number (such as `11.1`). Give `Basis:` (why we think so) and `If wrong:` (what would change). Keep both labels in the assumption's own bullet, on its line or in lines nested under it, with no blank line between them. Write `Not supplied: <what is needed>` for a fact nobody has given. When there are none, write `None.`
       - Example:
-        - A1.1. Most keepers hold hundreds, not millions, of live commitments. Basis: personal task-keeping, not archival storage. If wrong: the durable and prompt qualities would need stricter limits.
-        - A1.2. The keeper reaches the app on devices they already own. Basis: the audience is one person managing personal commitments, not a managed fleet. If wrong: the reachable-anywhere quality would be re-weighed.
+        - 11.1. Most keepers hold hundreds, not millions, of live commitments. Basis: personal task-keeping, not archival storage. If wrong: the durable and prompt qualities would need stricter limits.
+        - 11.2. The keeper reaches the app on devices they already own. Basis: the audience is one person managing personal commitments, not a managed fleet. If wrong: the reachable-anywhere quality would be re-weighed.
       - Mistake: a choice written as an assumption, or an assumption with no reason. An assumption says why we think so and what would change if it is wrong; a choice goes under Decisions.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**
@@ -144,10 +144,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Decisions**
     - **How to write it:**
       - For: records what this layer chose, each with its reason, so a reader can challenge it.
-      - Write: one bullet per decision, numbered so it is unique in the document (such as D1.1). Give `Reason:` in the decision's own bullet, on its line or in a line nested under it, with no blank line before it. In the reason, name the main alternative passed over only if the owner named one. Write `Not supplied: <what is needed>` for a choice nobody has made. When there are none, write `None.`
+      - Write: one bullet per decision, with its number (such as `12.1`). Give `Reason:` in the decision's own bullet, on its line or in a line nested under it, with no blank line before it. In the reason, name the main alternative passed over only if the owner named one. Write `Not supplied: <what is needed>` for a choice nobody has made. When there are none, write `None.`
       - Example:
-        - D1.1. The app serves one keeper's own commitments first, with sharing as a deliberate act. Reason: the need is a trusted personal place, which a shared team board would not give.
-        - D1.2. The app covers personal commitments only and leaves team workflows out. Reason: a team workspace would add roles and rules the need does not call for.
+        - 12.1. The app serves one keeper's own commitments first, with sharing as a deliberate act. Reason: the need is a trusted personal place, which a shared team board would not give.
+        - 12.2. The app covers personal commitments only and leaves team workflows out. Reason: a team workspace would add roles and rules the need does not call for.
       - Mistake: a decision with no reason, or a fact written as a decision. A decision says why it was chosen; what is taken as true without proof goes under Assumptions.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**
