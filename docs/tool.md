@@ -34,6 +34,8 @@ Running condense twice gives the same result. The way back is the source: change
 node skills/strata-blueprints/scripts/strata-blueprints.mjs publish <file.md or folder> --out <file> [--force]
 ```
 
+See [example-published.md](example-published.md), the to-do app published with `node skills/strata-blueprints/scripts/strata-blueprints.mjs publish skills/strata-blueprints/references/strata-blueprints-example-todo-app --out docs/example-published.md`, for a worked example of the output.
+
 Publish writes one file, whether the input is a file or a folder. A folder is read as condense reads it. The input may be the source or a condensed copy of it; both give the same document. A published document is refused as input, because it holds no source files to merge.
 
 **The merge.** The files go in this order: `sbp-vision.md`, `sbp-structure.md`, then each `sbp-detail-*.md` in the order of the Parts topic (a file not named there goes last, by file name). The first file keeps its title, `Version:`, `Status:` and any text before its first layer heading. In each later file the `# ` title is dropped, and any other text before its first layer heading is refused. In each later detail file the `## Layer 3` heading and its `Scope:` line are dropped, so the document has one Layer 3 with one `### <Part> (part)` entry per part. Every `## ` block that is not a layer, such as a view, moves after the last layer, in file order. A file named for one layer that holds another is refused.

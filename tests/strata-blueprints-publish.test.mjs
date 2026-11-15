@@ -557,3 +557,18 @@ test("condense: a published document as input is refused, exit 2, nothing writte
     assert.ok(!fs.existsSync(path.join(o2, "sbp-vision.md")), "nothing written for a folder");
   });
 });
+
+test("docs/example-published.md equals the tool's published output for the to-do example", () => {
+  const regen = "node skills/strata-blueprints/scripts/strata-blueprints.mjs publish skills/strata-blueprints/references/strata-blueprints-example-todo-app --out docs/example-published.md";
+  const committed = process.env.STRATA_PUBLISHED_DOC ? path.resolve(process.env.STRATA_PUBLISHED_DOC) : path.join(here, "..", "docs", "example-published.md");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-published-doc-"));
+  try {
+    const out = path.join(dir, "example-published.md");
+    const c = cli("publish", path.join(refs, "strata-blueprints-example-todo-app"), "--out", out);
+    assert.equal(c.code, 0, c.err);
+    assert.ok(get(committed) === get(out), `docs/example-published.md differs from the tool's output; regenerate it with: ${regen}`);
+    assert.ok(get(committed).startsWith(PUBLISHED_MARKER), "file starts with the published marker");
+    const l = runLint(committed, "--strict");
+    assert.equal(l.code, 0, l.out + l.err);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

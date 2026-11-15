@@ -79,6 +79,7 @@ The skill folder is the single home of the standard. SKILL.md tells an agent whi
 | Layer 3 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md) | Blank entries for one part's Detail. | Starting Layer 3 for one or more parts. |
 | Lint script | [skills/strata-blueprints/scripts/strata-blueprints-lint.mjs](skills/strata-blueprints/scripts/strata-blueprints-lint.mjs) | Checks layer structure, topic order, ids, costs, risks, concerns and assumptions. Run it on a document or folder. | Checking a blueprint for warnings. |
 | Condense and publish tool | [skills/strata-blueprints/scripts/strata-blueprints.mjs](skills/strata-blueprints/scripts/strata-blueprints.mjs) | Writes a condensed copy of a stack (topics that read None. left out), or publishes it as one document with a table of contents. | Reading or sending a short form of a stack, or sending one document. |
+| Published to-do example | [docs/example-published.md](docs/example-published.md) | The to-do app example published as one document with a table of contents. | Seeing what a published blueprint looks like. |
 | Lint reference | [docs/lint.md](docs/lint.md) | What each lint check does, how to run it with `--strict` and `--impact`, and exit codes. | Understanding lint output or running it in a gate. |
 
 ### Worked examples
@@ -88,6 +89,8 @@ The skill folder is the single home of the standard. SKILL.md tells an agent whi
 | Community garden (idea) | [skills/strata-blueprints/references/strata-blueprints-example.md](skills/strata-blueprints/references/strata-blueprints-example.md) | An idea with Vision and Structure only, no Detail or construction. Shows how to write when it is still a shared vision before anyone builds. |
 | To-do app (software) | [skills/strata-blueprints/references/strata-blueprints-example-todo-app/](skills/strata-blueprints/references/strata-blueprints-example-todo-app/) | All three layers, written as separate files. Shows how value ids flow from Layer 1 through paths in Layer 2 to rules in Layer 3. Shows how to write Construction for each part with means and limits. A `README.md` in the folder explains what to notice. |
 | Library booking (RFP) | [skills/strata-blueprints/references/strata-blueprints-example-rfp.md](skills/strata-blueprints/references/strata-blueprints-example-rfp.md) | A spec for others to answer: the issuer fixes the need, parts and limits, and the bidder fills the means. Shows how to leave Detail open and mark it `Not supplied:` for the bidder to fill. |
+
+See [docs/example-published.md](docs/example-published.md) for the to-do app published as one document, showing what the publish tool produces.
 
 ## Install
 
