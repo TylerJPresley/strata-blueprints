@@ -18,6 +18,8 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/stack-f
 
 For a folder, the lint reads `sbp-vision.md`, `sbp-structure.md` and every `sbp-detail-*.md` in it as one stack, ignores every other file, and reports each warning with its file and line.
 
+To write a condensed copy of a stack, or to publish it as one document, see [tool.md](tool.md).
+
 ## Output
 
 The script produces three kinds of output:
@@ -32,7 +34,7 @@ The script produces three kinds of output:
 - `layer-heading` — layer heading wrong, out of order, or Layer 1 or Layer 2 missing; for a folder, also flags a file holding a layer other than the one its name declares
 - `scope-line` — first line after a layer heading does not start with `Scope:`
 - `topic-order` — topic not in the layer, out of order, or inside a `### Part (part)` entry where it does not belong
-- `topics` — a layer, or a part's `### Part (part)` entry, that has topic headings lacks one of its topics; a layer with no topic heading and a layer that is absent are not checked
+- `topics` — a layer, or a part's `### Part (part)` entry, that has topic headings lacks one of its topics; a layer with no topic heading and a layer that is absent are not checked; a file whose first line is the condensed marker (a published document carries one) is not checked for missing topics
 - `ring` — a layer refers outward to a later layer
 - `scenario-form` — `Given` line not shaped `Given ..., when ..., then ...`
 - `reasons` — assumption missing `Basis:` and `If wrong:`, or decision missing `Reason:`

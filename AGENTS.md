@@ -12,6 +12,8 @@ Overview for people: [README.md](README.md).
 - Lint (file): `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <file.md> --strict`
 - Lint (folder): `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <folder> --strict`
 - Impact: `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact <id> <file or folder>`
+- Condense: `node skills/strata-blueprints/scripts/strata-blueprints.mjs condense <file or folder> --out <path>`
+- Publish: `node skills/strata-blueprints/scripts/strata-blueprints.mjs publish <file or folder> --out <file>`
 - Lint reference: [docs/lint.md](docs/lint.md) (what each check does, exit codes, `--strict` and `--impact` usage)
 
 Pre-flight: run `npm test` and `node gate.mjs` before every commit.
@@ -28,6 +30,7 @@ Node.js LTS 22 and 24 (`engines.node` is `>=22` in `package.json`), ES modules, 
   - `references/`: core guide, one guide file per layer, examples (community garden idea, to-do app as separate files, library room booking RFP)
   - `assets/`: full template and one cut per layer
   - `scripts/strata-blueprints-lint.mjs`: the lint script
+  - `scripts/strata-blueprints.mjs`: the condense and publish tool
 - `tests/`: tests for the lint, examples, version check and links check
 - `scripts/version-check.mjs`: verifies versions across files match (runs in the gate)
 - `scripts/links-check.mjs`: verifies relative links and anchors in every Markdown file (runs in the gate)

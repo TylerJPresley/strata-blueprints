@@ -2,7 +2,7 @@
 name: strata-blueprints
 description: "Describe any subject as three zoom layers (Vision, Structure, Detail) so a person or a model can make it from the documents. Use to write a blueprint by interviewing the owner and then writing the layers, for an RFP, software documentation, project steering, a standard, a policy or an idea; to review or audit an existing blueprint, layer by layer; or to build a subject (software, a document, a product, a plan) from a blueprint, asking the person wherever it says `Not supplied:`. Use when asked to document, specify, blueprint, plan, interview, review or build from a spec. Not for a quick note or a one-off answer."
 license: "MIT"
-compatibility: "Plain Markdown; only scripts/strata-blueprints-lint.mjs needs a Node.js LTS"
+compatibility: "Plain Markdown; only the scripts in scripts/ need a Node.js LTS"
 metadata:
   version: "0.1.0"
 ---
@@ -32,6 +32,7 @@ Load a file when its job comes up, and no sooner.
 | `references/strata-blueprints-example-todo-app/` | Unsure how all three layers look, or how a stack in separate files looks: a software product. |
 | `references/strata-blueprints-example-rfp.md` | Writing a spec for others to answer, such as an RFP: the issuer fixes the limits and leaves the means to the bidder. |
 | `scripts/strata-blueprints-lint.mjs` | Linting a blueprint or folder, and the impact check. |
+| `scripts/strata-blueprints.mjs` | Condensing a blueprint for reading, or publishing it as one document. |
 | `LICENSE` | Never: MIT. |
 
 ## AUTHOR

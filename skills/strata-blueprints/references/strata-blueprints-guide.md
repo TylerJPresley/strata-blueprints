@@ -7,7 +7,7 @@ A Strata Blueprints stack describes any subject, at any scale, in three layers. 
 
 Strata Blueprints is a lightweight framework for spec-driven development, for anyone or anything. Models load it as context, so it stays small and high level, carrying context and intent. Use it for RFPs (requests for proposals), software documentation, project steering, standards, policies, ideas and more. As loose suggestions, Layer 1 reads like a product brief, Layer 2 like a high-level design and Layer 3 like a technical design for one part of the subject.
 
-**Short stacks.** Write every layer the subject needs; a layer the subject does not need is left out whole. A layer that is written holds all of its topics, in their order and numbered from 1: 12 in Layer 1, 11 in Layer 2 and 12 in each Layer 3 part. A topic with nothing to say reads `None.`, and a fact nobody has given reads `Not supplied: <what is needed>`. The required topics are, in Layer 1: Need, Target audience, Value, Focus, Assumptions and Decisions; in Layer 2: Parts, Seams between parts, Assumptions and Decisions; and in each Layer 3 part: Responsibility, Rules, Limits, Assumptions and Decisions. A required topic holds real content, except Assumptions and Decisions, which may read `None.`. Every other topic is optional and may read `None.`; give it content when a maker would otherwise have to ask. An idea often has no costs, risks or open concerns, and those topics then read `None.`.
+**Short stacks.** Write every layer the subject needs; a layer the subject does not need is left out whole. A layer that is written holds all of its topics, in their order and numbered from 1: 12 in Layer 1, 11 in Layer 2 and 12 in each Layer 3 part. A topic with nothing to say reads `None.`, and a fact nobody has given reads `Not supplied: <what is needed>`. The required topics are, in Layer 1: Need, Target audience, Value, Focus, Assumptions and Decisions; in Layer 2: Parts, Seams between parts, Assumptions and Decisions; and in each Layer 3 part: Responsibility, Rules, Limits, Assumptions and Decisions. A required topic holds real content, except Assumptions and Decisions, which may read `None.`. Every other topic is optional and may read `None.`; give it content when a maker would otherwise have to ask. An idea often has no costs, risks or open concerns, and those topics then read `None.`. A condensed copy and a published document, described under "A condensed copy" and "A published document", are the exceptions: they leave out topics that hold nothing for a reader.
 
 ## Definitions
 
@@ -84,6 +84,26 @@ A part's own stack is a subfolder named by the part's lower-case name, holding t
 
 Check a folder with `node scripts/strata-blueprints-lint.mjs <folder>`.
 
+## A condensed copy
+
+The working files hold every topic and are the source of the stack. A condensed copy is generated from them, for reading and for sending on. It leaves out each topic whose whole body is `None.`. It keeps every other topic, including each topic that holds `Not supplied:`, because that is an open question. A topic that stays keeps its number, so every item has the same number and the same id in the copy as in the source.
+
+The first line of a condensed file is `<!-- strata-blueprints: condensed (generated; omitted topics read None.) -->`. A reader takes each topic that is not there as `None.`. Each file of a stack condenses on its own.
+
+A condensed copy is never edited by hand: change the source and generate the copy again. The lint reads a condensed file: it does not warn about omitted topics, and it still checks the order of the topics and every citation.
+
+Make a copy with `node scripts/strata-blueprints.mjs condense <file or folder> --out <path>`.
+
+## A published document
+
+A published document is the stack made ready to send to readers: one file, written in the form of one document. It is generated from the source and is never edited by hand. The way is one way: the source, then a condensed copy, then a published document. The source is the way back: change it and publish again.
+
+Publishing condenses each file, then merges all the files of the stack into one document: the `# <Subject>` title with `Version:` and `Status:` from `sbp-vision.md`, a table of contents, Layer 1, Layer 2, Layer 3 with one `### <Part> (part)` entry for each part in the order of Parts, and then each view. It leaves out each topic whose whole body is `None.`, and each topic whose whole body is only `Not supplied:` lines. A topic that holds any item stays, with its `Not supplied:` lines. Every item keeps its number and every citation keeps its full id, so each id in the document points to an item inside the document. Topic numbers have gaps, as in a condensed copy. Publishing stops when a kept line cites an id that would sit in a topic it leaves out. A Standing line still names the source file of its part.
+
+The first line of a published document is `<!-- strata-blueprints: condensed, published (generated; each omitted topic read None. or held only open questions) -->`. A reader takes each topic that is not there as empty, or as not yet answered. The lint reads this line as it reads the condensed marker.
+
+Make one with `node scripts/strata-blueprints.mjs publish <file or folder> --out <file>`. The command prints each topic it leaves out and each open question that stays.
+
 ## Views across the layers
 
 Views are not layers. A view is optional and refers inward. A view that stands on its own is a `## View: <name>` section after Layer 3, or at the end of `sbp-structure.md` in a stack of separate files.
@@ -124,7 +144,7 @@ Every layer opens with a title and a one-line scope. A layer that uses symbols, 
 **Markup**
 - Under the title, write `Version: 0.1.0`.
 - One heading per layer, such as "## Layer 2: Structure", followed by its one-line scope as a line that starts with `Scope:`, for example `Scope: the whole app, divided into parts, with the seams between them and with the outside.`
-- Number the topics of a layer, or of a part's entry, from 1 in the layer's order: 1 to 12 in Layer 1, 1 to 11 in Layer 2 and 1 to 12 in each Layer 3 part. The number of a topic is the topic part of an id.
+- Number the topics of a layer, or of a part's entry, from 1 in the layer's order: 1 to 12 in Layer 1, 1 to 11 in Layer 2 and 1 to 12 in each Layer 3 part. The number of a topic is the topic part of an id. A condensed copy and a published document keep these numbers, so their topic numbers have gaps.
 - Write each Detail entry under `### <Part> (part)`, with its topics as `#### N. <Topic>` in the layer's order.
 - Write each scenario as one line: Given …, when …, then …. A value scenario opens with its number, such as `- 3.1. Given …, when …, then …`; its path and its rule say `Realizes vision-3.1.` after their own numbers.
 - Write a stand-alone view as a `## View: <name>` section after Layer 3, or at the end of `sbp-structure.md` in a stack of separate files.

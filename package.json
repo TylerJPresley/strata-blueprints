@@ -15,9 +15,10 @@
     "node": ">=22"
   },
   "bin": {
+    "strata-blueprints": "skills/strata-blueprints/scripts/strata-blueprints.mjs",
     "strata-blueprints-lint": "skills/strata-blueprints/scripts/strata-blueprints-lint.mjs"
   },
   "scripts": {
-    "test": "node --test tests/strata-blueprints-lint.test.mjs tests/strata-blueprints-examples.test.mjs tests/version-check.test.mjs tests/links-check.test.mjs"
+    "test": "node --test tests/strata-blueprints-lint.test.mjs tests/strata-blueprints-tool.test.mjs tests/strata-blueprints-publish.test.mjs tests/strata-blueprints-examples.test.mjs tests/version-check.test.mjs tests/links-check.test.mjs"
   }
 }

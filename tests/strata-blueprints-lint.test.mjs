@@ -1506,3 +1506,73 @@ test("folder: a detail file's numbers belong to its part", () => {
   assert.equal(bad.length, 1);
   assert.match(bad[0], /detail\.pads-4\.1 names 'pads', which is not a part in Layer 2 Parts/);
 });
+
+// --- condensed files: a marker on line 1 skips the topics check (plan condense-expand, D15) ------
+const MK = "<!-- strata-blueprints: condensed (generated; omitted topics read None.) -->";
+// A condensed copy of a text: each topic whose whole body is None. is left out; the marker goes on line 1.
+const cdText = (md) => MK + "\n\n" + md.replace(/#{3,4} \d+\. [^\n]+\n\nNone\.\n(?:\n|$)/g, "");
+const cd1 = "### 1. Need\n\nN.\n\n### 12. Decisions\n\nNone.\n\n";
+
+test("condensed: marker on line 1 skips missing topics, and without it they still warn", () => {
+  const doc = MK + "\n\n" + L1 + cd1 + L2 + full2;
+  assert.deepEqual(tw(doc), []);
+  assert.equal(lintText(doc, "--strict").code, 0);
+  assert.equal(tw(L1 + cd1 + L2 + full2).length, 10);
+});
+
+test("condensed: marker on line 2 does not count", () => {
+  assert.equal(tw("# Club\n" + MK + "\n\n" + L1 + cd1 + L2 + full2).length, 10);
+});
+
+test("condensed: marker with CRLF lints the same as with LF", () => {
+  const lf = MK + "\n\n" + L1 + cd1 + L2 + full2;
+  const a = lintText(lf, "--strict"), b = lintText(lf.replace(/\n/g, "\r\n"), "--strict");
+  assert.equal(b.code, 0);
+  assert.deepEqual(b.lines, a.lines);
+  const bad = lf.replace("### 1. Need", "### 2. Need");
+  assert.deepEqual(lintText(bad.replace(/\n/g, "\r\n")).lines, lintText(bad).lines);
+});
+
+test("condensed: order and citations are still checked", () => {
+  const order = MK + "\n\n" + L1 + "### 12. Decisions\n\nNone.\n\n### 1. Need\n\nN.\n\n" + L2 + full2;
+  assert.equal(warns(lintText(order), "topic-order").length, 1);
+  const unknown = MK + "\n\n" + L1 + "### 1. Needs\n\nN.\n\n" + L2 + full2;
+  assert.equal(warns(lintText(unknown), "topic-order").length, 1);
+  const cite = MK + "\n\n" + L1 + "### 1. Need\n\nSee structure-9.9.\n\n### 12. Decisions\n\nNone.\n\n" + L2 + full2;
+  assert.equal(warns(lintText(cite), "id-ref").length, 1);
+});
+
+test("condensed: order and citations: INFO not-supplied counts the same on a full file and its condensed form", () => {
+  const full = L1 + fxT("###", T1, { Need: "Not supplied: who pays.", Focus: "Not supplied: scope." }) + L2 + full2;
+  const a = lintText(full), b = lintText(cdText(full));
+  assert.match(a.out, /^INFO not-supplied: 2$/m);
+  assert.match(b.out, /^INFO not-supplied: 2$/m);
+  assert.deepEqual(tw(cdText(full)), []);
+});
+
+test("condensed: folder checks only the files that carry the marker", () => {
+  const some = { ...fxFull, "sbp-vision.md": cdText(fxFull["sbp-vision.md"]), "sbp-detail-ledger.md": cdText(fxFull["sbp-detail-ledger.md"]) };
+  assert.ok(some["sbp-vision.md"].split("\n").length < fxFull["sbp-vision.md"].split("\n").length);
+  assert.deepEqual(fxWarns(some, "topics"), []);
+  assert.deepEqual(fxWarns(some, "layer-heading"), []);
+  assert.equal(fxWith(some, (d) => run(d, "--strict")).code, 0);
+  // The unmarked detail file is still checked for missing topics.
+  const cut = { ...some, "sbp-detail-rota.md": fxFull["sbp-detail-rota.md"].replace(/#### 5\. Inside\n\nNone\.\n\n/, "") };
+  const w = fxWarns(cut, "topics");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /topic 'Inside' is missing in the entry 'Rota' \(sbp-detail-rota\.md line \d+\)$/);
+  // Every file condensed, including the second detail file: no spurious layer-heading warning.
+  const all = Object.fromEntries(Object.entries(fxFull).map(([k, v]) => [k, cdText(v)]));
+  assert.deepEqual(fxWarns(all, "layer-heading"), []);
+  assert.equal(fxWith(all, (d) => run(d, "--strict")).code, 0);
+});
+
+test("condensed: folder --impact reaches the same elements as the full folder", () => {
+  const all = Object.fromEntries(Object.entries(fxFull).map(([k, v]) => [k, cdText(v)]));
+  const strip = (r) => r.lines.map((l) => l.replace(/\bline \d+/g, "line N"));
+  const full = fxWith(fxFull, (d) => fxImpact(["vision-3.1", d]));
+  const cond = fxWith(all, (d) => fxImpact(["vision-3.1", d]));
+  assert.equal(full.code, 0);
+  assert.ok(full.lines.length >= 2);
+  assert.deepEqual(strip(cond), strip(full));
+});
