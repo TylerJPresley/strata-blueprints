@@ -28,7 +28,7 @@ Documents: check documents with the lint script (exact commands: [AGENTS.md](AGE
 
 Dependencies: none. The lint script runs on Node.js LTS only.
 
-Style: the skill folder holds only `SKILL.md`, `LICENSE`, `references/` (the guides and examples), `assets/` (the templates) and `scripts/` (the lint). Nothing is generated or copied from elsewhere.
+Style: the skill folder holds only `SKILL.md`, `LICENSE`, `references/` (the guides and examples), `assets/` (the templates) and `scripts/` (the lint and the tool). Nothing is generated or copied from elsewhere.
 
 Exact build, test and lint commands: [AGENTS.md](AGENTS.md).
 

@@ -2,6 +2,10 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
+## Unreleased
+
+- Condensed copies: `scripts/strata-blueprints.mjs` has `condense`, which writes a copy that leaves out each topic whose whole body is `None.`, and `expand`, which writes them back. The lint reads a condensed file (marker on line 1) and still checks topic order and citations.
+
 ## 0.1.0
 
 First release (not yet tagged): a lightweight standard for describing any subject (an RFP, software documentation, project steering, a standard, a policy, an idea and more) in three layers, delivered as one skill with its lint, templates, examples and gate.
