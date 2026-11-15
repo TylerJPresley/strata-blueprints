@@ -19,6 +19,9 @@ const NEEDS_ID = {
   2: ["Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   3: ["Rules", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
 };
+// A file whose first line starts with this is a condensed copy: omitted topics read None., so the topics check skips it.
+const MARKER_PREFIX = "<!-- strata-blueprints: condensed";
+const hasMarker = (firstLine) => (firstLine || "").trim().startsWith(MARKER_PREFIX);
 const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : 3);
 const topicNo = (layer, name) => (TOPICS[layer] ? TOPICS[layer].indexOf(name) + 1 || null : null);
 
@@ -135,6 +138,7 @@ if (!seen.includes(2)) warn("layer-heading", `missing '## Layer 2: ${NAMES[1]}'`
 
 for (const u of units) {
   if (!u.heads.size) continue;
+  if (target.condensedAt(u.line)) continue;
   for (const name of TOPICS[u.layer]) {
     if (!u.heads.has(name)) warn("topics", `topic '${name}' is missing in ${u.name === null ? `Layer ${u.layer}` : `the entry '${u.name}'`}`, u.line);
   }
@@ -361,7 +365,8 @@ function loadTarget(arg) {
   if (!st.isFile()) die(`not a file: ${arg}`);
   let text;
   try { text = fs.readFileSync(arg, "utf8"); } catch (e) { die(`cannot read ${arg}: ${e.code || e.message}`); }
-  return { rows: text.split("\n"), where: (n) => `line ${n}`, folder: null };
+  const rows = text.split("\n");
+  return { rows, where: (n) => `line ${n}`, folder: null, condensedAt: () => hasMarker(rows[0]) };
 }
 
 function slugOf(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
@@ -419,12 +424,14 @@ function loadFolder(dir) {
   // Assemble one virtual document and keep a map from each virtual row to (file, line).
   const rows = [], map = [];
   let firstDetail = true;
+  const condensed = new Set();
   names.forEach((name, k) => {
     const src = files[name];
     const drop = new Set();
+    if (hasMarker(src[0])) { condensed.add(name); drop.add(0); if (src.length > 1 && src[1].trim() === "") drop.add(1); }
     const nextNonBlank = (from) => { let j = from; while (j < src.length && src[j].trim() === "") j++; return j; };
     if (k > 0) {
-      let j = nextNonBlank(0);
+      let j = nextNonBlank(drop.has(1) ? 2 : drop.has(0) ? 1 : 0);
       if (j < src.length && /^# /.test(src[j])) { drop.add(j); if (j + 1 < src.length && src[j + 1].trim() === "") drop.add(j + 1); j = nextNonBlank(j + 1); }
       if (name.startsWith("sbp-detail-")) {
         if (!firstDetail) {
@@ -438,7 +445,8 @@ function loadFolder(dir) {
     src.forEach((r, i) => { if (!drop.has(i)) { rows.push(r); map.push({ file: name, line: i + 1 }); } });
   });
   const where = (n) => { const m = map[n - 1]; return m ? `${m.file} line ${m.line}` : `line ${n}`; };
-  return { rows, where, map, folder: { dir, files, details, hasStructure, structure } };
+  const condensedAt = (n) => !!map[n - 1] && condensed.has(map[n - 1].file);
+  return { rows, where, map, condensedAt, folder: { dir, files, details, hasStructure, structure } };
 }
 
 // Checks that only a folder has: layer headings per file, one entry per detail file, Standing.
