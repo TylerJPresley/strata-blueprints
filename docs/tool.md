@@ -12,6 +12,8 @@ Give a file and `--out` names a file. Give a folder and `--out` names a folder, 
 
 Each file written prints one line: `condensed <path>: dropped N topic(s)`.
 
+Condense refuses a published document as input, because it holds no source files to condense.
+
 Exit codes: 0 for success; 2 for a refusal or a usage error, with `strata-blueprints: <message>` on stderr and nothing written.
 
 ## What condense drops

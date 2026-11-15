@@ -356,6 +356,7 @@ export function run(argv, log = console.log) {
   for (const f of files) {
     let text;
     try { text = fs.readFileSync(f.src, "utf8"); } catch (e) { die(`cannot read ${f.src}: ${e.code || e.message}`); }
+    if (hasPublished(split(text).lines[0])) die(`${f.src} is a published document; condense the source files`);
     let r;
     try { r = condenseResult(text); } catch (e) { die(`${f.src}: ${e.message}`); }
     const dst = lstat(f.dest);

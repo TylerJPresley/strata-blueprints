@@ -542,3 +542,18 @@ test("publish: a topic with an empty body is neither None. nor Not supplied:, so
   assert.ok(!p.dropped.some((x) => /Value/.test(JSON.stringify(x))), "empty topic is not listed as dropped");
   assert.ok(condenseText(empty).includes("### 3. Value"), "condense keeps it too");
 });
+
+test("condense: a published document as input is refused, exit 2, nothing written", () => {
+  tmp((dir) => {
+    const f = put(dir, "p.md", pub(stack(["Access"])).text);
+    const out = path.join(dir, "out.md");
+    const c = cli("condense", f, "--out", out);
+    assert.equal(c.code, 2);
+    assert.match(c.err, /p\.md is a published document; condense the source files/);
+    assert.ok(!fs.existsSync(out));
+    const s = path.join(dir, "src"); writeStack(s, { ...stack(["Access"]), "sbp-detail-access.md": get(f) });
+    const o2 = path.join(dir, "outdir");
+    assert.equal(cli("condense", s, "--out", o2).code, 2);
+    assert.ok(!fs.existsSync(path.join(o2, "sbp-vision.md")), "nothing written for a folder");
+  });
+});
