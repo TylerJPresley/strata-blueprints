@@ -532,3 +532,13 @@ test("publish: shipped examples lint strict and impact", () => {
     assert.equal(b.lines.at(-1), a.lines.at(-1));
   });
 });
+
+test("publish: a topic with an empty body is neither None. nor Not supplied:, so it stays", () => {
+  const d = doc({ Need: "N.", Value: "" });
+  const empty = d.replace(/(### 3\. Value\n)\n+(?=### 4\.)/, "$1\n");
+  assert.ok(/### 3\. Value\n\n### 4\./.test(empty), "fixture has an empty Value body");
+  const p = pub({ "club.md": empty });
+  assert.ok(p.text.includes("### 3. Value"), "empty topic is kept");
+  assert.ok(!p.dropped.some((x) => /Value/.test(JSON.stringify(x))), "empty topic is not listed as dropped");
+  assert.ok(condenseText(empty).includes("### 3. Value"), "condense keeps it too");
+});
