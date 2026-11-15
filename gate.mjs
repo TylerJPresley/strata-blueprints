@@ -109,6 +109,7 @@ const CHECKS = [
   ['links', linksCheck],
   ['layout', layoutCheck],
   ['lint tests', process.execPath, ['--test', 'tests/strata-blueprints-lint.test.mjs']],
+  ['tool tests', process.execPath, ['--test', 'tests/strata-blueprints-tool.test.mjs']],
   ['examples tests', process.execPath, ['--test', 'tests/strata-blueprints-examples.test.mjs']],
   ['version check tests', process.execPath, ['--test', 'tests/version-check.test.mjs']],
   ['links check tests', process.execPath, ['--test', 'tests/links-check.test.mjs']],
