@@ -32,7 +32,7 @@ Load a file when its job comes up, and no sooner.
 | `references/strata-blueprints-example-todo-app/` | Unsure how all three layers look, or how a stack in separate files looks: a software product. |
 | `references/strata-blueprints-example-rfp.md` | Writing a spec for others to answer, such as an RFP: the issuer fixes the limits and leaves the means to the bidder. |
 | `scripts/strata-blueprints-lint.mjs` | Linting a blueprint or folder, and the impact check. |
-| `scripts/strata-blueprints.mjs` | Condensing a blueprint for reading. |
+| `scripts/strata-blueprints.mjs` | Condensing a blueprint for reading, or publishing it as one document. |
 | `LICENSE` | Never: MIT. |
 
 ## AUTHOR

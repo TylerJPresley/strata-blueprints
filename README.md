@@ -78,7 +78,7 @@ The skill folder is the single home of the standard. SKILL.md tells an agent whi
 | Layer 2 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-2.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-2.md) | Blank Layer 2 only. | Starting Layer 2 alone or Layer 2 of a separate-file stack. |
 | Layer 3 template | [skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md](skills/strata-blueprints/assets/strata-blueprints-template-layer-3.md) | Blank entries for one part's Detail. | Starting Layer 3 for one or more parts. |
 | Lint script | [skills/strata-blueprints/scripts/strata-blueprints-lint.mjs](skills/strata-blueprints/scripts/strata-blueprints-lint.mjs) | Checks layer structure, topic order, ids, costs, risks, concerns and assumptions. Run it on a document or folder. | Checking a blueprint for warnings. |
-| Condense tool | [skills/strata-blueprints/scripts/strata-blueprints.mjs](skills/strata-blueprints/scripts/strata-blueprints.mjs) | Writes a condensed copy of a stack (topics that read None. left out). | Reading or sending a short form of a stack. |
+| Condense and publish tool | [skills/strata-blueprints/scripts/strata-blueprints.mjs](skills/strata-blueprints/scripts/strata-blueprints.mjs) | Writes a condensed copy of a stack (topics that read None. left out), or publishes it as one document with a table of contents. | Reading or sending a short form of a stack, or sending one document. |
 | Lint reference | [docs/lint.md](docs/lint.md) | What each lint check does, how to run it with `--strict` and `--impact`, and exit codes. | Understanding lint output or running it in a gate. |
 
 ### Worked examples
@@ -128,7 +128,7 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <path-to-bluepr
 
 See [docs/lint.md](docs/lint.md) for what each check does, how to use `--strict` to fail on warnings, and how to use `--impact <id>` to find what a change reaches.
 
-To read or send a short form of a stack, write a condensed copy that leaves out each topic that reads `None.`. See [docs/tool.md](docs/tool.md).
+To read or send a short form of a stack, write a condensed copy that leaves out each topic that reads `None.`. To send one document, publish the stack: it condenses, merges the files and adds a table of contents. See [docs/tool.md](docs/tool.md).
 
 ## Contributing
 
