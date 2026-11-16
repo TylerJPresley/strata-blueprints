@@ -2,7 +2,7 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
-## Unreleased
+## 0.2.0
 
 A project says where its blueprints live, and the skill finds them there.
 

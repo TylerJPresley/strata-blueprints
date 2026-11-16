@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use Strata Blueprints, please cite it as below."
 title: "Strata Blueprints"
-version: "0.1.0"
+version: "0.2.0"
 license: MIT
 type: software
 authors:

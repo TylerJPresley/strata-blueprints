@@ -4,7 +4,7 @@ description: "Describe any subject as three zoom layers (Vision, Structure, Deta
 license: "MIT"
 compatibility: "Plain Markdown; only the scripts in scripts/ need a Node.js LTS"
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Strata Blueprints (three zoom layers for any subject)
