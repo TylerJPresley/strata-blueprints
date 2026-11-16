@@ -56,11 +56,11 @@ Each layer rests on the layers above it. A change to Vision reaches every layer 
 
 ### One document or separate files
 
-A stack can be written as one document with all three layers, or as separate files in one folder.
+A stack can be written as one document with all three layers, or as separate files in one folder, the blueprint directory (see Usage, With an agent).
 
-One document: write `my-blueprint.md` with all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`). Keep one document for an idea, for a stack that stops at Layer 2, and for a few small parts.
+One document: write `<subject>.md` in the blueprint directory with all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`).
 
-Separate files: write `my-blueprint/sbp-vision.md`, `my-blueprint/sbp-structure.md` and one `sbp-detail-<part>.md` per part (for example, `sbp-detail-ledger.md`). The lint finds them by the `sbp-` prefix, ignores every other file, and checks them as one stack. Split when a part's Detail is built separately, changes on its own schedule or has its own owner, or when Layer 3 outweighs Layers 1 and 2 together (core guide, section "A stack in separate files").
+Separate files: write `sbp-vision.md`, `sbp-structure.md` and one `sbp-detail-<part>.md` per part (for example, `sbp-detail-ledger.md`) in the blueprint directory.
 
 ### The standard's files
 
@@ -69,7 +69,7 @@ The skill folder is the single home of the standard. SKILL.md tells an agent whi
 | File | Path | What it is | When to read |
 |------|------|-----------|--------------|
 | SKILL.md | [skills/strata-blueprints/SKILL.md](skills/strata-blueprints/SKILL.md) | How an agent chooses each file to load at each step. Load when building or reviewing a blueprint, or writing one from the owner's request. | Before loading any other file. |
-| Core guide | [skills/strata-blueprints/references/strata-blueprints-guide.md](skills/strata-blueprints/references/strata-blueprints-guide.md) | Definitions, rules, how layers depend on each other, how to fill them out, formatting, procedure, interview method. | Always first, before reading any other file. |
+| Core guide | [skills/strata-blueprints/references/strata-blueprints-guide.md](skills/strata-blueprints/references/strata-blueprints-guide.md) | Definitions, rules, how layers depend on each other, how to fill them out, formatting, procedure, interview method, where a project's blueprints live. | Always first, before reading any other file. |
 | Layer 1 guide | [skills/strata-blueprints/references/strata-blueprints-guide-layer-1.md](skills/strata-blueprints/references/strata-blueprints-guide-layer-1.md) | Topics in Layer 1: Need, Target audience, Value, Focus, Success measures, Qualities and constraints, Vocabulary, Costs, Risks, Open Concerns, Assumptions, Decisions. Each topic has how to write it, what to ask the owner and what to check. | Before writing or checking Layer 1. |
 | Layer 2 guide | [skills/strata-blueprints/references/strata-blueprints-guide-layer-2.md](skills/strata-blueprints/references/strata-blueprints-guide-layer-2.md) | Topics in Layer 2: Parts, Standing, Seams between parts, Seams with the outside, Shared things, Scenario paths, Costs, Risks, Open Concerns, Assumptions, Decisions. | Before writing or checking Layer 2. |
 | Layer 3 guide | [skills/strata-blueprints/references/strata-blueprints-guide-layer-3.md](skills/strata-blueprints/references/strata-blueprints-guide-layer-3.md) | Topics in Layer 3: Responsibility, Concepts and states, Seams, Rules, Inside, Limits, Construction, Costs, Risks, Open Concerns, Assumptions, Decisions. | Before writing or checking Layer 3 for a part. |
@@ -118,6 +118,14 @@ Quickstart: install the skill (see Install), then ask your agent using one of th
 > Use the Strata Blueprints skill to review [blueprint file or folder]. Go layer by layer and report each finding with its fix.
 
 > Use the Strata Blueprints skill to build the [part] part from [blueprint file or folder]. Ask me wherever the blueprint says `Not supplied:`.
+
+A project says where its blueprints live with a line in its `AGENTS.md`, in any section, and fixes the form with a second line. The line below is the default directory, so a project that wants it writes nothing.
+
+```
+Strata Blueprints Directory: docs/blueprints/
+```
+
+Directory is a directory relative to the project root, never a file. Form is `single` (one document) or `separate` (one file per layer), written as `Strata Blueprints Form: single` or `Strata Blueprints Form: separate`. When Form is not stated, the blueprint is one document until it needs to be split into separate files (core guide, "A stack in separate files"). The agent resolves both, gives the path to the lint and the tool, and moves a blueprint between the forms only when Form is not stated, keeping every id (core guide, "Where the blueprints live").
 
 ### By hand
 

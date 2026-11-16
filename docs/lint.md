@@ -18,6 +18,8 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/stack-f
 
 For a folder, the lint reads `sbp-vision.md`, `sbp-structure.md` and every `sbp-detail-*.md` in it as one stack, ignores every other file, and reports each warning with its file and line.
 
+The lint takes the path you give it and does not read `AGENTS.md`; an agent resolves the path first (see the core guide, Where the blueprints live). A folder run reads only `sbp-` files, so pass a single document as a file.
+
 To write a condensed copy of a stack, or to publish it as one document, see [tool.md](tool.md).
 
 ## Output
