@@ -84,6 +84,21 @@ A part's own stack is a subfolder named by the part's lower-case name, holding t
 
 Check a folder with `node scripts/strata-blueprints-lint.mjs <folder>`.
 
+## Where the blueprints live
+
+A project says where its blueprints live with a line in its `AGENTS.md`, in any section, and fixes the form with a second line. `AGENTS.md` is the only place for them; the defaults never sit in a tool's own folder, such as `.kiro/` or `.claude/`. A project that wants the defaults writes nothing. The line below shows the default directory.
+
+```
+Strata Blueprints Directory: docs/blueprints/
+```
+
+- **Directory:** a directory, never a file. It is relative to the project root, with forward slashes, no leading `./` and a trailing `/`. `./docs/blueprints` and `docs/blueprints` read as the same directory. An absolute path and `~` are not accepted. The default is `docs/blueprints/`.
+- **Form:** `Strata Blueprints Form: single` or `Strata Blueprints Form: separate`. `single` is one document with all three layers, named for the subject without the `sbp-` prefix. `separate` is one file per layer: `sbp-vision.md`, `sbp-structure.md` and `sbp-detail-<part>.md`. When Form is stated, the agent follows it. When it is not stated, the blueprint is one document until it reaches the limit for breaking it up, then it is split into separate files; the limit is the guidance in "A stack in separate files".
+- **Reading:** a line starts with its key after an optional list bullet. The key is case-insensitive, and the value is the rest of the line. The first match wins. The two keys work independently. An invalid value is ignored, the default applies, and the agent reports it.
+- **Use:** the agent resolves both values and passes the path as an explicit argument to the lint (including `--impact`), `condense` and `publish`: the directory for `separate`, the single file for `single`, because a folder run reads only `sbp-` files. When Form is not stated, the agent takes the current form from what the directory holds: `sbp-` files mean `separate`, one document means `single`. The scripts never read `AGENTS.md`.
+- **Missing directory:** the agent creates it only when it writes a new blueprint there. Otherwise it reports that the directory does not exist.
+- **Moving between forms:** only when Form is not stated, and when needed, the agent moves a blueprint between `single` and `separate`, keeping every id and every sentence. When Form is stated, the agent never moves the blueprint between forms.
+
 ## A condensed copy
 
 The working files hold every topic and are the source of the stack. A condensed copy is generated from them, for reading and for sending on. It leaves out each topic whose whole body is `None.`. It keeps every other topic, including each topic that holds `Not supplied:`, because that is an open question. A topic that stays keeps its number, so every item has the same number and the same id in the copy as in the source.
