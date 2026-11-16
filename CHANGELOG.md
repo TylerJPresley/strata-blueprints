@@ -2,9 +2,19 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
+## 0.2.0
+
+A project says where its blueprints live, and the skill finds them there.
+
+- Two lines in a project's `AGENTS.md`, `Strata Blueprints Directory: docs/blueprints/` and `Strata Blueprints Form: single` or `separate`, name the blueprint directory and the form. Directory defaults to `docs/blueprints/`. When Form is not stated, the blueprint is one document until it reaches the limit in "A stack in separate files", then it is split into separate files.
+- Core guide: the new section "Where the blueprints live" covers the two lines, how they are read, a missing directory, and moving a blueprint between forms, only when Form is not stated, with every id and sentence kept.
+- `SKILL.md`: AUTHOR and BUILD resolve the location first and give it to the scripts as an explicit argument.
+- README, `docs/lint.md` and `docs/tool.md` say where the path comes from.
+- The lint, the condense and publish tool, the templates, the examples and every test are unchanged. The scripts take the path they are given and never read `AGENTS.md`.
+
 ## 0.1.0
 
-First release (not yet tagged): a lightweight standard for describing any subject (an RFP, software documentation, project steering, a standard, a policy, an idea and more) in three layers, delivered as one skill with its lint, templates, examples and gate.
+First release: a lightweight standard for describing any subject (an RFP, software documentation, project steering, a standard, a policy, an idea and more) in three layers, delivered as one skill with its lint, templates, examples and gate.
 
 - One skill, `skills/strata-blueprints/`, the single home of the standard and the only source. `SKILL.md` is a router with three tasks: write, review and build. Layout: `SKILL.md`, `LICENSE`, `references/`, `assets/` and `scripts/`.
 - The guides: a core guide and one guide per layer (Vision, Structure, Detail) of 12, 11 and 12 topics. Each topic has How to write it, Ask the owner and Check. A layer that is written holds all of its topics, and a topic with nothing to say reads `None.`. Every item in the cited topics is numbered under its own topic, such as `9.1`, and its id, the document in front joined by a hyphen (`vision-9.1`), is what a citation and `--impact` write.
