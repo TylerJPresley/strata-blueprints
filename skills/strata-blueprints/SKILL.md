@@ -22,7 +22,7 @@ Load a file when its job comes up, and no sooner.
 
 | Path | Load when |
 |---|---|
-| `references/strata-blueprints-guide.md` | Always first: the core guide (definitions, rules, how the layers depend on each other, procedure, formatting, views, separate files). |
+| `references/strata-blueprints-guide.md` | Always first: the core guide (definitions, rules, how the layers depend on each other, procedure, formatting, views, separate files, where a project's blueprints live). |
 | `references/strata-blueprints-guide-layer-1.md` | Interviewing for, writing or checking Layer 1. |
 | `references/strata-blueprints-guide-layer-2.md` | The same for Layer 2. |
 | `references/strata-blueprints-guide-layer-3.md` | The same for Layer 3, or building a part. |
@@ -36,7 +36,7 @@ Load a file when its job comes up, and no sooner.
 | `LICENSE` | Never: MIT. |
 
 ## AUTHOR
-1. Load the core guide. Start from the template that fits the job (core guide, How to fill it out).
+1. Load the core guide. Resolve where the blueprints live (core guide, Where the blueprints live) and give that path to every script. Start from the template that fits the job (core guide, How to fill it out).
 2. Interview the owner, unless the owner has already specified the subject in full. Follow the core guide's Procedure, How to interview, and keep the question log. Load each layer's guide file when the interview reaches that layer, and ask each topic's `Ask the owner`. To fill `Not supplied:` items in an existing blueprint, make them the agenda.
 3. Write layer by layer, from each topic's `How to write it`. The core guide's Short stacks says which layers a subject needs and which topics are required; load a layer's guide file only for a layer you write. Its Views across the layers, Formatting and A stack in separate files apply where they come up.
 4. Check each layer: run its `Check` lines and its `Check (whole layer)`, and fix every no, or note why.
@@ -48,7 +48,7 @@ Take the layers present one at a time. For each, load its guide file, run step 4
 
 ## BUILD
 The builder is an agent working with a person. The blueprint is the reference for what to make.
-1. To build one part, read only the core guide, the Layer 3 guide file, that part's Detail, and the Layer 1 and Layer 2 entries it cites. In a stack of separate files, that part's Detail is the file Layer 2 Standing names. Layer 1 gives intent and success measures, Layer 2 the parts and seams, Layer 3 the part's Rules, Limits and Construction. Assumptions are built on as given.
+1. Resolve where the blueprints live (core guide, Where the blueprints live). To build one part, read only the core guide, the Layer 3 guide file, that part's Detail, and the Layer 1 and Layer 2 entries it cites. In a stack of separate files, that part's Detail is the file Layer 2 Standing names. Layer 1 gives intent and success measures, Layer 2 the parts and seams, Layer 3 the part's Rules, Limits and Construction. Assumptions are built on as given.
 2. Find every `Not supplied:` (search the text for it). Group them by part and ask the person in one round before building the part each one blocks. Build the unblocked parts meanwhile. Never fill a `Not supplied:` with a guess, a default or an example value.
 3. Build part by part, in the order the Layer 2 seams allow. Each part meets its Responsibility, Rules and Limits and keeps its seams as named. Use the means Construction names. Where Construction is silent on a means and no Rule or Limit depends on the choice, choose the plainest means and tell the person; where one does depend on it, ask.
 4. Check the result against the blueprint: each Layer 1 value scenario along its Layer 2 path, each Layer 3 rule and limit, each success measure. Use a test or a command where the subject allows one; for a document, a read-through against each rule. Report each by id.
