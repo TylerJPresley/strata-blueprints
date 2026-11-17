@@ -1576,3 +1576,61 @@ test("condensed: folder --impact reaches the same elements as the full folder", 
   assert.ok(full.lines.length >= 2);
   assert.deepEqual(strip(cond), strip(full));
 });
+
+// scenario-trace follows Rule 4: a Layer 3 rule is asked for only where a scenario's path runs through a part that has an entry.
+const stParts = L2 + item("###", 5, "Parts") + "- Brakes (part): stops the bike.\n- Frame (part): carries the rider.\n\n";
+const stL1 = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.2. Given d, when e, then f.\n\n`;
+const stPaths = (p1, p2) => item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${p1}\n- 6.2. Realizes vision-3.2. ${p2}\n\n`;
+const stBrakes = (rules) => L3 + ENTRY("Brakes") + item("####", 4, "Rules") + rules;
+const stTrace = (md) => warns(lintText(md), "scenario-trace");
+
+test("scenario-trace (entries): a path through a part with no entry needs no Layer 3 rule", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes stop.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. Realizes vision-3.1. ${GWT}\n`);
+  assert.deepEqual(stTrace(md), []);
+});
+
+test("scenario-trace (entries): a path through a part with an entry and no rule warns", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes stop.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  const r = stTrace(md);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): one part with an entry among several named still warns", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes and Frame act.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  const r = stTrace(md);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): a path that names no Layer 2 part keeps the old requirement", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then it stops.", "Given d, when e, then it moves.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  assert.equal(stTrace(md).length, 2);
+  const one = stL1 + stParts + stPaths("Given a, when b, then it stops.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. Realizes vision-3.2. Given d, when e, then f.\n`);
+  const r = stTrace(one);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): a Layer 3 heading with no entry needs no rule", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Frame carries.", "Given d, when e, then Frame holds.") + L3;
+  assert.deepEqual(stTrace(md), []);
+});
+
+test("scenario-trace (entries): a folder follows the same rule", () => {
+  const over = (path) => ({
+    ...fxFull,
+    "sbp-detail-rota.md": null,
+    "sbp-structure.md": fxFull["sbp-structure.md"].replace(/- Rota: sbp-detail-rota\.md\n?/, "").replace("then Ledger adds a record", path),
+    "sbp-detail-ledger.md": fxFull["sbp-detail-ledger.md"].replace("Realizes vision-3.1. ", ""),
+  });
+  assert.deepEqual(fxWarns(over("then Rota adds a record"), "scenario-trace"), []);
+  const r = fxWarns(over("then Ledger adds a record"), "scenario-trace");
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});

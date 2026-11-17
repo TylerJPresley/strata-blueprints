@@ -210,17 +210,27 @@ for (const e of live) {
   if (e.own.topic === d && !e.body.includes("Reason:")) warn("reasons", "decision needs 'Reason:'", e.n);
 }
 
-// scenario-trace: a Layer 1 value scenario is traced by a Realizes sentence in Layer 2 and in Layer 3.
+// scenario-trace: a Layer 1 value scenario is traced by a Realizes sentence in Layer 2, and in Layer 3 where its path runs through a part that has an entry.
 {
   const traced = { 2: new Set(), 3: new Set() };
+  const pathText = new Map();   // scenario id -> text of the Layer 2 elements that realize it
+  const hasEntry = new Set(units.filter((u) => u.layer === 3).map((u) => u.name.toLowerCase()));
   for (const e of live) {
     if (e.layer < 2) continue;
-    for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) traced[e.layer].add(m[1]);
+    for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) {
+      traced[e.layer].add(m[1]);
+      if (e.layer === 2) pathText.set(m[1], `${pathText.get(m[1]) || ""} ${e.text}`);
+    }
   }
+  const named = (id) => slugsListed.filter((p) => /^[A-Za-z0-9]+$/.test(p.name) && new RegExp(String.raw`(?<![A-Za-z0-9])${p.name}(?![A-Za-z0-9])`).test(pathText.get(id) || ""));
   for (const e of live) {
     if (e.layer !== 1 || !e.own || e.own.topic !== 3) continue;
     if (seen.includes(2) && !traced[2].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no path in Layer 2`, e.n);
-    if (seen.includes(3) && !traced[3].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no rule in Layer 3`, e.n);
+    if (seen.includes(3) && !traced[3].has(e.own.id)) {
+      const parts = named(e.own.id);
+      const needed = parts.length ? parts.some((p) => hasEntry.has(p.name.toLowerCase())) : hasEntry.size > 0;
+      if (needed) warn("scenario-trace", `${e.own.id} has no rule in Layer 3`, e.n);
+    }
   }
 }
 

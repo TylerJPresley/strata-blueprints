@@ -40,7 +40,7 @@ The script produces three kinds of output:
 - `ring` — a layer refers outward to a later layer
 - `scenario-form` — `Given` line not shaped `Given ..., when ..., then ...`
 - `reasons` — assumption missing `Basis:` and `If wrong:`, or decision missing `Reason:`
-- `scenario-trace` — a Layer 1 scenario is realized by no path in Layer 2 or no rule in Layer 3
+- `scenario-trace` — a Layer 1 scenario is realized by no path in Layer 2, or by no rule in Layer 3 when its path runs through a part that has a Layer 3 entry; a path that names no part listed in Layer 2 Parts needs a rule whenever Layer 3 has any entry
 - `cost-shape` — a cost is malformed or does not follow `<number>. Given <condition>, when <subject state>, then it costs <amount>. Paid by <who>.`
 - `risk-shape` — a risk is malformed or does not follow `<number>. Given ..., when ..., then .... Severity: High|Medium|Low|Not rated. Answered by <answer>.`
 - `concern-shape` — an open concern is malformed or does not follow `<number>. Given ..., when ..., then .... Raised by <who>.`
