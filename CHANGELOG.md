@@ -2,7 +2,7 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
-## Unreleased
+## 0.3.0
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
 
