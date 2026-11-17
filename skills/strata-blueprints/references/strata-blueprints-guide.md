@@ -32,7 +32,7 @@ Every element has exactly one of these types, and a reader can tell which: state
 1. The layers are rings, with Layer 1 innermost: a layer may refer to the layers inside it, never to the layers outside it. A change to an inner layer reaches every layer outside it.
 2. A parent names its parts, each with a one-line responsibility; that is the parent's own content. A part's Detail is an entry in the parent's stack (in its document or its `sbp-detail-<part>.md` file) or a stack of its own named in Layer 2 Standing; either way the parent never depends on how the part works inside.
 3. Each layer holds one kind of content, stated in its Intent. Content of another kind belongs in the layer that holds it. Specific means (tools, materials, methods) are named in Layer 3, under Construction. Earlier layers name them only when they are a constraint stated in Layer 1.
-4. Layer 3 is written where a maker needs it, as an entry in this stack or as the part's own stack. A subject made of independent members needs only its upper layers; the lower layers are those members' own stacks. Nesting is unlimited: any part may have its own stack, and any subject may have any number of peers.
+4. Layer 3 is written where a maker needs it, as an entry in this stack or as the part's own stack. A part with no Layer 3 entry in this stack is built from its Layer 2 entry alone or from its own stack, and a Layer 1 scenario whose path runs only through such parts needs no Layer 3 rule here. A subject made of independent members needs only its upper layers; the lower layers are those members' own stacks. Nesting is unlimited: any part may have its own stack, and any subject may have any number of peers.
 5. Every layer ends with its costs, then its risks, then its open concerns, then its assumptions, then its decisions. Each cost says what it takes and who pays; each risk says what could go wrong, how badly and what answers it; each open concern says what is unsettled and who raised it; each assumption says why we think so; each decision says why. Costs, risks and open concerns are valid in every layer. They weigh most in Layer 3, where a maker meets the amount, the harm and the unsettled question, and least in Layer 1.
 
 ## How the layers depend on each other
@@ -49,7 +49,7 @@ Every layer rests on the layers above it, Layer 1 highest (the innermost ring in
 - Start from the template that fits the job, in `assets/` of the skill folder. Optional topics are marked `(optional)` in the template. Delete the marker when you fill the topic in, and write `None.` under an optional topic that has nothing to say.
   - A whole stack in one document: `strata-blueprints-template.md`, the full template. It is authoritative; the three cuts follow it.
   - Layer 1 alone or Layer 2 alone: `strata-blueprints-template-layer-1.md` or `strata-blueprints-template-layer-2.md`.
-  - One part's Detail: `strata-blueprints-template-layer-3.md`, one entry for each part.
+  - One part's Detail: `strata-blueprints-template-layer-3.md`, one entry for each part that has Detail.
   - A file of a stack in separate files: the matching cut with each heading lowered one level, under the `# <Subject>` title (see "A stack in separate files").
 - Write anything that happens as Given, When, Then. One scenario keeps its form down the layers.
 - Give every item under these topics its number, written at the start of its line under its own topic, such as `- 3.1. Given ..., when ..., then ...`. Layer 1: Value, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 2: Scenario paths, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 3: Rules, Limits, Construction, Costs, Risks, Open Concerns, Assumptions and Decisions. An item under another topic may carry a number too. A `None.` line and a `Not supplied:` line carry none. A citation writes the full id, with the document in front (`vision-3.1`); a bare number is never a citation.
@@ -65,7 +65,7 @@ Intent, Audience, a Success test written as Given, When, Then, and its Contents 
 
 ## A stack in separate files
 
-A stack stands complete as one document. It may instead be written as one file per layer in one folder. Keep one document for an idea, for a stack that stops at Layer 2, and for a few small parts. Split when a part's Detail is built separately, changes on its own schedule or has its own owner, or when Layer 3 outweighs Layers 1 and 2 together.
+A stack stands complete as one document. It may instead be written as one file per layer in one folder. Keep one document for an idea, for a stack that stops at Layer 2, and for a few small parts. Split when a part's Detail is built separately, changes on its own schedule or has its own owner, or when Layer 3 outweighs Layers 1 and 2 together. Weight is counted in words: Layer 3 outweighs the other two when it holds more words than Layers 1 and 2 together, and parts are few and small while it does not.
 
 The files sit flat in one folder. The lint finds them by name and ignores every other file.
 
@@ -93,7 +93,7 @@ Strata Blueprints Directory: docs/blueprints/
 ```
 
 - **Directory:** a directory, never a file. It is relative to the project root, with forward slashes, no leading `./` and a trailing `/`. `./docs/blueprints` and `docs/blueprints` read as the same directory. An absolute path and `~` are not accepted. The default is `docs/blueprints/`.
-- **Form:** `Strata Blueprints Form: single` or `Strata Blueprints Form: separate`. `single` is one document with all three layers, named for the subject without the `sbp-` prefix. `separate` is one file per layer: `sbp-vision.md`, `sbp-structure.md` and `sbp-detail-<part>.md`. When Form is stated, the agent follows it. When it is not stated, the blueprint is one document until it reaches the limit for breaking it up, then it is split into separate files; the limit is the guidance in "A stack in separate files".
+- **Form:** `Strata Blueprints Form: single` or `Strata Blueprints Form: separate`. `single` is one document with all three layers, named for the subject; its name does not start with `sbp-` or `strata-blueprints-`, which mark blueprint files and the standard's own files. `separate` is one file per layer: `sbp-vision.md`, `sbp-structure.md` and `sbp-detail-<part>.md`. When Form is stated, the agent follows it. When it is not stated, the blueprint is one document until it reaches the limit for breaking it up, then it is split into separate files; the limit is the guidance in "A stack in separate files".
 - **Reading:** a line starts with its key after an optional list bullet. The key is case-insensitive, and the value is the rest of the line. The first match wins. The two keys work independently. An invalid value is ignored, the default applies, and the agent reports it.
 - **Use:** the agent resolves both values and passes the path as an explicit argument to the lint (including `--impact`), `condense` and `publish`: the directory for `separate`, the single file for `single`, because a folder run reads only `sbp-` files. When Form is not stated, the agent takes the current form from what the directory holds: `sbp-` files mean `separate`, one document means `single`. The scripts never read `AGENTS.md`.
 - **Missing directory:** the agent creates it only when it writes a new blueprint there. Otherwise it reports that the directory does not exist.
@@ -157,7 +157,7 @@ Every layer opens with a title and a one-line scope. A layer that uses symbols, 
 ## Formatting
 
 **Markup**
-- Under the title, write `Version: 0.1.0`.
+- Under the title, write `Version: 0.1.0`, the blueprint's own version, not the standard's.
 - One heading per layer, such as "## Layer 2: Structure", followed by its one-line scope as a line that starts with `Scope:`, for example `Scope: the whole app, divided into parts, with the seams between them and with the outside.`
 - Number the topics of a layer, or of a part's entry, from 1 in the layer's order: 1 to 12 in Layer 1, 1 to 11 in Layer 2 and 1 to 12 in each Layer 3 part. The number of a topic is the topic part of an id. A condensed copy and a published document keep these numbers, so their topic numbers have gaps.
 - Write each Detail entry under `### <Part> (part)`, with its topics as `#### N. <Topic>` in the layer's order.

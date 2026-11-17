@@ -1,4 +1,4 @@
-<!-- Layer 3 of a Strata Blueprints stack, a cut of strata-blueprints-template.md with every heading one level up. Keep one entry for each part; delete this line, delete the `(optional)` marker from each heading you fill in, write `None.` under an optional topic with nothing to say, then fill in the brackets. -->
+<!-- Layer 3 of a Strata Blueprints stack, a cut of strata-blueprints-template.md with every heading one level up. Keep one entry for each part that has Detail; delete this line, delete the `(optional)` marker from each heading you fill in, write `None.` under an optional topic with nothing to say, then fill in the brackets. -->
 
 # Layer 3: Detail
 
