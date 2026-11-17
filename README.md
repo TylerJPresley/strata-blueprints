@@ -58,7 +58,7 @@ Each layer rests on the layers above it. A change to Vision reaches every layer 
 
 A stack can be written as one document with all three layers, or as separate files in one folder, the blueprint directory (see Usage, With an agent).
 
-One document: write `<subject>.md` in the blueprint directory with all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`).
+One document: write `<subject>.md` in the blueprint directory, with a name that does not start with `sbp-` or `strata-blueprints-`, holding all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`).
 
 Separate files: write `sbp-vision.md`, `sbp-structure.md` and one `sbp-detail-<part>.md` per part (for example, `sbp-detail-ledger.md`) in the blueprint directory.
 
