@@ -59,7 +59,7 @@ In the shape lines, `<number>` is the item's number under its topic, such as `8.
 
 - `0`: no warnings
 - `1`: at least one warning, with `--strict`
-- `2`: file does not exist, or a folder holds none of `sbp-vision.md`, `sbp-structure.md` or `sbp-detail-*.md` files
+- `2`: file does not exist, or a folder holds none of `sbp-vision.md`, `sbp-structure.md` or `sbp-detail-*.md` files (the message says to pass the file to lint one document)
 
 Warnings are advisory; exit code 0 indicates the script ran successfully.
 

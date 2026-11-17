@@ -419,7 +419,7 @@ function loadFolder(dir) {
   const names = [];
   const hasVision = all.includes("sbp-vision.md"), hasStructure = all.includes("sbp-structure.md");
   const details = all.filter((n) => /^sbp-detail-.+\.md$/.test(n)).sort();
-  if (!hasVision && !hasStructure && !details.length) die(`no sbp-vision.md, sbp-structure.md or sbp-detail-*.md in ${dir}`);
+  if (!hasVision && !hasStructure && !details.length) die(`no sbp-vision.md, sbp-structure.md or sbp-detail-*.md in ${dir}; to lint one document, pass the file`);
   const read = (n) => {
     try { return fs.readFileSync(path.join(dir, n), "utf8").split("\n"); } catch (e) { die(`cannot read ${path.join(dir, n)}: ${e.code || e.message}`); }
   };

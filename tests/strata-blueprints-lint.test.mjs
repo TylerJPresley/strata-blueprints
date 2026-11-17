@@ -1634,3 +1634,15 @@ test("scenario-trace (entries): a folder follows the same rule", () => {
   assert.equal(r.length, 1);
   assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
 });
+
+test("folder: the error for a folder with no sbp- files says to pass the file", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-"));
+  try {
+    fs.writeFileSync(path.join(dir, "notes.md"), "# a single document\n");
+    const r = spawnSync(process.execPath, [script, dir], { encoding: "utf8" });
+    assert.equal(r.status, 2);
+    assert.equal(r.stdout, "");
+    assert.equal(r.stderr.trim().split("\n").length, 1, r.stderr);
+    assert.match(r.stderr.trim(), /; to lint one document, pass the file$/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
