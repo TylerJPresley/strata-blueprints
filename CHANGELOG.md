@@ -16,8 +16,13 @@ Fixes from a test run in which the standard was used to write a blueprint of thi
 - Core guide: new section "Starting from an existing project" covers Source:, Basis: and Open Concerns for disagreements with existing decisions.
 - Layer 3 guide: the Check for Rules is reworded to the P7 scope: rules that realize a Layer 1 Value scenario or a Layer 2 path are scenarios; other rules may be written plainly.
 - The Layer 3 template cut and "How to fill it out" say one entry for each part that has Detail. README names the file-name rule.
-- Five existing test lines changed: the scenario-form 1-warning case moved under `### 3. Value`; four Status field assertions became `Status: Draft` (capitalized) from lowercase `status: draft`.
-- The template, the examples and the published-document example are unchanged. The tool and every test now pass under the new rules.
+- Five existing test lines changed: the scenario-form 1-warning case moved under `### 3. Value`; four Status field assertions became `Status: Draft` (capitalized) from lowercase `status: draft`; the examples test helper `assemble` skips the metadata lines after a title as the lint does (and the folder-against-document lint comparison leaves out the `INFO status:` line, which lists one status per file in a folder); no assertion changed.
+- Layer 3 guide: when a program builds a part and tests check it, its Rules and Limits carry "the contract the tests assert" (the exact strings it prints, its inputs and outputs as signatures, and Given, when, then cases), so that someone with only the blueprint can build a part that passes.
+- Layer 2 guide: the Standing topic says that in a stack written as one document a part with no Layer 3 entry reads `Docs: no Detail here`, and that in separate files such a part has no file and no Standing line. Standing holds only `Name: value` lines, one for each part; the lint reads only those lines and ignores any other line under Standing.
+- Layer 1 and Layer 2 guides: each has a `Holds:` field stating that the layer holds intent only.
+- Lint and tool: `Parent:` is read as a metadata line in the top matter, with `Version:`, `Status:` and `Blueprint status:`.
+- Publish: the published document carries one `Status:` line, the Vision's `Blueprint status:`; the `Status:` lines of the Structure and Detail files are dropped with the other metadata lines.
+- The full template, the three layer cuts, the three examples, the published example and the README carry `Status:` lines (`Blueprint status:` in the Vision cut and the to-do Vision); the gate checks the Status lines of the cuts and the full template. The tool and every test pass under the new rules.
 
 ## 0.2.0
 
