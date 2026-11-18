@@ -132,7 +132,7 @@ Exit codes: 0 for success; 2 for a refusal or error, with `strata-blueprints: <m
 | Any input with folder `--out` path (publish) | `strata-blueprints: --out <path> is a folder; give a file path` |
 | Condense input is a published document | `strata-blueprints: <path> is a published document; condense the source files` |
 | Publish input is a published document | `strata-blueprints: <path> is a published document; publish from the source files` |
-| Later file (publish) has text before first layer heading | `strata-blueprints: <path>: text before the first layer heading (line N) cannot be merged; only the first file may hold it (except for metadata lines Version:, Status:, Blueprint status:, Parent:)` |
+| Later file (publish) has text before first layer heading | `strata-blueprints: <path>: text before the first layer heading (line N) cannot be merged; only the first file may hold it` |
 | Folder run: a detail file is a symlink (condense or publish) | `strata-blueprints: <path> is a symlink` |
 | Folder run: a detail file is not a file (condense or publish) | `strata-blueprints: not a file: <path>` |
 | Existing output file exists but is not a condensed or published copy, and no `--force` | `strata-blueprints: <out> exists and is not a condensed copy; use --force to overwrite it` (for condense) or `strata-blueprints: <out> exists and is not a condensed copy or a published document; use --force to overwrite it` (for publish) |
