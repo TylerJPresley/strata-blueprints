@@ -237,7 +237,8 @@ function singleEntryName(layer3) {
 function assemble(folder) {
   const names = fs.readdirSync(folder);
   const read = (n) => fs.readFileSync(path.join(folder, n), "utf8").replace(/\r\n/g, "\n");
-  const dropTitle = (t) => t.replace(/^# [^\n]*\n\n?/, "");
+  // Drops the title and the metadata lines (Version, Status, Blueprint status, Parent) that follow it, as the lint's loadFolder does.
+  const dropTitle = (t) => t.replace(/^# [^\n]*\n\n?(?:(?:Version|Status|Blueprint status|Parent):[^\n]*\n)*\n?/, "");
   const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const structure = read("sbp-structure.md");
   const order = parseParts(splitLayers(structure).find((l) => l.num === 2) || { lines: [] }).map((p) => slug(p.name));
@@ -1084,6 +1085,8 @@ test("folder lint equals assembled-document lint", () => {
     const norm = (f) => {
       let out;
       try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
+      // The INFO status line lists one status per file in a folder and one in a document, by design; the status test at the end of this file checks it.
+      out = out.split("\n").filter((l) => !l.startsWith("INFO status:")).join("\n");
       return out.split("\n").filter(Boolean).map((l) => l.replace(/\s*\((?:\S+ )?line \d+\)/g, ""));
     };
     assert.deepEqual(norm(real), norm(doc), name);
@@ -1449,5 +1452,24 @@ test("guide files: no removed file name appears in skills/, tests/, gate.mjs or 
   for (const f of files) {
     const text = fs.readFileSync(f, "utf8");
     for (const r of removed) assert.ok(!text.includes(r), `${path.relative(root, f)} names the removed ${r}`);
+  }
+});
+
+// --- Every shipped example reports its INFO status line (values: the idea is a Draft, the RFP is in Review, the to-do stack has an Approved Vision and Structure and Details in Review). ---
+test("every shipped example reports its INFO status line", () => {
+  const want = {
+    "strata-blueprints-example.md": "INFO status: Draft",
+    "strata-blueprints-example-rfp.md": "INFO status: Review",
+    "strata-blueprints-example-todo-app": "INFO status: blueprint Review; vision Approved; structure Approved; " +
+      ["access", "ledger", "folders", "timing", "notifier", "presence"].map((p) => `detail.${p} Review`).join("; "),
+  };
+  for (const [name, line] of Object.entries(want)) {
+    const out = execFileSync(process.execPath, [LINT, path.join(EXAMPLES_DIR, name), "--strict"], { encoding: "utf8" });
+    const got = out.split("\n").find((l) => l.startsWith("INFO status:"));
+    if (name.endsWith("todo-app")) {
+      // The order of the details follows the Parts order; compare the set.
+      const norm = (l) => { const [a, ...r] = l.split("; "); return [a, ...r.slice(0, 2), ...r.slice(2).sort()].join("; "); };
+      assert.equal(norm(got), norm(line), name);
+    } else assert.equal(got, line, name);
   }
 });

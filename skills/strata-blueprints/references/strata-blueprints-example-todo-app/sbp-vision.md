@@ -1,5 +1,8 @@
 # Example: a to-do app (companion to the Strata Blueprints guide)
 
+Status: Approved
+Blueprint status: Review
+
 This is a worked blueprint for a software product: an app where a person keeps tasks on lists, sees what is due, and reaches the same tasks from a phone and from a web page. It is one way to fill the layers, not a template. Every scenario stays as Given, When, Then down the layers, and specific means appear only in Layer 3 Construction.
 
 ## Layer 1: Vision
