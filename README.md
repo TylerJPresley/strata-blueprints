@@ -62,6 +62,8 @@ One document: write `<subject>.md` in the blueprint directory, with a name that 
 
 Separate files: write `sbp-vision.md`, `sbp-structure.md` and one `sbp-detail-<part>.md` per part (for example, `sbp-detail-ledger.md`) in the blueprint directory.
 
+Every document carries a `Status:` line under its title: `Draft`, `Review` or `Approved`. In separate files each file has its own, and `sbp-vision.md` also carries `Blueprint status:`, the status of the whole blueprint. The lint reports them in its `INFO status:` line.
+
 ### The standard's files
 
 The skill folder is the single home of the standard. SKILL.md tells an agent which file to load at each step.
