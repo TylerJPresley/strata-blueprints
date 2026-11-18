@@ -373,12 +373,22 @@ INFO impact: <count> element(s) reached, deepest <depth>
 - Warnings: `WARN impact: cycle <id1> ... <id2>` when a citation would loop back; such elements are not followed. `WARN impact: <id> is defined on lines <line1> and <line2>` when the id is defined twice (in a folder run the two numbers are lines of the assembled document, not of the files; this is accidental)
 - Last line: `INFO impact: <count> element(s) reached, deepest <depth>` always, even when count is 0
 
-When the id is not defined:
+When the id is not defined, the first line is the warning and the id follows. The tree still lists every element that cites the id, so a dangling citation is found. With no citer the tree is empty and the last line is `INFO impact: 0 element(s) reached, deepest 0`:
 
 ```
 WARN impact: <id> is not defined in <path as given>
 <id>
-INFO impact: 0 element(s) reached, deepest 0
+  d1  <tree lines of the elements that cite the id>
+INFO impact: <count> element(s) reached, deepest <depth>
+```
+
+For example, `--impact vision-3.9` on a folder where `structure-6.1` cites the undefined `vision-3.9`:
+
+```
+WARN impact: vision-3.9 is not defined in t
+vision-3.9
+  d1  sbp-structure.md line 50  Layer 2 > Scenario paths  structure-6.1  6.1. Realizes vision-3.9. Given the keeper has a commitment in mind, when they w...
+INFO impact: 1 element(s) reached, deepest 1
 ```
 
 Exit codes:
