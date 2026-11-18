@@ -22,7 +22,7 @@ Fixes from a test run in which the standard was used to write a blueprint of thi
 - Layer 1 and Layer 2 guides: each has a `Holds:` field stating that the layer holds intent only.
 - Lint and tool: `Parent:` is read as a metadata line in the top matter, with `Version:`, `Status:` and `Blueprint status:`.
 - Publish: when the Vision has a `Blueprint status:` line, the published document carries it as `Status:` and the Vision's own `Status:` line is dropped; otherwise the Vision's own `Status:` stays. The `Status:` lines of the Structure and Detail files are dropped with the other metadata lines.
-- The full template, the three layer cuts, the three examples and the published example carry `Status:` lines (`Blueprint status:` in the Vision cut and the to-do Vision). The README describes the lines. The gate checks the Status lines of the cuts and the full template. The tool and every test pass under the new rules.
+- The full template, the three layer cuts, the three examples and the published example carry `Status:` lines (`Blueprint status:` in the Vision cut and the to-do Vision). The README describes the lines. The Vision cut and the three examples also carry `Version:`. The gate checks the Status lines of the cuts and the full template, `Version:` in the Vision cut, and that `Version:` comes before `Status:` in the full template. The tool and every test pass under the new rules.
 
 ## 0.2.0
 
