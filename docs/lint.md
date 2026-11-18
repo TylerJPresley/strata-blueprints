@@ -143,7 +143,13 @@ Silent when:
 
 Fires when a Layer 1 Value scenario (a numbered item under Value) is not realized in Layer 2 or Layer 3:
 - Missing from Layer 2: no `Realizes <vision-N.M>.` sentence in any Layer 2 element
-- Missing from Layer 3: when the scenario's path runs through a part that has a Layer 3 entry, no `Realizes <vision-N.M>.` sentence appears in any Layer 3 element. A path is built from the Layer 2 text that realizes the scenario, a part is on the path when its Parts name appears as a whole word in that text, and an empty path (no valid Layer 2 heading) names no part. If the path names no part but any Layer 3 entry exists, Layer 3 must have the sentence anyway. The warning message names the path and the part if it was found: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes` or `its path structure-6.1 names no part` (when no path or path found no part).
+- Missing from Layer 3: when the scenario's path runs through a part that has a Layer 3 entry, no `Realizes <vision-N.M>.` sentence appears in any Layer 3 element. A path is built from the Layer 2 text that realizes the scenario, a part is on the path when its Parts name appears as a whole word in that text, and an empty path (no valid Layer 2 heading) names no part. If the path names no part but any Layer 3 entry exists, Layer 3 must have the sentence anyway. The warning message ends with what the path names. The path ids are those of the Layer 2 elements that realize the scenario, joined with `, `; the parts are those found in the path text, joined with `, `. The lint prints exactly these forms, each shown here as the lint printed it:
+  - A path with one part: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes`
+  - A path with several parts: `vision-3.1 has no rule in Layer 3; path structure-6.1 names parts Brakes, Frame`
+  - Several paths: `vision-3.1 has no rule in Layer 3; path structure-6.1, structure-6.2 names parts Brakes, Frame`
+  - A path that names no part: `vision-3.1 has no rule in Layer 3; its path structure-6.1 names no part` (with several paths: `its path structure-6.1, structure-6.2 names no part`)
+  - A realizing element with no id of its own, naming one part: `vision-3.1 has no rule in Layer 3; its path names part Brakes`; naming several: `its path names parts Brakes, Frame`
+  - No path at all, or a realizing element with no id of its own that names no part: `vision-3.1 has no rule in Layer 3; its path names no part`
 
 Silent when:
 - Layer 3 has no `(part)` entry at all (no trace needed)
@@ -296,7 +302,7 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `reasons` | `assumption needs 'Basis:' and 'If wrong:'` |
 | `reasons` | `decision needs 'Reason:'` |
 | `scenario-trace` | `<id> has no path in Layer 2` |
-| `scenario-trace` | `<id> has no rule in Layer 3; path <path-id> names part <Part>` or `<id> has no rule in Layer 3; path <path-id> names no part` or `<id> has no rule in Layer 3; its path <path-id> names no part` |
+| `scenario-trace` | `<id> has no rule in Layer 3; path <path-ids> names part <Part>` or `... names parts <Part>, <Part>`, `<id> has no rule in Layer 3; its path <path-ids> names no part`, `<id> has no rule in Layer 3; its path names part <Part>` or `... names parts <Part>, <Part>`, or `<id> has no rule in Layer 3; its path names no part` |
 | `cost-shape` | `a line under Costs must be 'None.' or start '<T>.<n>.'` where T is the Costs topic number of the layer (8 in Layers 1 and 3, 7 in Layer 2), or `a cost must read '<T>.<n>. Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '<T>.<n>. <What>: <amount>. Paid by <who>.' is also accepted)` |
 | `risk-shape` | `a line under Risks must be 'None.' or start '<T>.<n>.'` where T is the Risks topic number of the layer (9 in Layers 1 and 3, 8 in Layer 2), or `a risk must read '<T>.<n>. Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'` |
 | `concern-shape` | `a line under Open Concerns must be 'None.' or start '<T>.<n>.'` where T is the Open Concerns topic number of the layer (10 in Layers 1 and 3, 9 in Layer 2), or `an open concern must read '<T>.<n>. Given ..., when ..., then .... Raised by <who>.'` |
