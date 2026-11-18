@@ -3,6 +3,7 @@
 # [Subject name]
 
 Version: 0.1.0
+Status: Draft
 
 ## Layer 1: Vision
 

@@ -78,11 +78,15 @@ function templateProblems() {
   }
   const full = text[names[0]];
   if (!full) return problems;
+  const CUT_TOP = { 1: ['Status: Draft', 'Blueprint status: Draft'], 2: ['Status: Draft'], 3: ['Status: Draft'] };
+  const head = full.split('\n');
+  const firstSection = head.findIndex((l) => /^## /.test(l));
+  if (!head.slice(0, firstSection < 0 ? head.length : firstSection).includes('Status: Draft')) problems.push(`${names[0]}: top matter lacks "Status: Draft"`);
   const lines = full.replace(/\n$/, '').split('\n');
   for (let n = 1; n <= 3; n++) {
     const name = `strata-blueprints-template-layer-${n}.md`;
     if (!text[name]) continue;
-    const want = [];
+    const want = [...CUT_TOP[n], ''];
     let inLayer = false, fence = false;
     for (const l of lines) {
       if (/^\s*(```|~~~)/.test(l)) fence = !fence;

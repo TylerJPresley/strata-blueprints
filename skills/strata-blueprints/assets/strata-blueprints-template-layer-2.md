@@ -1,5 +1,7 @@
 <!-- Layer 2 of a Strata Blueprints stack, a cut of strata-blueprints-template.md with every heading one level up. Delete this line, delete the `(optional)` marker from each heading you fill in, write `None.` under an optional topic with nothing to say, then fill in the brackets. -->
 
+Status: Draft
+
 # Layer 2: Structure
 
 Scope: the whole [subject], divided into parts, with the seams between them and with the outside.
