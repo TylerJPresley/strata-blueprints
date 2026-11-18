@@ -70,7 +70,7 @@ test("ring: outward reference warns, inward does not; fences ignored", () => {
 });
 
 test("scenario-form", () => {
-  assert.equal(warns(lintText(L1 + "- Given a cat it sleeps.\n" + L2), "scenario-form").length, 1);
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat it sleeps.\n\n" + L2), "scenario-form").length, 1);
   assert.equal(warns(lintText(L1 + "- Given a cat, when it is fed, then it sleeps.\n" + L2), "scenario-form").length, 0);
   assert.equal(warns(lintText(L1 + "```\nGiven bad\n```\n" + L2), "scenario-form").length, 0);
 });
@@ -700,7 +700,7 @@ test("missing-topic: Costs, Risks and Open Concerns must appear in every written
 const fxVision = `# Club
 
 Version: 0.1.0
-Status: draft
+Status: Draft
 
 ## Layer 1: Vision
 
@@ -769,7 +769,7 @@ Plans the shifts.
 `;
 // The same stack with every topic written (each missing one reads None.), so strict runs stay clean under the topics check.
 const fxFull = {
-  "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
+  "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: Draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
     fxT("###", T1, { Value: "- 3.1. Given a member, when they join, then they are listed.", Decisions: "- 12.1. Keep lists. Reason: simple." }),
   "sbp-structure.md": "# Club\n\n## Layer 2: Structure\n\nScope: the whole club.\n\n" +
     fxT("###", T2, { Parts: "- Ledger (part): holds the records.\n- Rota (part): plans the shifts.", Standing: "- Ledger: sbp-detail-ledger.md\n- Rota: sbp-detail-rota.md", "Scenario paths": "- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record." }) +
@@ -1645,4 +1645,98 @@ test("folder: the error for a folder with no sbp- files says to pass the file", 
     assert.equal(r.stderr.trim().split("\n").length, 1, r.stderr);
     assert.match(r.stderr.trim(), /; to lint one document, pass the file$/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// --- owner decisions: trace context (P3), status (P5), scenario-form scope (P7) ----------------
+
+test("scenario-trace: the missing-Layer-3-rule warning names the part and the path id", () => {
+  const md = L1 + "### 3. Value\n\n- 3.1. Given a rider, when braking, then stops.\n\n" +
+    L2 + "### 1. Parts\n\n- Brakes (part): stops the bike.\n\n### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a rider, when braking, then Brakes stops the bike.\n\n" +
+    L3 + "### Brakes (part)\n\n#### 4. Rules\n\n- A rule with no id.\n";
+  const r = warns(lintText(md), "scenario-trace");
+  assert.equal(r.length, 1);
+  assert.match(r[0], /^WARN scenario-trace: vision-3\.1 has no rule in Layer 3/);
+  assert.match(r[0], /Brakes/);
+  assert.match(r[0], /structure-6\.1/);
+});
+
+test("status: a value other than Draft, Review or Approved warns with its line", () => {
+  const bad = warns(lintText("# T\n\nStatus: draft\n\n" + L1 + L2), "status");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /\(line 3\)$/);
+  assert.equal(warns(lintText("# T\n\nStatus: Final\n\n" + L1 + L2), "status").length, 1);
+  for (const v of ["Draft", "Review", "Approved"]) assert.equal(warns(lintText(`# T\n\nStatus: ${v}\n\n` + L1 + L2), "status").length, 0);
+  const bp = warns(lintText("# T\n\nStatus: Draft\nBlueprint status: done\n\n" + L1 + L2), "status");
+  assert.equal(bp.length, 1);
+  assert.match(bp[0], /\(line 4\)$/);
+  assert.equal(warns(lintText("# T\n\nStatus: Draft\nBlueprint status: Review\n\n" + L1 + L2), "status").length, 0);
+});
+
+test("status: a single document reports one INFO status line before INFO not-supplied", () => {
+  const r = lintText("# T\n\nStatus: Review\n\n" + L1 + L2);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: Review"]);
+  assert.equal(r.lines.at(-3), "INFO status: Review");
+  assert.match(r.lines.at(-2), /^INFO not-supplied: 0$/);
+});
+
+test("status: no INFO status line when no document has a Status line", () => {
+  assert.equal(lintText(L1 + L2).lines.filter((l) => l.startsWith("INFO status")).length, 0);
+});
+
+test("status: a folder reports blueprint, vision, structure and each detail, with - for none", () => {
+  const files = {
+    ...fxFull,
+    "sbp-vision.md": fxFull["sbp-vision.md"].replace("Status: Draft\n", "Status: Review\nBlueprint status: Draft\n"),
+    "sbp-detail-ledger.md": fxFull["sbp-detail-ledger.md"].replace("# Club\n\n", "# Club\n\nStatus: Approved\n\n"),
+  };
+  const r = fxWith(files, (d) => run(d, "--strict"));
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: blueprint Draft; vision Review; structure -; detail.ledger Approved; detail.rota -"]);
+  const i = r.lines.findIndex((l) => l.startsWith("INFO status"));
+  assert.match(r.lines[i + 1], /^INFO not-supplied/);
+  const bad = fxWarns({ ...files, "sbp-detail-rota.md": fxFull["sbp-detail-rota.md"].replace("# Club\n\n", "# Club\n\nStatus: nope\n\n") }, "status");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /\(sbp-detail-rota\.md line 3\)$/);
+});
+
+test("scenario-form: silent for a Layer 3 rule without Realizes, a limit and a view scenario", () => {
+  const rule = (body) => L1 + L2 + "## Layer 3: Detail\n\nScope: x.\n\n### Brakes (part)\n\n" + body;
+  assert.deepEqual(warns(lintText(rule("#### 4. Rules\n\n- 4.1. Given a cat it sleeps.\n")), "scenario-form"), []);
+  assert.deepEqual(warns(lintText(rule("#### 6. Limits\n\n- 6.1. Given a cat it sleeps.\n")), "scenario-form"), []);
+  assert.deepEqual(warns(lintText(L1 + L2 + "## View: Life\n\n- Given a cat it sleeps.\n"), "scenario-form"), []);
+});
+
+test("scenario-form: still warns on a Realizes item without when, and on a Layer 1 Value item without then", () => {
+  const rule = "## Layer 3: Detail\n\nScope: x.\n\n### Brakes (part)\n\n#### 4. Rules\n\n- 4.1. Realizes vision-3.1. Given a cat, then it sleeps.\n";
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, then it sleeps.\n\n" + L2 + rule), "scenario-form").length, 1);
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, it sleeps.\n\n" + L2), "scenario-form").length, 1);
+});
+
+// --- metadata lines in the top matter of every document of a stack ----------------
+const fxMeta = (title, lines) => title.replace("# Club\n\n", "# Club\n\n" + lines.join("\n") + "\n\n");
+const fxMetaStack = () => ({
+  ...fxFull,
+  "sbp-vision.md": fxFull["sbp-vision.md"].replace("Version: 0.1.0\nStatus: Draft\n", "Version: 0.1.0\nBlueprint status: Approved\nStatus: Approved\nParent: Org\n"),
+  "sbp-structure.md": fxMeta(fxFull["sbp-structure.md"], ["Status: Draft", "Version: 0.2.0", "Parent: Org"]),
+  "sbp-detail-ledger.md": fxMeta(fxFull["sbp-detail-ledger.md"], ["Status: Review", "Blueprint status: Review"]),
+  "sbp-detail-rota.md": fxMeta(fxFull["sbp-detail-rota.md"], ["Status: Approved"]),
+});
+
+test("metadata: Status, Version, Blueprint status and Parent lines in the top matter of every file lint with no warning", () => {
+  const r = fxWith(fxMetaStack(), (d) => run(d, "--strict"));
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: blueprint Approved; vision Approved; structure Draft; detail.ledger Review; detail.rota Approved"]);
+});
+
+test("metadata: top-matter lines of a later file do not change INFO not-supplied", () => {
+  const notSup = (over) => fxWith(over, (d) => run(d)).lines.find((l) => l.startsWith("INFO not-supplied"));
+  const base = notSup({});
+  assert.match(base, /^INFO not-supplied: \d+$/);
+  assert.equal(notSup(fxMetaStack()), base);
+});
+
+test("metadata: a Status line below the first ## heading is still read as an item", () => {
+  const w = fxWarns({ "sbp-structure.md": fxFull["sbp-structure.md"].replace("### 11. Decisions\n\nNone.", "### 11. Decisions\n\nStatus: Draft") }, "id");
+  assert.equal(w.length, 1);
 });

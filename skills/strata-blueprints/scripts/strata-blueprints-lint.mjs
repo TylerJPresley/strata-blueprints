@@ -44,11 +44,37 @@ const strict = process.argv.includes("--strict");
 if (!file) { console.log(USAGE); process.exit(0); }
 const target = loadTarget(file);
 const rows = target.rows;
-let count = 0, notSupplied = 0;
+let count = 0, notSupplied = 0, statusInfo = null;
 const warnAt = (check, detail, loc) => { count++; console.log(`WARN ${check}: ${detail} (${loc})`); };
 const warn = (check, detail, n) => warnAt(check, detail, target.where(n));
 if (target.folder) folderChecks(target.folder, warnAt);
 const MARK = /^(?:[-*+]|\d+[.)])\s+/;
+
+// status: Status and Blueprint status lines in each document's top matter (before its first ## heading).
+const STATUS_VALUES = ["Draft", "Review", "Approved"];
+{
+  const docs = target.folder
+    ? Object.entries(target.folder.files).map(([name, r]) => ({ name, rows: r, key: name === "sbp-vision.md" ? "vision" : name === "sbp-structure.md" ? "structure" : `detail.${name.slice(11, -3)}` }))
+    : [{ name: null, rows, key: "doc" }];
+  const found = {};
+  let any = false;
+  for (const d of docs) {
+    for (let i = 0; i < d.rows.length; i++) {
+      const t = d.rows[i].trim();
+      if (/^## /.test(t)) break;
+      const m = t.match(/^(Blueprint status|Status):\s*(.*?)\s*$/);
+      if (!m) continue;
+      any = true;
+      if (!STATUS_VALUES.includes(m[2])) warnAt("status", `'${m[2]}' is not one of Draft, Review, Approved`, d.name ? `${d.name} line ${i + 1}` : `line ${i + 1}`);
+      found[m[1] === "Status" ? d.key : `${d.key}:blueprint`] ??= m[2];
+    }
+  }
+  if (any) {
+    statusInfo = target.folder
+      ? `INFO status: blueprint ${found["vision:blueprint"] ?? "-"}; ` + ["vision", "structure", ...docs.map((d) => d.key).filter((k) => k.startsWith("detail."))].map((k) => `${k} ${found[k] ?? "-"}`).join("; ")
+      : `INFO status: ${found.doc ?? found["doc:blueprint"] ?? "-"}`;
+  }
+}
 
 let fence = null;            // { lang, open } while inside a fenced block
 let layer = null;            // current layer number, null outside any layer
@@ -152,8 +178,14 @@ for (const e of els) {
   for (const c of e.body.matchAll(TOKEN)) if (c[1] !== (e.own && e.own.id) && c[1] !== e.oldTok) e.cites.push({ id: c[1], at: c.index });
   e.topicNo = e.layer ? topicNo(e.layer, e.topic) : null;
 }
-// scenario-form: a scenario reads Given, when, then, after its own id and after a Realizes sentence.
+// scenario-form: Given, when, then is required where tracing needs it: a Layer 1 Value scenario, a Layer 2 Scenario path
+// and any item that says Realizes <id>. It reads after the item's own id and after a Realizes sentence. Other items are not checked.
+const REALIZES = new RegExp(String.raw`(?<![\w.-])Realizes\s+${IDCORE}(?!\w|-|\.\d)`);
+const traced = (e) => (e.layer === 1 && (e.topic === "Value" || (e.own && e.own.topic === 3)))
+  || (e.layer === 2 && (e.topic === "Scenario paths" || (e.own && e.own.topic === 6)))
+  || REALIZES.test(e.body);
 for (const e of els) {
+  if (!traced(e)) continue;
   const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
   if (scen.startsWith("Given") && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
 }
@@ -214,12 +246,16 @@ for (const e of live) {
 {
   const traced = { 2: new Set(), 3: new Set() };
   const pathText = new Map();   // scenario id -> text of the Layer 2 elements that realize it
+  const pathIds = new Map();    // scenario id -> ids of the Layer 2 elements that realize it
   const hasEntry = new Set(units.filter((u) => u.layer === 3).map((u) => u.name.toLowerCase()));
   for (const e of live) {
     if (e.layer < 2) continue;
     for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) {
       traced[e.layer].add(m[1]);
-      if (e.layer === 2) pathText.set(m[1], `${pathText.get(m[1]) || ""} ${e.text}`);
+      if (e.layer === 2) {
+        pathText.set(m[1], `${pathText.get(m[1]) || ""} ${e.text}`);
+        if (e.own) pathIds.set(m[1], [...(pathIds.get(m[1]) || []), e.own.id]);
+      }
     }
   }
   const named = (id) => slugsListed.filter((p) => /^[A-Za-z0-9]+$/.test(p.name) && new RegExp(String.raw`(?<![A-Za-z0-9])${p.name}(?![A-Za-z0-9])`).test(pathText.get(id) || ""));
@@ -229,7 +265,11 @@ for (const e of live) {
     if (seen.includes(3) && !traced[3].has(e.own.id)) {
       const parts = named(e.own.id);
       const needed = parts.length ? parts.some((p) => hasEntry.has(p.name.toLowerCase())) : hasEntry.size > 0;
-      if (needed) warn("scenario-trace", `${e.own.id} has no rule in Layer 3`, e.n);
+      if (needed) {
+        const via = (pathIds.get(e.own.id) || []).join(", ");
+        const why = parts.length ? `${via ? `path ${via}` : "its path"} names ${parts.length > 1 ? "parts" : "part"} ${parts.map((p) => p.name).join(", ")}` : `its path ${via ? `${via} ` : ""}names no part`;
+        warn("scenario-trace", `${e.own.id} has no rule in Layer 3; ${why}`, e.n);
+      }
     }
   }
 }
@@ -291,6 +331,7 @@ for (const e of live) {
   }
 }
 
+if (statusInfo) console.log(statusInfo);
 console.log(`INFO not-supplied: ${notSupplied}`);
 console.log(`strata-blueprints-lint: ${count} warning(s)`);
 process.exit(strict && count ? 1 : 0);
@@ -439,7 +480,10 @@ function loadFolder(dir) {
     const src = files[name];
     const drop = new Set();
     if (hasMarker(src[0])) { condensed.add(name); drop.add(0); if (src.length > 1 && src[1].trim() === "") drop.add(1); }
-    const nextNonBlank = (from) => { let j = from; while (j < src.length && src[j].trim() === "") j++; return j; };
+    // Version, Status, Blueprint status and Parent lines in the top matter (before the first ## heading) are metadata, not items.
+    const meta = new Set();
+    for (let i = 0; i < src.length && !/^## /.test(src[i].trim()); i++) if (/^(?:Version|Status|Blueprint status|Parent):/.test(src[i].trim())) { drop.add(i); meta.add(i); }
+    const nextNonBlank = (from) => { let j = from; while (j < src.length && (src[j].trim() === "" || meta.has(j))) j++; return j; };
     if (k > 0) {
       let j = nextNonBlank(drop.has(1) ? 2 : drop.has(0) ? 1 : 0);
       if (j < src.length && /^# /.test(src[j])) { drop.add(j); if (j + 1 < src.length && src[j + 1].trim() === "") drop.add(j + 1); j = nextNonBlank(j + 1); }

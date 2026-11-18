@@ -227,13 +227,17 @@ export function publishFiles(input, opts = {}) {
     const heads = kept.map((k, j) => (!k.m && /^## /.test(k.s.trim()) ? j : -1)).filter((j) => j >= 0);
     const first = heads.length ? heads[0] : kept.length;
     let pre = kept.slice(0, first);
-    if (fi === 0) top = trimBlank(pre.map((k) => k.s));
+    if (fi === 0) {
+      top = trimBlank(pre.map((k) => k.s));
+      // The published Status is the Vision's Blueprint status when it has one; its own Status line is then left out.
+      if (top.some((l) => /^Blueprint status:/.test(l))) top = top.filter((l) => !/^Status:/.test(l)).map((l) => l.replace(/^Blueprint status:/, "Status:"));
+    }
     else {
       const a = pre.findIndex((k) => !isBlank(k.s));
       if (a >= 0) {
         let rest = pre;
         if (/^# /.test(pre[a].s)) rest = pre.slice(a + 1);
-        const b = rest.find((k) => !isBlank(k.s));
+        const b = rest.find((k) => !isBlank(k.s) && !/^(?:Version|Status|Blueprint status|Parent):/.test(k.s.trim()));
         if (b) throw new Error(`${p.f.name}: text before the first layer heading (line ${b.n}) cannot be merged; only the first file may hold it`);
       }
     }
