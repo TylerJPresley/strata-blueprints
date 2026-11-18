@@ -219,7 +219,7 @@ Fires when reading a folder, for these faults in the `sbp-structure.md` Standing
 - A detail file in the folder is not named by any Standing line
 - A detail file's slug does not match any part name in the Parts topic
 
-A line reads `<Part>: sbp-detail-<slug>.md` or `<Part>: own stack, <folder>/`. Parts and Standing are found by topic name alone, ignoring the layer heading above them, and both are read from `sbp-structure.md` only.
+A line reads `<Part>: sbp-detail-<slug>.md` or `<Part>: own stack, <folder>/`. Parts and Standing are found by topic name alone, ignoring the layer heading above them, and both are read from `sbp-structure.md` only. Only lines that read `<Name>: <value>` are read; any other line under Standing is ignored and draws no warning.
 
 Silent when:
 - No `sbp-structure.md` file exists
@@ -253,6 +253,14 @@ When a structural fault occurs, Lint repairs nothing and only warns on the fault
 `INFO status:` appears when the document(s) have a `Status:` or `Blueprint status:` line in the top matter (before the first `##` heading). `Version:` and `Parent:` lines never cause it. For a single document, the line reads `INFO status: <value>` (printing the `Status:` value when both `Status:` and `Blueprint status:` lines are present; a `Blueprint status:` line in a single document is validated for its value and, when no `Status:` line is present, is reported in the INFO line; when both lines are present the `Status:` value prints). For a folder, the line reads `INFO status: blueprint <v>; vision <v>; structure <v>; detail.<part> <v>` with `-` replacing `<v>` when a document has no Status line. Both lines are reported if both are present in a folder's Vision file.
 
 `INFO not-supplied: N` means N cells are marked `Not supplied:` and are ready to be asked for. In a folder, the count excludes metadata lines (`Version:`, `Status:`, `Blueprint status:`, `Parent:`) in the top matter; in a single document, these lines are counted if they contain `Not supplied:`. The count is one per occurrence of the text `Not supplied:` outside code spans and fenced blocks, counted on every non-blank line outside fenced blocks that does not start with `## ` (the `# ` title line, Scope: lines, `###` topic headings and content lines all count; every `## ` line is skipped, including `## View: ...` and `## Contents`). A line with multiple occurrences counts each one. The `INFO status:` line appears before this one when status lines exist.
+
+The last lines of the lint on the to-do example, a folder whose `sbp-vision.md` has `Blueprint status: Review` and whose files carry `Status:` lines:
+
+```
+INFO status: blueprint Review; vision Approved; structure Approved; detail.access Review; detail.ledger Review; detail.folders Review; detail.timing Review; detail.notifier Review; detail.presence Review
+INFO not-supplied: 5
+strata-blueprints-lint: 0 warning(s)
+```
 
 ### Accidental behaviors
 
