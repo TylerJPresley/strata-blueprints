@@ -2,7 +2,7 @@
 // Tests for strata-blueprints-lint.mjs. Run: node --test tests/strata-blueprints-lint.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs"; import os from "node:os"; import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1739,4 +1739,42 @@ test("metadata: top-matter lines of a later file do not change INFO not-supplied
 test("metadata: a Status line below the first ## heading is still read as an item", () => {
   const w = fxWarns({ "sbp-structure.md": fxFull["sbp-structure.md"].replace("### 11. Decisions\n\nNone.", "### 11. Decisions\n\nStatus: Draft") }, "id");
   assert.equal(w.length, 1);
+});
+
+// --- Large output on a pipe: a slow reader still receives every byte (no truncation at the pipe buffer). ---
+async function slowRead(args) {
+  const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "inherit"] });
+  const exited = new Promise((resolve) => child.on("close", resolve));
+  let bytes = 0, tail = "";
+  for await (const d of child.stdout) {
+    bytes += d.length; tail = (tail + d.toString()).slice(-200);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return { bytes, tail, code: await exited };
+}
+function bigDir(body) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sbp-big-"));
+  const f = path.join(dir, "big.md");
+  fs.writeFileSync(f, body);
+  return f;
+}
+
+test("pipe: a lint with 3000 warnings read slowly delivers its final summary line", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n" + Array.from({ length: 3000 }, (_, i) => `- 3.1. Realizes vision-9.${i}. Given ${"z ".repeat(40)}`).join("\n") + "\n");
+  const r = await slowRead([f]);
+  assert.ok(r.bytes > 500000, `got only ${r.bytes} bytes`);
+  assert.match(r.tail, /strata-blueprints-lint: \d+ warning\(s\)\n$/);
+  const s = await slowRead([f, "--strict"]);
+  assert.equal(s.code, 1);
+  assert.equal(s.bytes, r.bytes);
+});
+
+test("pipe: a large --impact run read slowly delivers its final INFO line and keeps its exit code", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n- 3.1. Given a, when b, then c.\n" + Array.from({ length: 3000 }, (_, i) => `- 3.${i + 2}. Realizes vision-3.1. Given x, when y, then ${"z ".repeat(40)}`).join("\n") + "\n");
+  const r = await slowRead(["--impact", "vision-3.1", f]);
+  assert.ok(r.bytes > 300000, `got only ${r.bytes} bytes`);
+  assert.match(r.tail, /INFO impact: 3000 element\(s\) reached, deepest 1\n$/);
+  assert.equal(r.code, 0);
+  const u = await slowRead(["--impact", "vision-9.9", f]);
+  assert.equal(u.code, 1);
 });

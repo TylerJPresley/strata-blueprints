@@ -37,7 +37,7 @@ const clean = (s) => s.replace(/`[^`]*`/g, " ");
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
 const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
-if (process.argv[2] === "--impact") runImpact(process.argv.slice(3));
+if (process.argv[2] === "--impact") await runImpact(process.argv.slice(3));
 
 const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
 const strict = process.argv.includes("--strict");
@@ -334,7 +334,7 @@ for (const e of live) {
 if (statusInfo) console.log(statusInfo);
 console.log(`INFO not-supplied: ${notSupplied}`);
 console.log(`strata-blueprints-lint: ${count} warning(s)`);
-process.exit(strict && count ? 1 : 0);
+process.exitCode = strict && count ? 1 : 0;
 
 // =========================================================================
 // Folder mode and impact mode. Function declarations, hoisted; they use no
@@ -554,7 +554,7 @@ function folderChecks(f, warnAt) {
 }
 
 // --impact <id> <file or folder>
-function runImpact(args) {
+async function runImpact(args) {
   const opts = args.filter((a) => a.startsWith("--"));
   if (opts.length) die(`unknown option in --impact mode: ${opts[0]}`);
   if (args.length < 1) die("--impact needs an id and a file or folder");
@@ -622,6 +622,7 @@ function runImpact(args) {
   out.push(...cycles);
   const deepest = Math.max(0, ...depth.values());
   out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
-  console.log(out.join("\n"));
+  // Wait for the write to finish so a slow pipe reader still receives every byte, then exit before the rest of the script runs.
+  await new Promise((done) => process.stdout.write(out.join("\n") + "\n", done));
   process.exit(code);
 }
