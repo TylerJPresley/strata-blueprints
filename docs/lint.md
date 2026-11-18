@@ -149,9 +149,13 @@ Fires when a Layer 1 Value scenario (a numbered item under Value) is not realize
   - A path with one part: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes`
   - A path with several parts: `vision-3.1 has no rule in Layer 3; path structure-6.1 names parts Brakes, Frame`
   - Several paths: `vision-3.1 has no rule in Layer 3; path structure-6.1, structure-6.2 names parts Brakes, Frame`
-  - A path that names no part: `vision-3.1 has no rule in Layer 3; its path structure-6.1 names no part` (with several paths: `its path structure-6.1, structure-6.2 names no part`)
-  - A realizing element with no id of its own, naming one part: `vision-3.1 has no rule in Layer 3; its path names part Brakes`; naming several: `its path names parts Brakes, Frame`
-  - No path at all, or a realizing element with no id of its own that names no part: `vision-3.1 has no rule in Layer 3; its path names no part`
+  - A path that names no part: `vision-3.1 has no rule in Layer 3; its path structure-6.1 names no part`
+  - Several paths that name no part: `vision-3.1 has no rule in Layer 3; its path structure-6.1, structure-6.2 names no part`
+  - A realizing element with no id of its own, naming one part: `vision-3.1 has no rule in Layer 3; its path names part Brakes`
+  - A realizing element with no id of its own, naming several parts: `vision-3.1 has no rule in Layer 3; its path names parts Brakes, Frame`
+  - A realizing element with no id of its own, naming no part: `vision-3.1 has no rule in Layer 3; its path names no part`
+  - A mix of realizing elements with and without ids: the path ids list only the elements that have ids, and the parts come from the text of all of them. With `structure-6.1` naming Brakes and an element with no id naming Frame: `vision-3.1 has no rule in Layer 3; path structure-6.1 names parts Brakes, Frame`. With `structure-6.1` naming no part and an element with no id naming Brakes: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes`. With `structure-6.1` naming Brakes and an element with no id naming no part: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes`.
+  - No realizing element in Layer 2 at all: two warnings, `vision-3.1 has no path in Layer 2` and `vision-3.1 has no rule in Layer 3; its path names no part`
 
 Silent when:
 - Layer 3 has no `(part)` entry at all (no trace needed)
