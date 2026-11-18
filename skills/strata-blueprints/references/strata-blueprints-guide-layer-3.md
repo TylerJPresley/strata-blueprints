@@ -64,7 +64,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
       - Mistake: a rule nobody can check ("Ledger is reliable"). Each rule states a situation, an event and a result that can be observed.
     - **Ask the owner:** the rules for this part, each with its threshold, trigger and renewal. Follow-up: the edge (smallest, longest, none, missed) and what happens when broken or missed. Not supplied: the value or the broken case.
     - **Check:**
-      - [ ] Is every rule a scenario that can be run as a check, with its own number and `Realizes` and its Layer 1 id where it realizes one?
+      - [ ] Is every rule that realizes a Layer 1 or Layer 2 item a scenario that can be run as a check, with `Realizes` and its id? May other rules be written plainly?
   - **Inside**
     - **How to write it:**
       - For: names the pieces the part is made of, so a maker sees its inner shape without any means.
