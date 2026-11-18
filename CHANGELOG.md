@@ -8,7 +8,7 @@ Fixes from a test run in which the standard was used to write a blueprint of thi
 
 - Lint: `scenario-trace` asks for a Layer 3 rule only for a Layer 1 scenario whose Layer 2 path runs through a part that has a Layer 3 entry. A part with no entry no longer draws a warning for every scenario. A path that names no part listed in Parts keeps the old requirement.
 - Lint: the error for a folder that holds no `sbp-` files says to pass the file to lint one document. The exit code stays 2.
-- Core guide: Rule 4 says a part with no entry in the stack is built from its Layer 2 entry alone or from its own stack. "A stack in separate files" counts the split limit in words. The single-document file name does not start with `sbp-` or `strata-blueprints-`. The `Version:` line under the title is the blueprint's own version.
+- Core guide: Rule 4 says a part with no entry in the stack is built from its Layer 2 entry alone or from its own stack. The single-document file name does not start with `sbp-` or `strata-blueprints-`. The `Version:` line under the title is the blueprint's own version.
 - The Layer 3 template cut and "How to fill it out" say one entry for each part that has Detail. README names the file-name rule.
 - The condense and publish tool, the full template, the examples and every existing test are unchanged.
 
