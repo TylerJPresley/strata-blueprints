@@ -12,7 +12,7 @@ Strata Blueprints is a lightweight framework for spec-driven development, for an
 ## Definitions
 
 - **Subject:** a bounded thing that has a purpose and parts.
-- **Part:** a named piece of a subject with one responsibility, stated in one line in Layer 2. A unit of responsibility, not of where or how it is run.
+- **Part:** a named piece of a subject with one responsibility, stated in one line in Layer 2. A unit of responsibility, not of where or how it is run. Name a part with a word Layer 1 does not use in another sense, so a name points to one thing.
 - **Seam:** a place where a part meets another part, or the subject meets what lies beyond it, with what crosses and in which direction. A seam is named `<From> to <To>`, the same in Layer 2 and Layer 3. A seam is about responsibility, not about where parts run.
 - **Layer:** one kind of content about a subject, written for one audience at one zoom level.
 - **Standing:** whether a part has its own stack or is described inside its subject's stack. A part gets its own stack when someone can use it on its own. Standing names the file of a part's Detail when it has its own file, and the folder or file of a part's own stack.
@@ -31,7 +31,7 @@ Every element has exactly one of these types, and a reader can tell which: state
 
 1. The layers are rings, with Layer 1 innermost: a layer may refer to the layers inside it, never to the layers outside it. A change to an inner layer reaches every layer outside it.
 2. A parent names its parts, each with a one-line responsibility; that is the parent's own content. A part's Detail is an entry in the parent's stack (in its document or its `sbp-detail-<part>.md` file) or a stack of its own named in Layer 2 Standing; either way the parent never depends on how the part works inside.
-3. Each layer holds one kind of content, stated in its Intent. Content of another kind belongs in the layer that holds it. Specific means (tools, materials, methods) are named in Layer 3, under Construction. Earlier layers name them only when they are a constraint stated in Layer 1.
+3. Each layer holds one kind of content, stated in its Intent. Content of another kind belongs in the layer that holds it. Specific means (tools, materials, methods) are named in Layer 3, under Construction. Earlier layers name them only when they are a constraint stated in Layer 1. Layers 1 and 2 carry no code, commands, exact strings or schemas; those are Detail. An outsider's interface (endpoints, fields, errors) is written in Layer 3, in the Seams and Limits of the part that calls it, at the depth of an internal one and naming the outsider's own documentation and version as its source; Layer 2 names the outsider and the seam, what crosses and in which direction.
 4. Layer 3 is written where a maker needs it, as an entry in this stack or as the part's own stack. A part with no Layer 3 entry in this stack is built from its Layer 2 entry alone or from its own stack, and a Layer 1 scenario whose path runs only through such parts needs no Layer 3 rule here. A subject made of independent members needs only its upper layers; the lower layers are those members' own stacks. Nesting is unlimited: any part may have its own stack, and any subject may have any number of peers.
 5. Every layer ends with its costs, then its risks, then its open concerns, then its assumptions, then its decisions. Each cost says what it takes and who pays; each risk says what could go wrong, how badly and what answers it; each open concern says what is unsettled and who raised it; each assumption says why we think so; each decision says why. Costs, risks and open concerns are valid in every layer. They weigh most in Layer 3, where a maker meets the amount, the harm and the unsettled question, and least in Layer 1.
 
@@ -51,7 +51,7 @@ Every layer rests on the layers above it, Layer 1 highest (the innermost ring in
   - Layer 1 alone or Layer 2 alone: `strata-blueprints-template-layer-1.md` or `strata-blueprints-template-layer-2.md`.
   - One part's Detail: `strata-blueprints-template-layer-3.md`, one entry for each part that has Detail.
   - A file of a stack in separate files: the matching cut with each heading lowered one level, under the `# <Subject>` title (see "A stack in separate files").
-- Write anything that happens as Given, When, Then. One scenario keeps its form down the layers.
+- Given, when, then is the form for tracing: Layer 1 value scenarios, Layer 2 scenario paths and Layer 3 rules that say `Realizes <id>` are written so, and one scenario keeps its form down the layers. Elsewhere it is a suggestion for clearer context; rules, limits and refusals may be written plainly. Costs, Risks and Open Concerns keep their own required form, which includes Given, when, then (see their topics in the layer guides).
 - Give every item under these topics its number, written at the start of its line under its own topic, such as `- 3.1. Given ..., when ..., then ...`. Layer 1: Value, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 2: Scenario paths, Costs, Risks, Open Concerns, Assumptions and Decisions. Layer 3: Rules, Limits, Construction, Costs, Risks, Open Concerns, Assumptions and Decisions. An item under another topic may carry a number too. A `None.` line and a `Not supplied:` line carry none. A citation writes the full id, with the document in front (`vision-3.1`); a bare number is never a citation.
 - An item's number, and so its id, never changes and is never reused. When an item is deleted its number stays unused, and a new item takes the next count above the highest one used under its topic. A rule or a limit is cited by its id like any other item.
 - An item is numbered by its topic's number in its layer guide and a count that starts at 1 under each topic, and it is written with that number under its own topic: `9.1` is the first item under topic 9 (Risks). A citation, and `--impact`, put the document in front, joined with a hyphen: `vision`, `structure` or `detail.<part>`. So the first risk of the Vision is written `9.1` and cited `vision-9.1`, and the first Construction item of the part Session is written `7.1` and cited `detail.session-7.1`.
@@ -65,7 +65,7 @@ Intent, Audience, a Success test written as Given, When, Then, and its Contents 
 
 ## A stack in separate files
 
-A stack stands complete as one document. It may instead be written as one file per layer in one folder. Keep one document for an idea, for a stack that stops at Layer 2, and for a few small parts. Split when a part's Detail is built separately, changes on its own schedule or has its own owner, or when Layer 3 outweighs Layers 1 and 2 together. Weight is counted in words: Layer 3 outweighs the other two when it holds more words than Layers 1 and 2 together, and parts are few and small while it does not.
+A stack stands complete as one document. It may instead be written as one file per layer in one folder. Keep one document for an idea, for a stack that stops at Layer 2, and for a few small parts. Split when a part's Detail is built separately, changes on its own schedule or has its own owner, or when Layer 3 outweighs Layers 1 and 2 together.
 
 The files sit flat in one folder. The lint finds them by name and ignores every other file.
 
@@ -74,7 +74,7 @@ The files sit flat in one folder. The lint finds them by name and ignores every 
 - `sbp-detail-<part>.md` holds Layer 3 for one part: the heading `## Layer 3: Detail`, its `Scope:` line and that part's one `### <Part> (part)` entry. `<part>` is the part's name in Parts, in lower case.
 - `sbp-` marks a blueprint file. `strata-blueprints-` marks the standard's own files.
 
-Each file opens with the stack's `# <Subject>` title and holds its layer exactly as the one document would. Only `sbp-vision.md` carries `Version:` and `Status:`. A view is a `## View: <name>` section at the end of `sbp-structure.md`; there is no view file.
+Each file opens with the stack's `# <Subject>` title and holds its layer exactly as the one document would. Every document carries its own `Status: <value>` under its title, with the value `Draft`, `Review` or `Approved`, so the Vision can be Approved long before the Details. Only `sbp-vision.md` carries `Version:`, and it also carries `Blueprint status: <value>`, the status of the whole blueprint. A single document has only `Status:`. The lint reports every document's status and the blueprint status. A view is a `## View: <name>` section at the end of `sbp-structure.md`; there is no view file.
 
 Each file numbers its own items, and a full id carries the document, so the detail files count apart. A file cites an item by its full id alone, never by a file name.
 
@@ -113,7 +113,7 @@ Make a copy with `node scripts/strata-blueprints.mjs condense <file or folder> -
 
 A published document is the stack made ready to send to readers: one file, written in the form of one document. It is generated from the source and is never edited by hand. The way is one way: the source, then a condensed copy, then a published document. The source is the way back: change it and publish again.
 
-Publishing condenses each file, then merges all the files of the stack into one document: the `# <Subject>` title with `Version:` and `Status:` from `sbp-vision.md`, a table of contents, Layer 1, Layer 2, Layer 3 with one `### <Part> (part)` entry for each part in the order of Parts, and then each view. It leaves out each topic whose whole body is `None.`, and each topic whose whole body is only `Not supplied:` lines. A topic that holds any item stays, with its `Not supplied:` lines. Every item keeps its number and every citation keeps its full id, so each id in the document points to an item inside the document. Topic numbers have gaps, as in a condensed copy. Publishing stops when a kept line cites an id that would sit in a topic it leaves out. A Standing line still names the source file of its part.
+Publishing condenses each file, then merges all the files of the stack into one document: the `# <Subject>` title with `Version:` from `sbp-vision.md` and `Status:` taken from the Vision's `Blueprint status:`, a table of contents, Layer 1, Layer 2, Layer 3 with one `### <Part> (part)` entry for each part in the order of Parts, and then each view. It leaves out each topic whose whole body is `None.`, and each topic whose whole body is only `Not supplied:` lines. A topic that holds any item stays, with its `Not supplied:` lines. Every item keeps its number and every citation keeps its full id, so each id in the document points to an item inside the document. Topic numbers have gaps, as in a condensed copy. Publishing stops when a kept line cites an id that would sit in a topic it leaves out. A Standing line still names the source file of its part.
 
 The first line of a published document is `<!-- strata-blueprints: condensed, published (generated; each omitted topic read None. or held only open questions) -->`. A reader takes each topic that is not there as empty, or as not yet answered. The lint reads this line as it reads the condensed marker.
 
@@ -157,7 +157,7 @@ Every layer opens with a title and a one-line scope. A layer that uses symbols, 
 ## Formatting
 
 **Markup**
-- Under the title, write `Version: 0.1.0`, the blueprint's own version, not the standard's.
+- Under the title, write `Version: 0.1.0`, the blueprint's own version, not the standard's, and `Status: Draft`, `Review` or `Approved`. In separate files `Version:` stays in `sbp-vision.md`, which also carries `Blueprint status:`; every file carries its own `Status:`.
 - One heading per layer, such as "## Layer 2: Structure", followed by its one-line scope as a line that starts with `Scope:`, for example `Scope: the whole app, divided into parts, with the seams between them and with the outside.`
 - Number the topics of a layer, or of a part's entry, from 1 in the layer's order: 1 to 12 in Layer 1, 1 to 11 in Layer 2 and 1 to 12 in each Layer 3 part. The number of a topic is the topic part of an id. A condensed copy and a published document keep these numbers, so their topic numbers have gaps.
 - Write each Detail entry under `### <Part> (part)`, with its topics as `#### N. <Topic>` in the layer's order.
@@ -173,7 +173,7 @@ A diagram supplements the text, which is the source of truth; give it a title an
 
 ## Procedure
 
-1. Gather the facts about the subject as assertions, and have the owner confirm or correct them. Ask by layer:
+1. Gather the facts about the subject as assertions, and have the owner confirm or correct them: interview the owner, or read the sources of an existing project (see "Starting from an existing project"). Ask by layer:
    - Layer 1: who has the problem, what happens without a solution, how we would know it worked, and what it would cost, what could go wrong and what is still unsettled overall.
    - Layer 2: what the subject is divided into, what each part touches inside and outside, and what the division costs, what could go wrong with it and what is still unsettled.
    - Layer 3: for each part, what it must do, what it needs and what it offers, what it is made of, with what values, and what it costs, what could go wrong with it and what is still unsettled.
@@ -182,6 +182,15 @@ A diagram supplements the text, which is the source of truth; give it a title an
 3. Write Layer 3 for each part that needs it, as an entry in this stack or as the part's own stack named in Layer 2 Standing, including Construction where a maker needs it.
 4. Add the views that are wanted.
 5. Run each layer's `Check` lines, its `Check (whole layer)` and its Success test. Aim for yes on every answer; where one is no, fix it or note why.
+
+### Starting from an existing project
+
+Read the project's sources (code, documents, tests, configuration) before asking.
+
+- What the sources show is written as Rules, Limits or Construction, with the source named at the end of the item as `Source: <file or document>`.
+- What the sources only suggest, such as intent and reasons, is written as an Assumption with its `Basis:`. A rule the sources show is a Rule with its `Source:`; an inference about intent or reason is an Assumption with its `Basis:`.
+- Where two sources disagree, write an Open Concern that names both.
+- Ask the owner only for intent the sources cannot show.
 
 ### How to interview
 
@@ -198,7 +207,7 @@ Interview the owner. The owner's intent comes as assertions to confirm or correc
 - A "not decided" answer becomes `Not supplied: <what>` with status `not decided`, and the interview moves on. Never ask why for a choice the owner never reasoned about; at most once, ask "did you consider an alternative?".
 - Ask in rounds, highest yield first: Construction, Rules and Limits of each part come before other topics. Rows still `open` when the owner stops become `Not supplied:`.
 - Whatever the owner did not give, or left "not decided", is `Not supplied:` too.
-- Anything you infer goes in Assumptions or Decisions, never in Rules or Need.
+- Anything you infer goes in Assumptions or Decisions, never in Rules or Need. A rule the project's sources show (code, tests, documents) is still a Rule with its `Source:`.
 
 ### The question log
 

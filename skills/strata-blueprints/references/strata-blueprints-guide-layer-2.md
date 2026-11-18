@@ -6,6 +6,7 @@ Load while interviewing for, writing or checking Layer 2.
 - **Audience:** those who decide how the work is divided.
 - **Success:** Given this layer and Layer 1, when someone checks each part and each key scenario, then every part and seam is named, traces to the purpose, and every scenario has a path through the parts.
 - **Status:** always written.
+- **Holds:** intent only: no code, commands, exact strings or schemas; those are Detail. An outsider is named with its seam (what crosses, in which direction); its interface is written in Layer 3, in the Seams and Limits of the part that calls it.
 - **Rests on:** Layer 1; see "How the layers depend on each other" in the core guide.
 - **Contents:**
   1. **Parts**
@@ -27,7 +28,7 @@ Load while interviewing for, writing or checking Layer 2.
       - Example:
         - Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
         - Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
-      - Mistake: dividing by where things run or what they are made of (a "server" part or a "database" part). Parts divide by responsibility.
+      - Mistake: dividing by where things run or what they are made of (a "server" part or a "database" part). Parts divide by responsibility. Name a part with a word Layer 1 does not use in another sense.
     - **Ask the owner:** what is the subject divided into, and what is each part responsible for? Follow-up: anything that fits no part. Not supplied: a part's responsibility.
     - **Check:**
       - [ ] Does every part have a name, a type and a one-line responsibility?
@@ -35,14 +36,14 @@ Load while interviewing for, writing or checking Layer 2.
   - **Standing**
     - **How to write it:**
       - For: says for each part whether its Detail is written here or in a stack of its own, so a reader knows where to look.
-      - Write: say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. One sentence may cover every part when they share a standing. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`.
+      - Write: say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. One sentence may cover every part when they share a standing. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`. In a stack written as one document, a part with no Layer 3 entry says so, such as `Docs: no Detail here`; in separate files such a part has no file and no Standing line.
       - Example:
         - Ledger: described here.
         - Presence: own stack, presence/presence.md
       - Mistake: saying "own stack" without the file. Standing names the file.
     - **Ask the owner:** is each part inside this stack, its own stack, or an outside peer? Not supplied: the standing of a part.
     - **Check:**
-      - [ ] Does each part say it is described here, or name its detail file or the folder or file of its own stack?
+      - [ ] Does each part say it is described here (or, in one document, has no Detail here), or name its detail file or the folder or file of its own stack, with a part that has no Detail in separate files having no file and no Standing line?
   - **Seams between parts**
     - **How to write it:**
       - For: shows where two parts meet, so each can be made knowing what the other offers and needs.

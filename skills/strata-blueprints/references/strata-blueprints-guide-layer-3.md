@@ -46,7 +46,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Seams**
     - **How to write it:**
       - For: states what this part offers and needs at each seam it takes part in, so the makers on both sides can work apart.
-      - Write: one bullet per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2.
+      - Write: one bullet per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
       - Example:
         - Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
         - Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
@@ -57,7 +57,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Rules**
     - **How to write it:**
       - For: states how the part acts, as scenarios that can each be run as a check.
-      - Write: one scenario per line, Given, when, then, about this part, each with its own number. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave.
+      - Write: one rule per line, about this part, each with its own number. Given, when, then is required where a rule says `Realizes <id>.` and is the suggested form elsewhere; a rule may be written plainly. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave. When a program builds the part and tests check it, its Rules and Limits carry the contract the tests assert (the exact strings it prints, its inputs and outputs as signatures, and Given, when, then cases), so that someone with only the blueprint can build a part that passes.
       - Example:
         - 4.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
         - 4.2. Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
