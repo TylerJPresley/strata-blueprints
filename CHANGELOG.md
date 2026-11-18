@@ -6,11 +6,18 @@ This changelog records releases of Strata Blueprints. The `Version:` line of `sk
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
 
-- Lint: `scenario-trace` asks for a Layer 3 rule only for a Layer 1 scenario whose Layer 2 path runs through a part that has a Layer 3 entry. A part with no entry no longer draws a warning for every scenario. A path that names no part listed in Parts keeps the old requirement.
+- Lint: `scenario-form` check applies only where tracing needs it: Layer 1 Value scenarios, Layer 2 Scenario path items, and any item that says `Realizes <id>`. A rule may be written plainly elsewhere (Costs, Risks, Open Concerns keep their shapes).
 - Lint: the error for a folder that holds no `sbp-` files says to pass the file to lint one document. The exit code stays 2.
+- Lint: `scenario-trace` asks for a Layer 3 rule only for a Layer 1 scenario whose Layer 2 path runs through a part that has a Layer 3 entry. A part with no entry no longer draws a warning for every scenario. The warning carries the matched path id and part names.
+- Lint: new `status` check validates Status and Blueprint status line values (Draft, Review or Approved). The `INFO status:` line reports the status of each file in the stack and the blueprint status when present.
+- Lint: metadata lines (Version:, Status:, Blueprint status:, Parent:) in the top matter are accepted in every file and in folders excluded from the `INFO not-supplied` count; in a single document they are counted if they contain `Not supplied:`.
+- Publish: when the first file (Vision) carries a `Blueprint status:` line, it is published as `Status:` and the Vision's own `Status:` line (if present) is dropped. Metadata lines from later files are dropped from the published document.
 - Core guide: Rule 4 says a part with no entry in the stack is built from its Layer 2 entry alone or from its own stack. The single-document file name does not start with `sbp-` or `strata-blueprints-`. The `Version:` line under the title is the blueprint's own version.
+- Core guide: new section "Starting from an existing project" covers Source:, Basis: and Open Concerns for disagreements with existing decisions.
+- Layer 3 guide: the Check for Rules is reworded to the P7 scope: rules that realize a Layer 1 Value scenario or a Layer 2 path are scenarios; other rules may be written plainly.
 - The Layer 3 template cut and "How to fill it out" say one entry for each part that has Detail. README names the file-name rule.
-- The condense and publish tool, the full template, the examples and every existing test are unchanged.
+- Five existing test lines changed: the scenario-form 1-warning case moved under `### 3. Value`; four Status field assertions became `Status: Draft` (capitalized) from lowercase `status: draft`.
+- The template, the examples and the published-document example are unchanged. The tool and every test now pass under the new rules.
 
 ## 0.2.0
 
