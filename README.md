@@ -139,6 +139,8 @@ Directory is a directory relative to the project root, never a file. Form is `si
 node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <path-to-blueprint.md or folder>
 ```
 
+Lint a folder as a whole: a lone Detail file draws layer warnings because it has no Layer 1 or 2. Paths in this README start at the repository root; in the skill's own files `scripts/...` means the skill folder's scripts (`skills/strata-blueprints/scripts/` here).
+
 See [docs/lint.md](docs/lint.md) for what each check does, how to use `--strict` to fail on warnings, and how to use `--impact <id>` to find what a change reaches.
 
 To read or send a short form of a stack, write a condensed copy that leaves out each topic that reads `None.`. To send one document, publish the stack: it condenses, merges the files and adds a table of contents. See [docs/tool.md](docs/tool.md).

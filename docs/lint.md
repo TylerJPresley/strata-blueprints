@@ -24,7 +24,9 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/stack-f
 
 For a folder, the lint reads `sbp-vision.md`, `sbp-structure.md` and every `sbp-detail-*.md` in it as one virtual document, ignores every other file, and reports each warning with its file and line. The files are read in this order: Vision, Structure, then the detail files in the order that parts are listed in Layer 2 Parts, with any unnamed detail files last by file name.
 
-The lint takes the path you give it and does not read `AGENTS.md`; an agent resolves the path first (see the core guide, Where the blueprints live). A folder run reads only `sbp-` files, so pass a single document as a file.
+The lint takes the path you give it and does not read `AGENTS.md`; an agent resolves the path first (see the core guide, Where the blueprints live). A folder run reads only `sbp-` files, so pass a single document as a file. A lone Detail file given to the lint draws `layer-heading` and `id-ref` warnings, because it has no Layer 1 or 2 in it; the folder is the unit to lint.
+
+The guide and SKILL.md write script paths as `scripts/...`, meaning the scripts folder of the skill. This document writes them from the repository root, `skills/strata-blueprints/scripts/...`.
 
 To write a condensed copy of a stack, or to publish it as one document, see [tool.md](tool.md).
 
@@ -264,6 +266,8 @@ strata-blueprints-lint: 0 warning(s)
 
 ### Accidental behaviors
 
+These are observed, not promised: a maker may rely on the contract in the blueprint, and any item here may change.
+
 - `Blueprint status:` in a Structure or Detail file is value-checked (`status` warning when invalid) but never reported in the INFO line.
 - With duplicate `Status:` or `Blueprint status:` lines, the first is the one reported in the INFO line; every line is still value-checked.
 - A `Status:` line inside a code fence in the top matter is read as a status.
@@ -369,6 +373,7 @@ INFO impact: <count> element(s) reached, deepest <depth>
 - Line 1: `impact <id>: defined in Layer N, <place>` where `<place>` is the file and line number
 - Line 2: the id bare, on its own line
 - Tree lines: each element that cites the id, indented two spaces per depth level. Fields are separated by two spaces: depth marker `d<N>`, place (`line N` or `file line N`), layer path (`Layer <N> > <Topic Name>`, such as `Layer 1 > Value` or `Layer 2 > Scenario paths`; `Layer <N> > -` for an element of Layer 1 or 2 with no topic, such as the Scope line; `Layer 3 > <Part> (part) > <Topic Name>`, or `Layer 3 > <Part> (part)` with no topic; `Layer 3 > -` in Layer 3 outside any entry; `Other` for an element outside any layer), the citing id if numbered or `-` if prose, and the element's text. Text is cut at 80 characters with `...` appended if longer. Text of an item with an id includes its number at the start, like `6.1. Given ...`
+- Only explicit citations are listed: an element that cites the id by writing it. A Limit that cites a quality by name is not listed; re-read those by hand.
 - Elements appear in document order, each once, under the first element that cites it at the shallowest depth
 - Warnings: `WARN impact: cycle <id1> ... <id2>` when a citation would loop back; such elements are not followed. `WARN impact: <id> is defined on lines <line1> and <line2>` when the id is defined twice (in a folder run the two numbers are lines of the assembled document, not of the files; this is accidental)
 - Last line: `INFO impact: <count> element(s) reached, deepest <depth>` always, even when count is 0

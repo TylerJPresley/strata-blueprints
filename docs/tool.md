@@ -14,6 +14,8 @@ Each file written prints one line during condense: `condensed <path>: dropped N 
 
 Condense refuses a published document as input.
 
+Exit code 1 and the other behaviors that this page marks as uncaught or accidental are observed, not promised, and may change. Script paths here start at the repository root (`skills/strata-blueprints/scripts/...`); in the skill's own files `scripts/...` means the skill folder's scripts.
+
 Exit codes: 0 for success; 2 for a refusal or a usage error, with `strata-blueprints: <message>` on stderr and nothing written.
 
 ## What condense drops
