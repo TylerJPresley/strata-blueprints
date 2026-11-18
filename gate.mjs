@@ -78,7 +78,7 @@ function templateProblems() {
   }
   const full = text[names[0]];
   if (!full) return problems;
-  const CUT_TOP = { 1: ['Status: Draft', 'Blueprint status: Draft'], 2: ['Status: Draft'], 3: ['Status: Draft'] };
+  const CUT_TOP = { 1: ['Version: 0.1.0', 'Status: Draft', 'Blueprint status: Draft'], 2: ['Status: Draft'], 3: ['Status: Draft'] };
   const head = full.split('\n');
   const firstSection = head.findIndex((l) => /^## /.test(l));
   if (!head.slice(0, firstSection < 0 ? head.length : firstSection).includes('Status: Draft')) problems.push(`${names[0]}: top matter lacks "Status: Draft"`);
@@ -118,6 +118,7 @@ const CHECKS = [
   ['examples tests', process.execPath, ['--test', 'tests/strata-blueprints-examples.test.mjs']],
   ['version check tests', process.execPath, ['--test', 'tests/version-check.test.mjs']],
   ['links check tests', process.execPath, ['--test', 'tests/links-check.test.mjs']],
+  ['gate tests', process.execPath, ['--test', 'tests/gate.test.mjs']],
   ['example lint: garden', process.execPath, [LINT, `${REFS}/strata-blueprints-example.md`, '--strict']],
   ['example lint: todo app', process.execPath, [LINT, `${REFS}/strata-blueprints-example-todo-app`, '--strict']],
   ['example lint: RFP', process.execPath, [LINT, `${REFS}/strata-blueprints-example-rfp.md`, '--strict']],

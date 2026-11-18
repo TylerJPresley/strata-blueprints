@@ -1,5 +1,6 @@
 # Example: a to-do app (companion to the Strata Blueprints guide)
 
+Version: 0.1.0
 Status: Approved
 Blueprint status: Review
 

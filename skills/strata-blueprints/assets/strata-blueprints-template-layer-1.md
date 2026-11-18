@@ -1,5 +1,6 @@
 <!-- Layer 1 of a Strata Blueprints stack, a cut of strata-blueprints-template.md with every heading one level up. Delete this line, delete the `(optional)` marker from each heading you fill in, write `None.` under an optional topic with nothing to say, then fill in the brackets. -->
 
+Version: 0.1.0
 Status: Draft
 Blueprint status: Draft
 
