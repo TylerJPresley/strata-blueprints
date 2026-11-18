@@ -37,6 +37,8 @@ const clean = (s) => s.replace(/`[^`]*`/g, " ");
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
 const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
+// A reader that closes the pipe early ends the run quietly, with the exit code the run would have had.
+process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); else throw e; });
 if (process.argv[2] === "--impact") await runImpact(process.argv.slice(3));
 
 const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
@@ -623,6 +625,7 @@ async function runImpact(args) {
   const deepest = Math.max(0, ...depth.values());
   out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
   // Wait for the write to finish so a slow pipe reader still receives every byte, then exit before the rest of the script runs.
+  process.exitCode = code;
   await new Promise((done) => process.stdout.write(out.join("\n") + "\n", done));
   process.exit(code);
 }

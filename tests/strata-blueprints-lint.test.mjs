@@ -1778,3 +1778,30 @@ test("pipe: a large --impact run read slowly delivers its final INFO line and ke
   const u = await slowRead(["--impact", "vision-9.9", f]);
   assert.equal(u.code, 1);
 });
+
+// --- Large output on a pipe: a reader that closes early ends the lint quietly, with the exit code it would have had. ---
+async function earlyClose(args) {
+  const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "pipe"] });
+  let err = "";
+  child.stderr.on("data", (d) => { err += d; });
+  const exited = new Promise((resolve) => child.on("close", resolve));
+  await new Promise((resolve) => child.stdout.once("data", resolve));
+  child.stdout.destroy();
+  return { code: await exited, err };
+}
+
+test("pipe: a reader that closes early gets no stack trace and the usual exit code", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n- 3.1. Given a, when b, then c.\n" + Array.from({ length: 3000 }, (_, i) => `- 3.${i + 2}. Realizes vision-3.1. Given x, when y, then ${"z ".repeat(40)}`).join("\n") + "\n");
+  const w = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n" + Array.from({ length: 3000 }, (_, i) => `- 3.1. Realizes vision-9.${i}. Given ${"z ".repeat(40)}`).join("\n") + "\n");
+  const cases = [
+    [["--impact", "vision-3.1", f], 0],
+    [["--impact", "vision-9.9", f], 1],
+    [[w], 0],
+    [[w, "--strict"], 1],
+  ];
+  for (const [args, code] of cases) {
+    const r = await earlyClose(args);
+    assert.equal(r.err, "", `stderr for ${args.slice(0, -1).join(" ")}: ${r.err.slice(0, 120)}`);
+    assert.equal(r.code, code, `exit code for ${args.slice(0, -1).join(" ")}`);
+  }
+});
