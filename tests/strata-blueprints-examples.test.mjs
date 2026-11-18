@@ -1076,6 +1076,10 @@ test("manifest covers every example file and no extra", () => {
 });
 
 // --- A folder example lints the same as its assembled single document (file labels stripped). ---
+const FOLDER_STATUS = {
+  "strata-blueprints-example-todo-app": "INFO status: blueprint Review; vision Approved; structure Approved; " +
+    ["access", "ledger", "folders", "timing", "notifier", "presence"].map((p) => `detail.${p} Review`).join("; "),
+};
 test("folder lint equals assembled-document lint", () => {
   for (const [name, spec] of Object.entries(MANIFEST)) {
     if (!spec.folder) continue;
@@ -1085,11 +1089,18 @@ test("folder lint equals assembled-document lint", () => {
     const norm = (f) => {
       let out;
       try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
-      // The INFO status line lists one status per file in a folder and one in a document, by design; the status test at the end of this file checks it.
-      out = out.split("\n").filter((l) => !l.startsWith("INFO status:")).join("\n");
-      return out.split("\n").filter(Boolean).map((l) => l.replace(/\s*\((?:\S+ )?line \d+\)/g, ""));
+      // The INFO status line lists one status per file in a folder and one in a document, by design; both exact lines are asserted below.
+      const lines = out.split("\n").filter(Boolean);
+      return {
+        status: lines.filter((l) => l.startsWith("INFO status:")),
+        rest: lines.filter((l) => !l.startsWith("INFO status:")).map((l) => l.replace(/\s*\((?:\S+ )?line \d+\)/g, "")),
+      };
     };
-    assert.deepEqual(norm(real), norm(doc), name);
+    const folderOut = norm(real);
+    const docOut = norm(doc);
+    assert.deepEqual(folderOut.status, [FOLDER_STATUS[name]], `${name}: folder status line`);
+    assert.deepEqual(docOut.status, ["INFO status: Approved"], `${name}: assembled document status line`);
+    assert.deepEqual(folderOut.rest, docOut.rest, name);
   }
 });
 
@@ -1466,10 +1477,7 @@ test("every shipped example reports its INFO status line", () => {
   for (const [name, line] of Object.entries(want)) {
     const out = execFileSync(process.execPath, [LINT, path.join(EXAMPLES_DIR, name), "--strict"], { encoding: "utf8" });
     const got = out.split("\n").find((l) => l.startsWith("INFO status:"));
-    if (name.endsWith("todo-app")) {
-      // The order of the details follows the Parts order; compare the set.
-      const norm = (l) => { const [a, ...r] = l.split("; "); return [a, ...r.slice(0, 2), ...r.slice(2).sort()].join("; "); };
-      assert.equal(norm(got), norm(line), name);
-    } else assert.equal(got, line, name);
+    // The details follow the Parts order, compared in order.
+    assert.equal(got, line, name);
   }
 });
