@@ -1,5 +1,6 @@
 # Example: a community garden, still an idea (companion to the Strata Blueprints guide)
 
+Version: 0.1.0
 Status: Draft
 
 This companion fills the layers for a subject that is still an idea. A street of

@@ -1481,3 +1481,17 @@ test("every shipped example reports its INFO status line", () => {
     assert.equal(got, line, name);
   }
 });
+
+// --- The guide says every document carries `Version: 0.1.0` under its title: the single-file examples and the to-do Vision do. ---
+test("every shipped example carries Version: 0.1.0 as the first metadata line under its title", () => {
+  const files = [
+    "strata-blueprints-example.md",
+    "strata-blueprints-example-rfp.md",
+    path.join("strata-blueprints-example-todo-app", "sbp-vision.md"),
+  ];
+  for (const f of files) {
+    const lines = fs.readFileSync(path.join(EXAMPLES_DIR, f), "utf8").split("\n").filter((l) => l.trim() !== "");
+    assert.ok(lines[0].startsWith("# "), `${f} opens with a title`);
+    assert.equal(lines[1], "Version: 0.1.0", `${f} has Version: 0.1.0 right under the title`);
+  }
+});
