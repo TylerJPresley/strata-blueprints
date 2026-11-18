@@ -43,3 +43,9 @@ test("gate: a Vision cut without Version fails at templates", () => {
   assert.ok(r.out.includes("gate: templates failed"), r.out);
   assert.match(r.out, /template-layer-1: line 3 expected "Version: 0\.1\.0"/);
 });
+
+test("gate: Status: Draft before Version: in the full template fails at templates", () => {
+  const r = gateOn((edit) => edit(FULL, (t) => t.replace("Version: 0.1.0\nStatus: Draft\n", "Status: Draft\nVersion: 0.1.0\n")));
+  assert.equal(r.status, 1);
+  assert.ok(r.out.includes("gate: templates failed"), r.out);
+});
