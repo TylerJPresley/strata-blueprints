@@ -36,7 +36,7 @@ The script produces three kinds of output:
 
 ### Warnings
 
-`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `id`, `id-ref`, `reasons`, `scenario-trace`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
+`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `fence`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `id`, `id-ref`, `reasons`, `scenario-trace`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). The `fence` check runs after the line scan and before the missing-layer warnings. Each pass is in line order. The check sections below are in the guide's order, not the print order:
 
 #### Check: `layer-heading`
 
@@ -90,6 +90,17 @@ Silent when:
 - The marker is inside a code span
 
 A code span opens with a run of backticks and closes at the next run of the same length on the same line. A fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long and has nothing after it.
+
+#### Check: `fence`
+
+Fires with message `fenced block is never closed; the checks skip every row after it`.
+
+Fires once for each file that ends inside a fenced block, at the row that opens the block. A single document is one file; in a folder each file is read on its own for this check, and the warning names the file that opens the block.
+
+The checks skip every row from the opening row to the end of the file; in a folder the rows of the files after it are read as one document, so the block also hides them until a row closes it.
+
+Silent when:
+- Every block in the file is closed
 
 #### Check: `diagram-title`
 
@@ -243,7 +254,7 @@ When a structural fault occurs, Lint repairs nothing and only warns on the fault
 
 **Deleted or misspelled layer heading:** When a `## Layer` heading is invalid or missing, no layer is open, so its lines are given no layer and draw no `topic-order`, `topics`, `ring`, `id`, `reasons` or shape checks. A malformed heading warns at its own line, and a missing Layer 1 or Layer 2 warns once more at line 1 (so a malformed `## Layer 2 Structure` gives two warnings); a missing Layer 3 does not warn.
 
-**Unclosed fence:** A fenced block that is not closed swallows every later line, including the lines of every later file in a folder run, because the files are read as one document: Layer headings are missing, later layers are not opened, and every line after the fence is skipped for all checks. The `Not supplied:` count does not count lines inside the fence. Two `layer-heading` warnings are issued at line 1 (or the first file's line 1 in a folder) when both layers are missing (one for each). In a folder, an unclosed fence in one file also swallows the files after it (an unclosed fence at the end of `sbp-vision.md` hides the Layer 2 heading in `sbp-structure.md` and draws `missing '## Layer 2: Structure'`).
+**Unclosed fence:** A fenced block that is not closed swallows every later line, including the lines of every later file in a folder run, because the files are read as one document: Layer headings are missing, later layers are not opened, and every line after the fence is skipped for all checks. The `Not supplied:` count does not count lines inside the fence. Two `layer-heading` warnings are issued at line 1 (or the first file's line 1 in a folder) when both layers are missing (one for each). In a folder, an unclosed fence in one file also swallows the files after it (an unclosed fence at the end of `sbp-vision.md` hides the Layer 2 heading in `sbp-structure.md` and draws `missing '## Layer 2: Structure'`). The `fence` check warns once at the row that opens the block.
 
 **Unknown topic heading:** A topic name not in the Guide's list for its layer warns `topic-order` and is not treated as a topic heading. Its lines are given no topic and draw no `id`, `reasons` or shape checks. Lines after a known topic in order that comes before an unknown one still carry the known topic.
 
@@ -316,6 +327,7 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `topics` | `topic '<Topic>' is missing in Layer <N>` |
 | `topics` | `topic '<Topic>' is missing in the entry '<Part>'` |
 | `unfinished` | `marker '<MARKER>'` (where MARKER is TODO, TBD or FIXME, once per line) |
+| `fence` | `fenced block is never closed; the checks skip every row after it` |
 | `diagram-title` | `fenced block has no 'Title:' line before it` |
 | `diagram-key` | `mermaid Title line has no 'Key:'` |
 | `ring` | `Layer <N> refers outward to Layer <M>` (where M > N) |
