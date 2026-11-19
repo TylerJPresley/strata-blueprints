@@ -2214,3 +2214,32 @@ test("realizes-text: a Realizes sentence inside a code span is not read", () => 
   assert.equal(prose.length, 1);
   assert.match(prose[0], /vision-3\.1/);
 });
+
+test("existing project: a Reason that names a settled concern by number draws no warning", () => {
+  const doc = (ref) => L1 + "### 10. Open Concerns\n\n- 10.1. Given the club grows, when the shed fills, then a second shed is priced. Raised by the club.\n\n### 12. Decisions\n\n- 12.1. Chosen X. Reason: settles open concern " + ref + ".\n\n" + L2;
+  const ok = lintText(doc("10.1"));
+  assert.deepEqual(warns(ok, "id-ref"), []);
+  assert.deepEqual(warns(ok, "reasons"), []);
+  const bad = lintText(doc("vision-10.1").replace(/### 10\. Open Concerns\n\n- 10\.1\.[^\n]*\n\n/, "### 10. Open Concerns\n\nNone.\n\n"));
+  const refs = warns(bad, "id-ref");
+  assert.equal(refs.length, 1);
+  assert.match(refs[0], /vision-10\.1/);
+});
+
+test("shared things: a numbered item among unnumbered bullets keeps its own count", () => {
+  const doc = (cite) => [
+    "# T", "",
+    "## Layer 1: Vision", "", "Scope: all.", "",
+    "## Layer 2: Structure", "", "Scope: all.", "",
+    "### 1. Parts", "", "- Rota (part): plans.", "", 
+    "### 5. Shared things", "", "- A plain first bullet.", "- A plain second bullet.", "- 5.1. A numbered fact the Detail cites.", "",
+    "## Layer 3: Detail", "", "Scope: one part.", "",
+    "### Rota (part)", "",
+    "#### 4. Rules", "",
+    `- 4.1. Dates are written in ISO. Reason: ${cite}.`, "",
+  ].join("\n");
+  assert.deepEqual(warns(lintText(doc("structure-5.1")), "id-ref"), []);
+  const bad = warns(lintText(doc("structure-5.2")), "id-ref");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /structure-5\.2/);
+});
