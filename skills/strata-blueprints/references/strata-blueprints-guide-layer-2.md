@@ -5,7 +5,7 @@ Load while interviewing for, writing or checking Layer 2.
 - **Intent:** how the subject is divided into parts, and where each part meets another part or the outside.
 - **Audience:** those who decide how the work is divided.
 - **Success:** Given this layer and Layer 1, when someone checks each part and each key scenario, then every part and seam is named, traces to the purpose, and every scenario has a path through the parts.
-- **Status:** always written.
+- **Written:** always.
 - **Holds:** intent only: no code, commands, exact strings or schemas; those are Detail. An outsider is named with its seam (what crosses, in which direction); its interface is written in Layer 3, in the Seams and Limits of the part that calls it.
 - **Rests on:** Layer 1; see "How the layers depend on each other" in the core guide.
 - **Contents:**
@@ -36,7 +36,7 @@ Load while interviewing for, writing or checking Layer 2.
   - **Standing**
     - **How to write it:**
       - For: says for each part whether its Detail is written here or in a stack of its own, so a reader knows where to look.
-      - Write: Standing holds only `Name: value` lines, one for each part. Say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. One sentence may cover every part when they share a standing. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`. In a stack written as one document, a part with no Layer 3 entry says so, such as `Docs: no Detail here`; in separate files such a part has no file and no Standing line.
+      - Write: Standing holds only `Name: value` lines, one for each part. Say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`. In a stack written as one document, a part with no Layer 3 entry says so, such as `Docs: no Detail here`; in separate files such a part has no file and no Standing line.
       - Example:
         - Ledger: described here.
         - Presence: own stack, presence/presence.md

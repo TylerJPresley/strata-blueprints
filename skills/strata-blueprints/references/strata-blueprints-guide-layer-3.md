@@ -5,7 +5,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
 - **Intent:** how one part does its job and what it is made with. A part's Detail is an entry in the parent's stack, under `### <Part> (part)` with each topic as `#### N. <Topic>`, or the part's own stack, both named in Layer 2 Standing.
 - **Audience:** the makers and reviewers of that part.
 - **Success:** Given one part's entry, when a maker reads it, then they can make the part and check it: what it does, what it offers and needs at each seam, what it is made of, and the values at each seam, without asking.
-- **Status:** written for each part a maker needs it for.
+- **Written:** for each part a maker needs it for.
 - **Rests on:** Layers 1 and 2; see "How the layers depend on each other" in the core guide.
 - **Contents:**
   1. **Responsibility:** what the part is accountable for.

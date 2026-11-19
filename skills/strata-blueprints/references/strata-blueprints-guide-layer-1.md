@@ -5,7 +5,7 @@ Load while interviewing for, writing or checking Layer 1.
 - **Intent:** what the subject is for, stated before any design.
 - **Audience:** anyone who needs to know why the subject exists, including those who will make it.
 - **Success:** Given someone who has never seen the subject, when they read this layer, then they can say what need it addresses, who it serves, and how success would be measured.
-- **Status:** always written.
+- **Written:** always.
 - **Holds:** intent only: no code, commands, exact strings or schemas; those are Detail.
 - **Contents:**
   1. **Need**
