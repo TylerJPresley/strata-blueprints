@@ -57,7 +57,7 @@ The builder is an agent working with a person. The blueprint is the reference fo
 
 ## Limits
 - An agent works with a person: it asks, confirms and reports. It never settles an open question, or fills a `Not supplied:`, on its own.
-- After any change to a blueprint, run the impact check (`node scripts/strata-blueprints-lint.mjs --impact <id> <blueprint-or-folder>` for each id changed) and settle every element it lists before moving on.
+- After any change to a blueprint, run the impact check (`node scripts/strata-blueprints-lint.mjs --impact <id>[,<id>...] <blueprint-or-folder>`, naming every id changed) and settle every element it lists before moving on.
 - Never record an answer for a lower layer that changes an upper layer. Move it to the upper layer first, have the owner confirm it there, then cascade it down.
 - Change a blueprint under review only when the owner asks.
 
