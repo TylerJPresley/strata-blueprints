@@ -6,6 +6,7 @@ This changelog records releases of Strata Blueprints. The `Version:` line of `sk
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
 
+- Lint: `unfinished` skips fenced blocks and code spans; a span opened with N backticks closes at the next run of N backticks on the same line, so it can hold a single backtick.
 - Lint: `scenario-form` check applies only where tracing needs it: Layer 1 Value scenarios, Layer 2 Scenario path items, and any item that says `Realizes <id>`. A rule may be written plainly elsewhere (Costs, Risks, Open Concerns keep their shapes).
 - Lint: the error for a folder that holds no `sbp-` files says to pass the file to lint one document. The exit code stays 2.
 - Lint: `scenario-trace` asks for a Layer 3 rule only for a Layer 1 scenario whose Layer 2 path runs through a part that has a Layer 3 entry. A part with no entry no longer draws a warning for every scenario. The warning carries the matched path id and part names.

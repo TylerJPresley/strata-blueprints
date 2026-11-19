@@ -83,7 +83,11 @@ Silent when:
 
 #### Check: `unfinished`
 
-Fires once per line when the line contains the markers `TODO`, `TBD` or `FIXME` as whole words, anywhere on the line, inside fences and code spans included.
+Fires once per line when the line, outside fenced blocks and with code spans removed, contains `TODO`, `TBD` or `FIXME` as whole words.
+
+Silent when:
+- The line is inside a fenced block (opening and closing lines included)
+- The marker is inside a code span (a run of N backticks to the next run of N backticks on the same line; a span opened with two backticks may hold a single backtick)
 
 #### Check: `diagram-title`
 
@@ -237,7 +241,7 @@ When a structural fault occurs, Lint repairs nothing and only warns on the fault
 
 **Deleted or misspelled layer heading:** When a `## Layer` heading is invalid or missing, no layer is open, so its lines are given no layer and draw no `topic-order`, `topics`, `ring`, `id`, `reasons` or shape checks. A malformed heading warns at its own line, and a missing Layer 1 or Layer 2 warns once more at line 1 (so a malformed `## Layer 2 Structure` gives two warnings); a missing Layer 3 does not warn.
 
-**Unclosed fence:** A fenced block that is not closed swallows every later line, including the lines of every later file in a folder run, because the files are read as one document: Layer headings are missing, later layers are not opened, and every line after the fence is skipped for all checks except `unfinished`. The `Not supplied:` count does not count lines inside the fence (only `unfinished` still reads them). Two `layer-heading` warnings are issued at line 1 (or the first file's line 1 in a folder) when both layers are missing (one for each). In a folder, an unclosed fence in one file also swallows the files after it (an unclosed fence at the end of `sbp-vision.md` hides the Layer 2 heading in `sbp-structure.md` and draws `missing '## Layer 2: Structure'`); `unfinished` still reads every line.
+**Unclosed fence:** A fenced block that is not closed swallows every later line, including the lines of every later file in a folder run, because the files are read as one document: Layer headings are missing, later layers are not opened, and every line after the fence is skipped for all checks. The `Not supplied:` count does not count lines inside the fence. Two `layer-heading` warnings are issued at line 1 (or the first file's line 1 in a folder) when both layers are missing (one for each). In a folder, an unclosed fence in one file also swallows the files after it (an unclosed fence at the end of `sbp-vision.md` hides the Layer 2 heading in `sbp-structure.md` and draws `missing '## Layer 2: Structure'`).
 
 **Unknown topic heading:** A topic name not in the Guide's list for its layer warns `topic-order` and is not treated as a topic heading. Its lines are given no topic and draw no `id`, `reasons` or shape checks. Lines after a known topic in order that comes before an unknown one still carry the known topic.
 
