@@ -2112,6 +2112,11 @@ test("limit-quality: a Limit that cites an id of another document warns like an 
   assert.deepEqual(lq(lqDoc("vision-3.6")), []);
 });
 
+test("limit-quality: a Layer 1 id is read in lower case with plain numbers; other forms warn once each", () => {
+  for (const c of ["Vision-3.6", "VISION-3.6", "vision-03.6", "vision-3.0", "vision-3.6.1"]) assert.equal(lq(lqDoc(c)).length, 1, c);
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+});
+
 // limit-quality reads a quality name in every form the Layer 1 guide allows
 const lqRaw = (items, cite) => L1 + item("###", 6, "Qualities and constraints") + items.map((i) => `- ${i}\n`).join("") + "\n" + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
 
