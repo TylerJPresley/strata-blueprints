@@ -1805,3 +1805,49 @@ test("pipe: a reader that closes early gets no stack trace and the usual exit co
     assert.equal(r.code, code, `exit code for ${args.slice(0, -1).join(" ")}`);
   }
 });
+
+const unf = (body) => warns(lintText(L1 + body + L2), "unfinished");
+
+test("unfinished: a code span hides the marker, prose still warns", () => {
+  assert.equal(unf("The word `TODO` is a marker.\n").length, 0);
+  assert.equal(unf("A ` mark and FIXME here.\n").length, 1);
+});
+
+test("unfinished: a double-backtick span may hold a backtick, a longer run closes at its own length", () => {
+  assert.equal(unf("Write ``TODO`x`` in the text.\n").length, 0);
+  assert.equal(unf("Write ```TBD``` in the text.\n").length, 0);
+});
+
+test("unfinished: prose beside a span warns once and names the prose marker", () => {
+  const w = unf("`TODO` and TBD together.\n");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TBD'/);
+});
+
+test("unfinished: backtick and tilde fences hide the marker, including info string and closing line", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~\nTBD\n~~~\n").length, 0);
+  assert.equal(unf("Title: t.\n```FIXME\nx\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~\n```\nTODO\n~~~\n").length, 0);
+});
+
+test("unfinished: an unclosed fence hides later lines, a marker after a closed fence warns at its line", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\nmore TBD\n").length, 0);
+  const md = L1 + "Title: t.\n```\nTODO inside\n```\nTODO after\n" + L2;
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${md.split("\n").findIndex((l) => l === "TODO after") + 1}\\)`));
+});
+
+test("unfinished: stray backticks on two lines make no span across lines", () => {
+  const w = unf("A ` stray\nTODO on its own line\nanother ` stray\n");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TODO'/);
+});
+
+test("id-ref: a double-backtick span hides an id", () => {
+  const need = "### 1. Need\n\n";
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See ``vision-9.9``.\n\n" + L2), "id-ref").length, 0);
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See `vision-9.9`.\n\n" + L2), "id-ref").length, 0);
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See vision-9.9.\n\n" + L2), "id-ref").length, 1);
+});

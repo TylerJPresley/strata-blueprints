@@ -33,7 +33,7 @@ const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`);
 const START = (s) => NUMBER.test(s) || OWNID.test(s);
 const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
-const clean = (s) => s.replace(/`[^`]*`/g, " ");
+const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
 const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
@@ -91,9 +91,11 @@ let unit = null;             // the open unit, or null
 for (let i = 0; i < rows.length; i++) {
   const line = rows[i], n = i + 1, t = line.trim();
 
-  if (/\b(TODO|TBD|FIXME)\b/.test(line)) warn("unfinished", `marker '${line.match(/\b(TODO|TBD|FIXME)\b/)[1]}'`, n);
-
   const f = t.match(/^(```|~~~)\s*(\S*)/);
+  if (fence === null && !f) {
+    const mk = clean(line).match(/\b(TODO|TBD|FIXME)\b/);
+    if (mk) warn("unfinished", `marker '${mk[1]}'`, n);
+  }
   if (fence) { if (t.startsWith(fence.mark) && t.slice(3).trim() === "") fence = null; continue; }
   if (f) {
     fence = { lang: f[2], mark: f[1] };
