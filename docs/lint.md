@@ -89,7 +89,7 @@ Silent when:
 - The line is inside a fenced block (opening and closing lines included)
 - The marker is inside a code span
 
-A code span opens with a run of backticks and closes at the next run of the same length on the same line. A fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long and has nothing after it.
+A code span opens with a run of backticks and closes at the next run of the same length on the same line. A fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long and has nothing after it. Each row is trimmed before it is tested, so a fence may be indented to any depth, and a closing row may be indented too.
 
 #### Check: `fence`
 
@@ -105,6 +105,8 @@ Silent when:
 #### Check: `diagram-title`
 
 Fires when a fenced block (triple backtick or tilde) has no line before it beginning `Title:`.
+
+The check does not look at what the block holds: a block that shows a command, a file or markup draws it like a diagram, and a `Title:` line before the block silences it.
 
 Silent when:
 - The `Title:` line exists (no warning)
