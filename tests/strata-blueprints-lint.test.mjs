@@ -2206,3 +2206,11 @@ test("shared things: a numbered item is cited from a Detail, and --impact reache
   const other = lintText(md.replace("Reason: structure-5.1.", "Reason: detail.pay-4.1."));
   assert.equal(warns(other, "id-ref").length, 1);
 });
+
+test("realizes-text: a Realizes sentence inside a code span is not read", () => {
+  const doc = (path) => L1 + "### 3. Value\n\n- 3.1. Given a keeper is idle, when they write, then it is saved.\n\n" + L2 + "### 6. Scenario paths\n\n" + path + "\n";
+  assert.deepEqual(rt(doc("- 6.1. Given the keeper is away, when they return, then it is saved, as in `Realizes vision-3.1` above.")), []);
+  const prose = rt(doc("- 6.1. Realizes vision-3.1. Given the keeper is away, when they return, then it is saved."));
+  assert.equal(prose.length, 1);
+  assert.match(prose[0], /vision-3\.1/);
+});

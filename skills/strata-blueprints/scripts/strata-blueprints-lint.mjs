@@ -327,7 +327,7 @@ for (const e of live) {
   const RZ = new RegExp(String.raw`(?<![\w.-])Realizes\s+(${IDCORE})(?!\w|-|\.\d)[.:)]*\s*`);
   for (const e of live) {
     if (e.layer < 2 || e.table) continue;
-    const m = e.text.match(RZ);
+    const m = e.body.match(RZ);
     if (!m) continue;
     const v = defined.get(m[1]);
     if (!v || v.layer !== 1 || !v.own || v.own.topic !== 3) continue;
