@@ -41,7 +41,7 @@ test("gate: a Vision cut without Version fails at templates", () => {
   const r = gateOn((edit) => edit(VISION, (t) => t.replace("Version: 0.1.0\n", "")));
   assert.equal(r.status, 1);
   assert.ok(r.out.includes("gate: templates failed"), r.out);
-  assert.match(r.out, /template-layer-1: line 3 expected "Version: 0\.1\.0"/);
+  assert.match(r.out, /template-layer-1: line 5 expected "Version: 0\.1\.0"/);
 });
 
 test("gate: Status: Draft before Version: in the full template fails at templates", () => {
@@ -106,39 +106,55 @@ function templatesWith(n, full, cut) {
       edit(FULL, (t) => `${t.replace(/\n$/, "")}\n\n${full.join("\n")}\n`);
       edit(CUT(3), (t) => `${t.replace(/\n$/, "")}\n\n${cut.join("\n")}\n`);
     } else {
-      edit(FULL, (t) => heading(t, `## Layer ${n}: ${n === 1 ? "Vision" : "Structure"}`));
-      edit(CUT(n), (t) => t.replace(`# Layer ${n}: ${n === 1 ? "Vision" : "Structure"}`, (m) => `${m}\n${cut.join("\n")}`));
+      const h = `## Layer ${n}: ${n === 1 ? "Vision" : "Structure"}`;
+      edit(FULL, (t) => heading(t, h));
+      // The rows end the layer section, so the cut holds the heading and the rows and nothing after them.
+      edit(CUT(n), (t) => `${t.slice(0, t.indexOf(h) + h.length)}\n${cut.join("\n")}\n`);
     }
   });
 }
 const passes = (r) => !r.out.includes("gate: templates failed");
 
-test("gate templates: a fence closed by a longer row ends there; the next # row is stripped in the cut", () => {
-  const full = ["```", "#a", "````", "#b"];
-  { const r = templatesWith(1, full, ["```", "#a", "````", "b"]); assert.ok(passes(r), r.out); }
-  const bad = templatesWith(1, full, ["```", "#a", "````", "#b"]);
+test("gate templates: a fence closed by a longer row ends there; the next ## row ends the layer section", () => {
+  const full = ["```", "## a", "````", "## b"];
+  { const r = templatesWith(1, full, ["```", "## a", "````"]); assert.ok(passes(r), r.out); }
+  const bad = templatesWith(1, full, ["```", "## a", "````", "## b"]);
   assert.ok(!passes(bad), bad.out);
 });
 
 test("gate templates: a shorter row inside a longer fence does not close it", () => {
-  const full = ["````", "#a", "```", "#b", "````", "#c"];
-  assert.ok(passes(templatesWith(2, full, ["````", "#a", "```", "#b", "````", "c"])));
-  const bad = templatesWith(2, full, ["````", "#a", "```", "b", "````", "c"]);
+  const full = ["````", "## a", "```", "## b", "````", "## c"];
+  { const r = templatesWith(2, full, ["````", "## a", "```", "## b", "````"]); assert.ok(passes(r), r.out); }
+  const bad = templatesWith(2, full, ["````", "## a", "```", "b", "````"]);
   assert.ok(!passes(bad), bad.out);
 });
 
 test("gate templates: a backtick row with a backtick after the opening run is text, not a fence", () => {
-  const full = ["```x``` more", "#t"];
-  assert.ok(passes(templatesWith(1, full, ["```x``` more", "t"])));
-  const bad = templatesWith(1, full, ["```x``` more", "#t"]);
+  const full = ["```x``` more", "## t"];
+  assert.ok(passes(templatesWith(1, full, ["```x``` more"])));
+  const bad = templatesWith(1, full, ["```x``` more", "## t"]);
   assert.ok(!passes(bad), bad.out);
 });
 
 test("gate templates: an unclosed fence hides every later row to the end of the template", () => {
-  const full = ["```", "#u", "## v"];
-  assert.ok(passes(templatesWith(3, full, ["```", "#u", "## v"])));
+  const full = ["```", "## u", "## v"];
+  assert.ok(passes(templatesWith(3, full, ["```", "## u", "## v"])));
   const bad = templatesWith(3, full, ["```", "u", "## v"]);
   assert.ok(!passes(bad), bad.out);
+});
+
+test("gate: a cut without its title row fails at templates", () => {
+  const r = gateOn((edit) => edit(VISION, (t) => t.replace("# [Subject name]\n\n", "")));
+  assert.equal(r.status, 1);
+  assert.ok(r.out.includes("gate: templates failed"), r.out);
+  assert.match(r.out, /template-layer-1: line 3 expected "# \[Subject name\]"/);
+});
+
+test("gate: a cut with its headings one level up fails at templates", () => {
+  const r = gateOn((edit) => edit(VISION, (t) => t.replace("## Layer 1: Vision", "# Layer 1: Vision")));
+  assert.equal(r.status, 1);
+  assert.ok(r.out.includes("gate: templates failed"), r.out);
+  assert.match(r.out, /template-layer-1: line \d+ expected "## Layer 1: Vision", found "# Layer 1: Vision"/);
 });
 
 // The gate, the links check, the lint and the tool each carry their own fenceOpen and fenceCloses (the programs are separate files).

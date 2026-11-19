@@ -65,7 +65,7 @@ function layoutCheck() {
   return problems;
 }
 
-// --- templates check (fn): each layer cut equals the matching section of the full template, headings one level up ---
+// --- templates check (fn): each layer cut is the title, the metadata and the matching section of the full template, row for row (line 1 and the blank row 2 aside) ---
 function templateProblems() {
   const dir = join(root, 'skills', 'strata-blueprints', 'assets');
   const names = ['strata-blueprints-template.md', 'strata-blueprints-template-layer-1.md', 'strata-blueprints-template-layer-2.md', 'strata-blueprints-template-layer-3.md'];
@@ -90,10 +90,12 @@ function templateProblems() {
   const vi = top.findIndex((l) => /^Version:/.test(l));
   if (vi < 0 || top[vi + 1] !== 'Status: Draft') problems.push(`${names[0]}: top matter lacks "Status: Draft" right after "Version:"`);
   const lines = full.replace(/\n$/, '').split('\n');
+  const title = lines.find((l) => /^# /.test(l));
+  if (title === undefined) { problems.push(`${names[0]}: has no title row`); return problems; }
   for (let n = 1; n <= 3; n++) {
     const name = `strata-blueprints-template-layer-${n}.md`;
     if (!text[name]) continue;
-    const want = [...CUT_TOP[n], ''];
+    const want = [title, '', ...CUT_TOP[n], ''];
     let inLayer = false, fence = null;
     for (const l of lines) {
       const t = l.trim();
@@ -101,7 +103,7 @@ function templateProblems() {
       if (fence) { if (fenceCloses(t, fence)) fence = null; } else fence = fenceOpen(t);
       const hidden = wasFence || fence !== null;
       if (!hidden && /^## /.test(l)) inLayer = l.startsWith(`## Layer ${n}:`);
-      if (inLayer) want.push(!hidden && /^#/.test(l) ? l.slice(1) : l);
+      if (inLayer) want.push(l);
     }
     while (want.length && want[want.length - 1] === '') want.pop();
     const have = text[name].replace(/\n$/, '').split('\n').slice(2);
