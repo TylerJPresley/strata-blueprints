@@ -159,7 +159,7 @@ for (let i = 0; i < rows.length; i++) {
     }
   }
 
-  if (layer) for (const m of line.matchAll(/\bLayer (\d+)\b/g)) {
+  if (layer) for (const m of clean(line).matchAll(/\bLayer (\d+)\b/g)) {
     if (+m[1] > layer && !/^## /.test(t)) warn("ring", `Layer ${layer} refers outward to Layer ${m[1]}`, n);
   }
 

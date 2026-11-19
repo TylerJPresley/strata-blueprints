@@ -2006,3 +2006,12 @@ test("diagram-title: a fenced block that holds a command draws it like a diagram
   assert.equal(warns(lintText(L1 + L2 + "text\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 1);
   assert.equal(warns(lintText(L1 + L2 + "Title: t.\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 0);
 });
+
+test("ring: a Layer number inside a code span draws nothing, the same words in prose still warn", () => {
+  const ring = (body) => warns(lintText(L1 + body + L2), "ring").length;
+  assert.equal(ring("See `Layer 3` for more.\n"), 0);
+  assert.equal(ring("See ``Layer 3`` for more.\n"), 0);
+  assert.equal(ring("See Layer 3 for more.\n"), 1);
+  assert.equal(ring("See `Layer 3` and Layer 1 and Layer 3 here.\n"), 1);
+  assert.equal(ring("```\nLayer 3\n```\n"), 0);
+});
