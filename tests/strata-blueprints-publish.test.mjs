@@ -624,3 +624,9 @@ test("publish: Not supplied inside a double-backtick span is not an open questio
   assert.equal(q("- 1.1. Write `Not supplied: x` in the text."), 0);
   assert.equal(q("- 1.1. Not supplied: x."), 1);
 });
+
+test("publish: an id after an inner three-backtick row in a four-backtick fence stays hidden", () => {
+  const src = (need) => doc({ Need: need, "Success measures": "None." });
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nvision-5.1\n````") }));
+  assert.throws(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nx\n````\n\nSee vision-5.1.") }), /cites vision-5\.1, which is in topic 5/);
+});

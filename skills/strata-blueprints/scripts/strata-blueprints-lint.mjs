@@ -34,6 +34,9 @@ const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`)
 const START = (s) => NUMBER.test(s) || OWNID.test(s);
 const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
 const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
+// A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
 const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
@@ -91,14 +94,14 @@ let unit = null;             // the open unit, or null
 for (let i = 0; i < rows.length; i++) {
   const line = rows[i], n = i + 1, t = line.trim();
 
-  const f = t.match(/^(```|~~~)\s*(\S*)/);
+  const f = fenceOpen(t);
   if (fence === null && !f) {
     const mk = clean(line).match(/\b(TODO|TBD|FIXME)\b/);
     if (mk) warn("unfinished", `marker '${mk[1]}'`, n);
   }
-  if (fence) { if (t.startsWith(fence.mark) && t.slice(3).trim() === "") fence = null; continue; }
+  if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
   if (f) {
-    fence = { lang: f[2], mark: f[1] };
+    fence = f;
     let j = i - 1; while (j >= 0 && rows[j].trim() === "") j--;
     const prev = j >= 0 ? rows[j].trim() : "";
     if (!prev.startsWith("Title:")) warn("diagram-title", "fenced block has no 'Title:' line before it", n);
@@ -354,9 +357,9 @@ function readElements(rows) {
   const start = (n, text, indent, list, table = false) => { cur = { n, text, indent, list, table, layer, topic, entry }; els.push(cur); };
   for (let i = 0; i < rows.length; i++) {
     const line = rows[i], t = line.trim(), n = i + 1;
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
-    if (f) { fence = f[1]; close(); continue; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    if (f) { fence = f; close(); continue; }
     if (t === "") { close(); continue; }
     if (/^#{1,6}\s/.test(t)) {
       close();
@@ -431,9 +434,9 @@ function* plainLines(rows) {
   let fence = null;
   for (let i = 0; i < rows.length; i++) {
     const t = rows[i].trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
-    if (f) { fence = f[1]; continue; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    if (f) { fence = f; continue; }
     yield { n: i + 1, t };
   }
 }

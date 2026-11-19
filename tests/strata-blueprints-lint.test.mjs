@@ -1880,3 +1880,53 @@ test("not-supplied: a single-backtick span is still not counted and a stray back
   assert.equal(notSupCount("Write `Not supplied: x` here.\n"), 0);
   assert.equal(notSupCount("A ` stray and Not supplied: x.\n"), 1);
 });
+
+// --- One fence rule: a fence closes at a row of the same mark at least as long; a backtick row with a backtick after the run is text. ---
+const unfAt = (body, word) => {
+  const md = L1 + body + L2;
+  return { w: warns(lintText(md), "unfinished"), n: md.split("\n").findIndex((l) => l === word) + 1 };
+};
+
+test("fence: a four-backtick fence closes at a row of four backticks and an inner three-backtick row stays content", () => {
+  const { w, n } = unfAt("Title: t.\n````\n```\nTODO\n````\nTBD after\n", "TBD after");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TBD'.*\\(line ${n}\\)`));
+});
+
+test("fence: a closing row shorter than the opening run does not close it", () => {
+  assert.equal(unf("Title: t.\n````\nTODO\n```\nTBD still inside\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~~\nTODO\n~~~\nTBD still inside\n").length, 0);
+});
+
+test("fence: a closing row longer than the opening run closes it", () => {
+  const { w, n } = unfAt("Title: t.\n```\nTODO\n`````\nFIXME after\n", "FIXME after");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'FIXME'.*\\(line ${n}\\)`));
+  assert.equal(unf("Title: t.\n~~~\nTODO\n~~~~~\nFIXME after\n").length, 1);
+});
+
+test("fence: a closing row with text after the run does not close", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\n``` more\nTBD inside\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n```\nTODO\n```x\nTBD inside\n```\n").length, 0);
+});
+
+test("fence: a backtick row with a backtick after the opening run is text", () => {
+  const md = L1 + "Title: t.\n```TODO``` more\nTBD next\n" + L2;
+  const r = lintText(md);
+  const w = warns(r, "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TBD'.*\\(line ${md.split("\n").findIndex((l) => l === "TBD next") + 1}\\)`));
+  assert.equal(warns(lintText(L1 + "```a`b\nTODO\n" + L2), "diagram-title").length, 0);
+});
+
+test("fence: a tilde fence text after the run may hold a backtick", () => {
+  assert.equal(unf("Title: t.\n~~~ a`b\nTODO\n~~~\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~ a`b\nTODO\n~~~\nTBD after\n").length, 1);
+});
+
+test("fence: CRLF rows open and close a fence", () => {
+  const md = (L1 + "Title: t.\n````\n```\nTODO\n````\nTBD after\n" + L2).replace(/\n/g, "\r\n");
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TBD'/);
+});

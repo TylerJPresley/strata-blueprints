@@ -68,3 +68,30 @@ test("lint tests: a lint script with a syntax error fails the lint test file wit
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// The links check reads the fenced node commands of README.md by the fence rule of the lint.
+function linksOn(readmeTail) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sbp-gate-fence-"));
+  try {
+    fs.copyFileSync(path.join(root, "gate.mjs"), path.join(dir, "gate.mjs"));
+    fs.cpSync(path.join(root, "scripts"), path.join(dir, "scripts"), { recursive: true });
+    fs.cpSync(path.join(root, ASSETS), path.join(dir, ASSETS), { recursive: true });
+    fs.writeFileSync(path.join(dir, "README.md"), "# R\n\n" + readmeTail);
+    fs.writeFileSync(path.join(dir, "CONTRIBUTING.md"), "# C\n");
+    const r = spawnSync(process.execPath, ["gate.mjs"], { cwd: dir, encoding: "utf8", timeout: 60000 });
+    return `${r.stdout}${r.stderr}`;
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test("gate: a four-backtick fence in README closes only at four or more backticks", () => {
+  const out = linksOn("````\n```\nnode inner-missing.mjs\n````\n\n```\nnode outer-missing.mjs\n```\n");
+  assert.match(out, /README\.md: command names missing file inner-missing\.mjs/);
+  assert.match(out, /README\.md: command names missing file outer-missing\.mjs/);
+});
+
+test("gate: a backtick row with a backtick after the run is not a fence in README", () => {
+  const out = linksOn("```x``` more\nnode text-missing.mjs\n");
+  assert.doesNotMatch(out, /text-missing\.mjs/);
+});

@@ -63,3 +63,15 @@ test("links: a link inside a double-backtick span is ignored", (t) => {
   const inProse = linkRoot({ "README.md": "# R\n\nWrite [a](missing.md) here.\n" }, t);
   assert.equal(linkProblems(inProse).length, 1);
 });
+
+test("links: a four-backtick fence closes only at four or more backticks", (t) => {
+  const root = linkRoot({ "README.md": "# R\n\n````\n```\n[a](missing.md)\n````\n\n[b](gone.md)\n" }, t);
+  const p = linkProblems(root);
+  assert.equal(p.length, 1);
+  assert.match(p[0], /broken link gone\.md/);
+});
+
+test("links: a backtick row with a backtick after the run is not a fence", (t) => {
+  const root = linkRoot({ "README.md": "# R\n\n```x``` [a](missing.md)\n\n[b](gone.md)\n" }, t);
+  assert.equal(linkProblems(root).length, 2);
+});

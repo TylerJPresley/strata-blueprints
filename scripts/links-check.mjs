@@ -20,13 +20,20 @@ function markdownFiles(dir, out = []) {
 // A code span: a run of N backticks to the next run of N, on one line (the lint's rule).
 const CODE_SPAN = /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
 
+// A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
+
 // Text outside fenced code blocks, with inline code spans removed.
 function prose(text) {
   const keep = [];
-  let fence = false;
+  let fence = null;
   for (const line of text.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
-    if (!fence) keep.push(line.replace(CODE_SPAN, ''));
+    const t = line.trim();
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    const f = fenceOpen(t);
+    if (f) { fence = f; continue; }
+    keep.push(line.replace(CODE_SPAN, ''));
   }
   return keep;
 }

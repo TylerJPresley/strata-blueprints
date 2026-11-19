@@ -16,6 +16,9 @@ const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 export const NAMES = ["Vision", "Structure", "Detail"];
 // A code span: a run of N backticks to the next run of N, on one line. The same line as in the lint.
 const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
+// A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 export const TOPICS = {
   1: ["Need", "Target audience", "Value", "Focus", "Success measures", "Qualities and constraints", "Vocabulary", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
@@ -42,9 +45,9 @@ function scan(lines) {
   let fence = null;
   lines.forEach((line, i) => {
     const t = line.trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; return; }
-    if (f) { fence = f[1]; return; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; return; }
+    if (f) { fence = f; return; }
     const h = t.match(/^(#{1,6}) /);
     if (h) heads.push({ i, level: h[1].length, t });
   });
@@ -136,9 +139,9 @@ function fenceMask(lines) {
   let fence = null;
   return lines.map((line) => {
     const t = line.trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; return true; }
-    if (f) { fence = f[1]; return true; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; return true; }
+    if (f) { fence = f; return true; }
     return false;
   });
 }

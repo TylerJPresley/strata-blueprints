@@ -13,6 +13,10 @@ import { linkProblems } from './scripts/links-check.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
+// The lint's fence rule: a block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
+
 // --- links check (fn) ---
 function linksCheck() {
   const problems = [];
@@ -27,10 +31,11 @@ function linksCheck() {
     const abs = join(root, f);
     if (!existsSync(abs)) continue;
     const text = readFileSync(abs, 'utf8');
-    let inFence = false;
+    let fence = null;
     for (const line of text.split('\n')) {
-      if (/^\s*```/.test(line)) { inFence = !inFence; continue; }
-      if (!inFence) continue;
+      const t = line.trim();
+      if (fence) { if (fenceCloses(t, fence)) { fence = null; continue; } }
+      else { fence = fenceOpen(t); continue; }
       const cm = line.match(cmdRe);
       if (cm && !existsSync(join(root, cm[1]))) problems.push(`${f}: command names missing file ${cm[1]}`);
     }
@@ -89,11 +94,14 @@ function templateProblems() {
     const name = `strata-blueprints-template-layer-${n}.md`;
     if (!text[name]) continue;
     const want = [...CUT_TOP[n], ''];
-    let inLayer = false, fence = false;
+    let inLayer = false, fence = null;
     for (const l of lines) {
-      if (/^\s*(```|~~~)/.test(l)) fence = !fence;
-      if (!fence && /^## /.test(l)) inLayer = l.startsWith(`## Layer ${n}:`);
-      if (inLayer) want.push(!fence && /^#/.test(l) ? l.slice(1) : l);
+      const t = l.trim();
+      const wasFence = fence !== null;
+      if (fence) { if (fenceCloses(t, fence)) fence = null; } else fence = fenceOpen(t);
+      const hidden = wasFence || fence !== null;
+      if (!hidden && /^## /.test(l)) inLayer = l.startsWith(`## Layer ${n}:`);
+      if (inLayer) want.push(!hidden && /^#/.test(l) ? l.slice(1) : l);
     }
     while (want.length && want[want.length - 1] === '') want.pop();
     const have = text[name].replace(/\n$/, '').split('\n').slice(2);
