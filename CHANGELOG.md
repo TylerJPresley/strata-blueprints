@@ -6,6 +6,8 @@ This changelog records releases of Strata Blueprints. The `Version:` line of `sk
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
 
+- Lint, publish and links check: code spans are read by one rule: N backticks to the next run of N backticks on the same line. The `Not supplied:` count, citations in publish, and the links check use this rule, so a span opened with double backticks can hold a single backtick and is properly skipped.
+- Lint, publish and links check: fenced blocks are read by the CommonMark rule: a fence opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text, so it does not open a fence) and closes at a row of the same mark that is at least as long and has nothing after it. A closing row must be at least as long as the opening run.
 - Lint: `unfinished` skips fenced blocks and code spans; a span opened with N backticks closes at the next run of N backticks on the same line, so it can hold a single backtick.
 - Lint: `scenario-form` check applies only where tracing needs it: Layer 1 Value scenarios, Layer 2 Scenario path items, and any item that says `Realizes <id>`. A rule may be written plainly elsewhere (Costs, Risks, Open Concerns keep their shapes).
 - Lint: the error for a folder that holds no `sbp-` files says to pass the file to lint one document. The exit code stays 2.

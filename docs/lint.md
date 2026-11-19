@@ -87,7 +87,9 @@ Fires once per line when the line, outside fenced blocks and with code spans rem
 
 Silent when:
 - The line is inside a fenced block (opening and closing lines included)
-- The marker is inside a code span (a run of N backticks to the next run of N backticks on the same line; a span opened with two backticks may hold a single backtick)
+- The marker is inside a code span
+
+A code span opens with a run of backticks and closes at the next run of the same length on the same line. A fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long and has nothing after it.
 
 #### Check: `diagram-title`
 
@@ -189,7 +191,7 @@ Fires when an item's number is wrong or taken:
 - A part name in Layer 2 Parts that is not one word (letters, digits, underscores)
 - The item starts with a full id form like `vision-3.1.` (the old style); only the number should be written
 
-Reports once per item. A prose paragraph (lines up to a blank) counts as one item, numbered or not. An item under a numbered topic needs a number; prose and items under unnumbered topics do not. Table rows, `None.`, `Not supplied:` and `Title:` lines are exempt.
+Reports once per item. A prose paragraph (lines up to a blank) counts as one item, numbered or not. An item under a numbered topic needs a number; prose and items under unnumbered topics do not. Table rows, `None.`, `Not supplied:` and `Title:` lines are exempt. The lint checks that numbers are unique, not their order or gaps.
 
 Silent when:
 - The layer is invalid (no topics to judge)

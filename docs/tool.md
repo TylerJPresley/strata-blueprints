@@ -2,6 +2,8 @@
 
 `skills/strata-blueprints/scripts/strata-blueprints.mjs` writes a condensed copy of a stack for reading or sending on, or publishes the stack as one document. It needs Node.js 22 or later and no packages. The full working files stay the source; a condensed copy and a published document are generated and never edited by hand. The way is one way: the source, then a condensed copy, then a published document.
 
+The tool reads spans and fences the way the lint does. A code span opens with a run of backticks and closes at the next run of the same length on the same line. A fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long and has nothing after it.
+
 ## Run it
 
 ```
