@@ -95,3 +95,85 @@ test("gate: a backtick row with a backtick after the run is not a fence in READM
   const out = linksOn("```x``` more\nnode text-missing.mjs\n");
   assert.doesNotMatch(out, /text-missing\.mjs/);
 });
+
+// The template cut reader reads fences by the lint's rule: a row closes a fence at the same mark, at least as long, with nothing after it.
+// Each case adds the same rows to the full template and to one cut; `cut` is the rows as the cut must hold them.
+const CUT = (n) => `strata-blueprints-template-layer-${n}.md`;
+function templatesWith(n, full, cut) {
+  const heading = (t, h) => t.replace(h, (m) => `${m}\n${full.join("\n")}`);
+  return gateOn((edit) => {
+    if (n === 3) {
+      edit(FULL, (t) => `${t.replace(/\n$/, "")}\n\n${full.join("\n")}\n`);
+      edit(CUT(3), (t) => `${t.replace(/\n$/, "")}\n\n${cut.join("\n")}\n`);
+    } else {
+      edit(FULL, (t) => heading(t, `## Layer ${n}: ${n === 1 ? "Vision" : "Structure"}`));
+      edit(CUT(n), (t) => t.replace(`# Layer ${n}: ${n === 1 ? "Vision" : "Structure"}`, (m) => `${m}\n${cut.join("\n")}`));
+    }
+  });
+}
+const passes = (r) => !r.out.includes("gate: templates failed");
+
+test("gate templates: a fence closed by a longer row ends there; the next # row is stripped in the cut", () => {
+  const full = ["```", "#a", "````", "#b"];
+  { const r = templatesWith(1, full, ["```", "#a", "````", "b"]); assert.ok(passes(r), r.out); }
+  const bad = templatesWith(1, full, ["```", "#a", "````", "#b"]);
+  assert.ok(!passes(bad), bad.out);
+});
+
+test("gate templates: a shorter row inside a longer fence does not close it", () => {
+  const full = ["````", "#a", "```", "#b", "````", "#c"];
+  assert.ok(passes(templatesWith(2, full, ["````", "#a", "```", "#b", "````", "c"])));
+  const bad = templatesWith(2, full, ["````", "#a", "```", "b", "````", "c"]);
+  assert.ok(!passes(bad), bad.out);
+});
+
+test("gate templates: a backtick row with a backtick after the opening run is text, not a fence", () => {
+  const full = ["```x``` more", "#t"];
+  assert.ok(passes(templatesWith(1, full, ["```x``` more", "t"])));
+  const bad = templatesWith(1, full, ["```x``` more", "#t"]);
+  assert.ok(!passes(bad), bad.out);
+});
+
+test("gate templates: an unclosed fence hides every later row to the end of the template", () => {
+  const full = ["```", "#u", "## v"];
+  assert.ok(passes(templatesWith(3, full, ["```", "#u", "## v"])));
+  const bad = templatesWith(3, full, ["```", "u", "## v"]);
+  assert.ok(!passes(bad), bad.out);
+});
+
+// The gate, the links check, the lint and the tool each carry their own fenceOpen and fenceCloses (the programs are separate files).
+// Each copy is read from its file and run on the same rows, so a change to one copy fails here.
+const FENCE_FILES = ["gate.mjs", "scripts/links-check.mjs", "skills/strata-blueprints/scripts/strata-blueprints-lint.mjs", "skills/strata-blueprints/scripts/strata-blueprints.mjs"];
+function fenceCopy(file) {
+  const src = fs.readFileSync(path.join(root, file), "utf8").split("\n");
+  const pick = (name) => {
+    const lines = src.filter((l) => l.startsWith(`const ${name} = `));
+    assert.equal(lines.length, 1, `${file} holds one ${name}`);
+    return lines[0];
+  };
+  return new Function(`${pick("fenceOpen")}\n${pick("fenceCloses")}\nreturn { fenceOpen, fenceCloses };`)();
+}
+
+test("fence helpers: the gate, the links check, the lint and the tool read every row alike", () => {
+  const rows = [
+    "```", "````", "`````", "~~~", "~~~~", "``", "~~", "", "text",
+    "```js", "```js title", "~~~ yaml", "```x``` more", "``` `a`", "~~~ `a`", "~~~x~~~",
+    "``` ", "```.", "~~~.", "````js", "~~~~x y",
+    "  ```", "    ```", "\t```", "> ```", "`~`", "```~~~", "~~~```",
+  ];
+  const copies = FENCE_FILES.map((f) => ({ f, ...fenceCopy(f) }));
+  const view = (c) => {
+    const out = [];
+    for (const row of rows) {
+      const open = c.fenceOpen(row);
+      out.push([row, open]);
+      for (const closer of rows) out.push([row, closer, c.fenceCloses(closer, open || { mark: "```" })]);
+    }
+    for (const mark of ["```", "````", "~~~", "~~~~"]) for (const closer of rows) out.push([mark, closer, c.fenceCloses(closer, { mark })]);
+    return JSON.stringify(out);
+  };
+  const [first, ...rest] = copies;
+  for (const c of rest) assert.equal(view(c), view(first), `${c.f} differs from ${first.f}`);
+  assert.ok(first.fenceOpen("````"), "the table opens a four-backtick row");
+  assert.equal(first.fenceOpen("```x``` more"), null, "the table holds a text row");
+});
