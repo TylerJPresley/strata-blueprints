@@ -154,4 +154,4 @@ Load while interviewing for, writing or checking Layer 1.
     - **Check:**
       - [ ] Does each decision give `Reason:`, or is the topic `None.`?
 - **Check (whole layer):**
-  - [ ] Does it name no parts and no specific means other than a stated constraint?
+  - [ ] Does it name no part of the division and no specific means other than a stated constraint? It may name what the subject does.
