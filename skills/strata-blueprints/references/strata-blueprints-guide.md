@@ -195,6 +195,7 @@ Read the project's sources (code, documents, tests, configuration) before asking
 - For a program's exact text, the program outranks its documentation; the difference is an Open Concern.
 - Ask the owner only for intent the sources cannot show. With no owner to ask, write `Not supplied:` for each unknown and keep `Status: Draft`.
 - When the sources change, re-read each named source, list the items it feeds, run `--impact` on each id you change, and settle what it reaches. A `Not supplied:` that a source now answers stays until the owner confirms; an Open Concern names the source that answers it. A settled Open Concern becomes a Decision or an Assumption, and its number is never reused.
+- When the project has tests, they are a source: list by script each test's inputs and the strings, values and errors it expects, and look each one up in the blueprint. A missing one is a gap to write, not to guess.
 
 ### How to interview
 
