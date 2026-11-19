@@ -1854,6 +1854,70 @@ test("unfinished: an unclosed fence hides later lines, a marker after a closed f
   assert.match(w[0], new RegExp(`\\(line ${md.split("\n").findIndex((l) => l === "TODO after") + 1}\\)`));
 });
 
+// --- fence: a fenced block that is never closed draws one advisory warning per file. ---
+const FENCE_MSG = "fenced block is never closed; the checks skip every row after it";
+const fenceW = (md, ...flags) => warns(lintText(md, ...flags), "fence");
+const rowOf = (md, text) => md.split("\n").findIndex((l) => l === text) + 1;
+
+test("fence: an unclosed fence warns once at the row that opens it", () => {
+  const md = L1 + "```\nopen\n" + L2;
+  const w = fenceW(md);
+  assert.deepEqual(w, [`WARN fence: ${FENCE_MSG} (line ${rowOf(md, "```")})`]);
+});
+
+test("fence: a closed fence and a fence closed by a longer run draw no fence warning", () => {
+  assert.equal(fenceW(L1 + "```\nx\n```\n" + L2).length, 0);
+  assert.equal(fenceW(L1 + "```\nx\n`````\n" + L2).length, 0);
+  assert.equal(fenceW(L1 + "~~~\nx\n~~~~\n" + L2).length, 0);
+});
+
+test("fence: a shorter closing row leaves a four-backtick block open and warns", () => {
+  const md = L1 + "````\nx\n```\ny\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "````")}\\)$`));
+});
+
+test("fence: an unclosed tilde fence warns", () => {
+  const md = L1 + "~~~\nx\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "~~~")}\\)$`));
+});
+
+test("fence: a backtick row with a backtick after the run opens nothing and draws no fence warning", () => {
+  assert.equal(fenceW(L1 + "```x``` more\n" + L2).length, 0);
+});
+
+test("fence: the warning counts, so --strict exits 1 and a plain run exits 0", () => {
+  const md = L1 + L2 + "Title: t.\n```\nopen\n";
+  assert.equal(lintText(md).code, 0);
+  assert.equal(lintText(md, "--strict").code, 1);
+  assert.match(lintText(md).lines.at(-1), /^strata-blueprints-lint: 1 warning\(s\)$/);
+});
+
+test("fence: a folder names the file and row of the open block even when a later file has a row that would close it", () => {
+  const vision = fxVision + "```\nopen\n";
+  const row = vision.split("\n").findIndex((l) => l === "```") + 1;
+  const w = fxWarns({ "sbp-vision.md": vision, "sbp-structure.md": fxStructure + "```\nx\n```\n" }, "fence");
+  assert.deepEqual(w, [`WARN fence: ${FENCE_MSG} (sbp-vision.md line ${row})`]);
+});
+
+test("fence: a block opened on the last row warns, and CRLF rows that close a block draw no warning", () => {
+  const md = L1 + L2 + "```";
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "```")}\\)$`));
+  assert.equal(fenceW((L1 + "```\r\nx\r\n```\r\n" + L2).replace(/\n/g, "\r\n").replace(/\r\r/g, "\r")).length, 0);
+});
+
+test("fence: two openers in one file give one warning", () => {
+  const md = L1 + "```\na\n~~~\nb\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "```")}\\)$`));
+});
+
 test("unfinished: stray backticks on two lines make no span across lines", () => {
   const w = unf("A ` stray\nTODO on its own line\nanother ` stray\n");
   assert.equal(w.length, 1);

@@ -166,6 +166,12 @@ for (let i = 0; i < rows.length; i++) {
   notSupplied += (clean(line).match(/Not supplied:/g) || []).length;
 }
 
+// A fenced block still open at the end of a file hides every later row from the checks above; each such file warns once, at the row that opens it.
+for (const [name, r] of target.folder ? Object.entries(target.folder.files) : [[null, rows]]) {
+  const open = openFenceRow(r);
+  if (open) warnAt("fence", "fenced block is never closed; the checks skip every row after it", name ? `${name} line ${open}` : `line ${open}`);
+}
+
 if (!seen.includes(1)) warn("layer-heading", "missing '## Layer 1: Vision'", 1);
 if (!seen.includes(2)) warn("layer-heading", `missing '## Layer 2: ${NAMES[1]}'`, 1);
 
@@ -350,6 +356,18 @@ process.exitCode = strict && count ? 1 : 0;
 
 // The elements of a text: a bullet with its wrapped and nested lines, a paragraph, or a table row.
 // Each carries its first line, its layer, topic and open entry, and whether it is a table row.
+// The 1-based row that opens a fenced block still open at the end of rows, or 0.
+function openFenceRow(rows) {
+  let fence = null, at = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const t = rows[i].trim();
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    const f = fenceOpen(t);
+    if (f) { fence = f; at = i + 1; }
+  }
+  return fence ? at : 0;
+}
+
 function readElements(rows) {
   const els = [];
   let cur = null, layer = null, topic = null, entry = null, fence = null;
