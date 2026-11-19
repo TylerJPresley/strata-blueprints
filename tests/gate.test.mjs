@@ -177,3 +177,10 @@ test("fence helpers: the gate, the links check, the lint and the tool read every
   assert.ok(first.fenceOpen("````"), "the table opens a four-backtick row");
   assert.equal(first.fenceOpen("```x``` more"), null, "the table holds a text row");
 });
+
+test("fence: an indented fence is read by the gate like the lint reads it", () => {
+  const out = linksOn("    ```\nnode scripts/no-such-file.mjs\n    ```\n");
+  const hits = out.split("\n").filter((l) => l.includes("command names missing file"));
+  assert.equal(hits.length, 1, out);
+  assert.match(hits[0], /scripts\/no-such-file\.mjs/);
+});

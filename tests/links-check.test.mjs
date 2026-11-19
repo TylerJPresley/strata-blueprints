@@ -75,3 +75,8 @@ test("links: a backtick row with a backtick after the run is not a fence", (t) =
   const root = linkRoot({ "README.md": "# R\n\n```x``` [a](missing.md)\n\n[b](gone.md)\n" }, t);
   assert.equal(linkProblems(root).length, 2);
 });
+
+test("fence: an indented fence is read by the links check like the lint reads it", (t) => {
+  const root = linkRoot({ "README.md": "# R\n\n    ```\n[x](no-such-file.md)\n    ```\n" }, t);
+  assert.deepEqual(linkProblems(root), []);
+});

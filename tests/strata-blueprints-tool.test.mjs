@@ -310,3 +310,9 @@ test("fence: the lint and the tool carry the same fenceOpen and fenceCloses line
     assert.deepEqual(b, a, name);
   }
 });
+
+test("fence: an indented fence is read by the tool like the lint reads it", () => {
+  const t = "# C\n\n" + L1 + "### 1. Need\n\nN.\n\n- Item:\n\n    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```\n\n### 2. Target audience\n\nN.\n\n" + L2 + "### 1. Parts\n\nP.\n";
+  const c = condenseText(t);
+  assert.ok(c.includes("    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```"), "the rows inside an indented fence stay unchanged");
+});

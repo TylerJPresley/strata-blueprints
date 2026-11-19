@@ -1994,3 +1994,15 @@ test("fence: CRLF rows open and close a fence", () => {
   assert.equal(w.length, 1);
   assert.match(w[0], /marker 'TBD'/);
 });
+
+test("fence: an indented fence opens and closes like any other and hides its rows", () => {
+  const md = L1 + L2 + "    ```\nTODO inside\n\t```\nTODO outside\n";
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TODO'.*\\(line ${rowOf(md, "TODO outside")}\\)`));
+});
+
+test("diagram-title: a fenced block that holds a command draws it like a diagram", () => {
+  assert.equal(warns(lintText(L1 + L2 + "text\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 1);
+  assert.equal(warns(lintText(L1 + L2 + "Title: t.\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 0);
+});
