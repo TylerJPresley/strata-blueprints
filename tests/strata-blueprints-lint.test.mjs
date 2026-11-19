@@ -2061,3 +2061,43 @@ test("impact: a repeated id prints once, and a single id prints as before", () =
   assert.equal(mixed.out.split("\n\n").length, 2);
   assert.equal(mixed.out.split("\n\n")[0] + "\n", single.out);
 });
+
+// --- limit-quality: a Limit cites a quality Layer 1 names -----------------------------------------
+const lqQual = (names) => item("###", 6, "Qualities and constraints") + names.map((n) => `- **${n}:** it holds.\n`).join("") + "\n";
+const lqDoc = (cite, quals = ["Prompt", "Durable"]) => L1 + lqQual(quals) + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
+const lq = (md) => warns(lintText(md), "limit-quality");
+
+test("limit-quality: a Limit that cites a quality Layer 1 does not name warns once; a named quality, a different case, a topic name and Not supplied draw none", () => {
+  const w = lq(lqDoc("Speedy"));
+  assert.equal(w.length, 1);
+  assert.match(w[0], /^WARN limit-quality: 'Speedy' is not named in Layer 1 Qualities and constraints \(line \d+\)$/);
+  assert.match(w[0], new RegExp(`\\(line ${fxLine(lqDoc("Speedy"), "A stop takes")}\\)$`));
+  assert.deepEqual(lq(lqDoc("Prompt")), []);
+  assert.deepEqual(lq(lqDoc("  Durable ")), []);
+  assert.deepEqual(lq(lqDoc("pROMPT")), []);
+  assert.deepEqual(lq(lqDoc("Prompt", ["Prompt  Fast", "Durable"]).replace("(Layer 1, Prompt)", "(Layer 1, prompt fast)")), []);
+  assert.deepEqual(lq(lqDoc("Costs")), []);
+  assert.deepEqual(lq(lqDoc("Target audience")), []);
+  assert.deepEqual(lq(lqDoc("Not supplied: which quality")), []);
+  // the last citation counts; an element with no citation is silent; a table row and a Rules item are not read
+  assert.equal(lq(lqDoc("Speedy").replace("(Layer 1, Speedy)", "(Layer 1, Prompt) and (Layer 1, Speedy)")).length, 1);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(" (Layer 1, Speedy)", "")), []);
+  assert.deepEqual(lq(lqDoc("Speedy").replace("#### 6. Limits", "#### 4. Rules")), []);
+});
+
+test("limit-quality: silent when Layer 1 names no quality in bold, or the document has no Layer 1", () => {
+  // control: the same Limit warns when Layer 1 names its qualities in bold
+  assert.equal(lq(lqDoc("Speedy")).length, 1);
+  assert.equal(lq(lqDoc("Speedy") + "- 6.2. A start takes under a second (Layer 1, Fast).\n").length, 2);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(/- \*\*(Prompt|Durable):\*\*/g, "- $1:")), []);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(/### 6\. Qualities and constraints\n\n[\s\S]*?\n\n(?=## Layer 2)/, "")), []);
+  assert.deepEqual(lq(lqDoc("Speedy", []).replace(L1, L1)), []);
+  assert.deepEqual(lq(L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + "- 6.1. A stop takes under two seconds (Layer 1, Speedy).\n"), []);
+});
+
+test("limit-quality: a Limit that cites a Layer 1 id draws no limit-quality warning; an id that does not exist still draws id-ref", () => {
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+  assert.deepEqual(lq(lqDoc("vision-9.9")), []);
+  assert.equal(warns(lintText(lqDoc("vision-9.9")), "id-ref").length, 1);
+  assert.equal(lq(lqDoc("Speedy")).length, 1);
+});

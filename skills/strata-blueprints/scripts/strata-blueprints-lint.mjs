@@ -287,6 +287,28 @@ for (const e of live) {
   }
 }
 
+// limit-quality: a Limit cites (Layer 1, <quality or topic>); the quality is named in bold in Layer 1 Qualities and constraints, or is a Layer 1 topic.
+{
+  const norm = (x) => x.replace(/\s+/g, " ").trim().toLowerCase();
+  const names = new Set();
+  for (const e of live) {
+    if (e.layer !== 1 || e.topic !== "Qualities and constraints" || e.table) continue;
+    const m = e.text.replace(/^\**(?:[1-9]\d*\.[1-9]\d*[.:)]*\s+)?/, "**").match(/^\*\*(.+?)\*\*/);
+    if (m) names.add(norm(m[1].replace(/:\s*$/, "")));
+  }
+  if (names.size) {
+    for (const t of TOPICS[1]) names.add(norm(t));
+    for (const e of live) {
+      if (e.layer !== 3 || e.entry === null || e.topic !== "Limits" || e.table) continue;
+      const cites = [...e.body.matchAll(/\(Layer 1,\s*([^()]*?)\)/g)];
+      if (!cites.length) continue;
+      const x = cites.at(-1)[1].trim();
+      if (x.startsWith("Not supplied:") || new RegExp(`^${IDCORE}$`).test(x) || names.has(norm(x))) continue;
+      warn("limit-quality", `'${x}' is not named in Layer 1 Qualities and constraints`, e.n);
+    }
+  }
+}
+
 // --- costs and risks topics ----------------------------------------------
 const AMOUNT = /^(?:[A-Za-z]+ )*[$€£¥]?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s+[A-Za-z][^\n]*$/;
 const validAmount = (s) => /^Not supplied:\s*\S/.test(s) || AMOUNT.test(s);
