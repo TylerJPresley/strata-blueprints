@@ -6,6 +6,13 @@ This changelog records releases of Strata Blueprints. The `Version:` line of `sk
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
 
+- Lint: `ring` skips code spans.
+- Lint: `--impact` takes several ids joined by commas, each printing its block in the order given, with one empty line between blocks. Exit codes: 0 when every id is defined; 1 when any id is not defined; 2 for usage error.
+- Lint: new advisory check `limit-quality` warns when a Limit cites a quality by name that Layer 1 Qualities and constraints does not name.
+- Lint: new advisory check `realizes-text` warns when a Layer 2 or Layer 3 element rewords the Given and when text of the Layer 1 scenario it realizes.
+- Lint: `scenario-form` also warns when a Value item, a path or a `Realizes` item does not start with `Given`.
+- Templates: each layer cut opens as the file it becomes, with the title row, the metadata lines, and every heading at the full template's level.
+- Core guide and guides: a Detail cites a numbered Shared things item; a project's tests are a source and a subject's tests are run against the build; every fenced block carries a `Title:` line; Layer 1 may name what the subject does.
 - Lint: new advisory check `fence` warns once at the row that opens a fenced block if it is never closed; a block that ends a file hides all later lines until it closes.
 - Core guide: Formatting section, new bullet on Markup says how to write marker words in code spans or fenced blocks; a span opens with N backticks and closes at the next run of N on the same line, so a span opened with two backticks may hold one; a fenced block opens at a row that starts with three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark that is at least as long; close every fence.
 - Layer 3 guide: Rules now shows how to write an exact contract: when a rule gives an exact string or operation, it states for each element whether it is filled in or printed as is; what ordered by which key; for splits, trims and comparisons whether they are case-sensitive, trim, first or last; and whether a state like an open fence carries across the files of a stack. A rule for a function that a test calls says what it returns with the keys of an object and what it throws with the message. Where a test reads the program's own text or an environment variable the rule names the text or the variable and the test. A rule that skips a case names the checks it skips and the checks that apply.

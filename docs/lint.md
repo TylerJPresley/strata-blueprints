@@ -36,7 +36,7 @@ The script produces three kinds of output:
 
 ### Warnings
 
-`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `id`, `id-ref`, `reasons`, `scenario-trace`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
+`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `id`, `id-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
 
 #### Check: `layer-heading`
 
@@ -127,6 +127,7 @@ Reports once per `Layer N` occurrence, so one line can produce several warnings.
 
 Silent when:
 - The line is inside a fenced block
+- The `Layer N` is inside a code span
 
 #### Check: `status`
 
@@ -138,7 +139,7 @@ Silent when:
 
 #### Check: `scenario-form`
 
-Fires when an element text (after any id number and any `Realizes <id>.` sentence) begins with `Given` but does not read `Given <situation>, when <event>, then <result>`, on these items only:
+Fires when an element text (after any id number and any `Realizes <id>.` sentence) does not read `Given <situation>, when <event>, then <result>`, on these items only:
 - A Layer 1 Value item
 - A Layer 2 Scenario path item
 - Any item anywhere that contains a `Realizes <id>` sentence
@@ -146,6 +147,7 @@ Fires when an element text (after any id number and any `Realizes <id>.` sentenc
 Silent when:
 - The element does not begin with `Given`
 - The element is inside a table row
+- The element is `None.`, `Not supplied:` or starts with `Title:`
 - The item is a Layer 3 rule, limit, refusal, or other Layer 3 item without `Realizes`
 - The item is a Layer 1 or Layer 2 item without an id or `Realizes` sentence
 
@@ -180,6 +182,28 @@ Silent when:
 - Layer 3 has no `(part)` entry at all (no trace needed)
 - The Layer 2 check does not run when the document has no valid `## Layer 2: Structure` heading (`<id> has no path in Layer 2` is silent); the Layer 3 check does not run when it has no valid Layer 3 heading
 - The Value item is not numbered
+
+#### Check: `limit-quality`
+
+Fires when a Limit item in a Layer 3 entry cites a quality by name (in the form `(Layer 1, <X>)`) that is not named in Layer 1 Qualities and constraints.
+
+A quality's name is the text inside the first `**...**` at the start of an item of that topic, with a trailing `:` removed and trimmed. The named quality, differently cased names, and the twelve Layer 1 topic names are all allowed, compared without case and with runs of white space collapsed. The citation reads as the last `(Layer 1, <X>)` in the element text, with X trimmed.
+
+Silent when:
+- The element has no citation, or its citation reads `Not supplied:` after the opening paren
+- Layer 1 has no Qualities and constraints topic, or no item with a bold name
+- The item is a table row
+
+#### Check: `realizes-text`
+
+Fires when a Layer 2 or Layer 3 element holds a `Realizes <id>` sentence (the first one only), where `<id>` is a defined Layer 1 Value item, and the element does not keep the Given and when text of the scenario word for word.
+
+The Given-and-when text is the element text after its number and after the `Realizes <id>.` sentence, up to the first `, then `, compared word for word with the scenario's text after its number, also up to the first `, then `. White space is collapsed for comparison.
+
+Silent when:
+- Either text does not start with `Given` or has no `, then ` (`scenario-form` speaks)
+- The id is undefined (`id-ref` speaks)
+- The item is a table row
 
 #### Check: `cost-shape`, `risk-shape`, `concern-shape`
 
@@ -381,6 +405,12 @@ To list every element that a change reaches, give the full id of the element tha
 node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact vision-9.1 path/to/document.md
 ```
 
+To list what several changes reach, give the ids joined by commas, with no space, such as `vision-9.1,vision-3.3`. Each id prints the block below, in the order given, with one empty line between blocks. A repeated id is printed once.
+
+```
+node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact vision-9.1,vision-3.3 path/to/document.md
+```
+
 The output format is exactly:
 
 ```
@@ -422,9 +452,9 @@ INFO impact: 1 element(s) reached, deepest 1
 
 Exit codes:
 
-- `0`: the id is defined and the tree is shown
-- `1`: the id is not defined
-- `2`: usage error (no id, no path, extra arguments, unknown options)
+- `0`: every id is defined and the tree is shown
+- `1`: any id is not defined
+- `2`: usage error (no id, no path, extra arguments, unknown options), with nothing on stdout
 
 The impact run prints no `INFO not-supplied` count and no summary line.
 
