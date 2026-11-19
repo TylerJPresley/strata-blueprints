@@ -188,10 +188,13 @@ A diagram supplements the text, which is the source of truth; give it a title an
 
 Read the project's sources (code, documents, tests, configuration) before asking.
 
-- What the sources show is written as Rules, Limits or Construction, with the source named at the end of the item as `Source: <file or document>`.
-- What the sources only suggest, such as intent and reasons, is written as an Assumption with its `Basis:`. A rule the sources show is a Rule with its `Source:`; an inference about intent or reason is an Assumption with its `Basis:`.
-- Where two sources disagree, write an Open Concern that names both.
-- Ask the owner only for intent the sources cannot show.
+- A source that feeds a whole layer or file is named once, in its `Scope:` line. What the sources show is written as Rules, Limits or Construction, and an item with another source ends with `Source: <file or document>`.
+- What the sources only suggest, such as intent and reasons, is written as an Assumption with its `Basis:`.
+- A choice the sources show with no reason is a Decision with `Reason: Not supplied: <what is needed>`.
+- Where two sources disagree, write an Open Concern that names both. The blueprint author raises it.
+- For a program's exact text, the program outranks its documentation; the difference is an Open Concern.
+- Ask the owner only for intent the sources cannot show. With no owner to ask, write `Not supplied:` for each unknown and keep `Status: Draft`.
+- When the sources change, re-read each named source, list the items it feeds, run `--impact` on each id you change, and settle what it reaches. A `Not supplied:` that a source now answers stays until the owner confirms; an Open Concern names the source that answers it. A settled Open Concern becomes a Decision or an Assumption, and its number is never reused.
 
 ### How to interview
 
