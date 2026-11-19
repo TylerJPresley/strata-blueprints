@@ -150,6 +150,8 @@ A diagram supplements the text; the text is the source of truth. Use a diagram o
 
 Every diagram has a title, one scope, and a key if it uses symbols, colours or shapes. Labels state intent, arrows point from the one that initiates, and no meaning rests on colour alone. The community garden example (`strata-blueprints-example.md`, beside this file) shows each form.
 
+A fenced block of any kind carries a `Title:` line, as a diagram does.
+
 ## Notation
 
 Every layer opens with a title and a one-line scope. A layer that uses symbols, colours or shapes carries a key. Every element has a name, a type, a one-line description and, where it applies, what it is made of. Every relationship has one label that states its intent and points from the one that initiates. Define terms and acronyms where first used. Never carry meaning by colour alone. One scope per view; never mix layers in one view.
