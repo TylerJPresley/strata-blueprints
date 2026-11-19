@@ -79,7 +79,7 @@ Load while interviewing for, writing or checking Layer 1.
   - **Qualities and constraints**
     - **How to write it:**
       - For: states what must hold for the whole subject and the limits it works within, so every part inherits them.
-      - Write: one bullet per quality, its name first where it has one (bold helps), with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. Write in bold the name of each quality a Layer 3 Limit cites; the lint reads a Limit's citation against the bold names. When two qualities pull apart, say which wins.
+      - Write: one bullet per quality, its name first where it has one, with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. Write in bold the name of each quality a Layer 3 Limit cites; the lint reads a Limit's citation against the bold names. When two qualities pull apart, say which wins.
       - Example:
         - **Durable:** once the app says a commitment is saved, it survives a closed app and a lost connection.
         - **Running cost:** it stays within what the maintainer can fund, as set by the maintainer's budget.

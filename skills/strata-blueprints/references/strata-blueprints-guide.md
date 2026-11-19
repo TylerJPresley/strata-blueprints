@@ -190,13 +190,13 @@ A diagram supplements the text, which is the source of truth; give it a title an
 
 Read the project's sources (code, documents, tests, configuration) before asking.
 
-- A source that feeds a whole layer or file is named once, in its `Scope:` line, with the version read (a commit id, a release or a date). What the sources show is written as Rules, Limits or Construction, and an item with another source ends with `Source: <file or document>`.
+- A source that feeds a whole layer or file is named once, in its `Scope:` line, with the version read (a commit id, a release or a date), the sources' own and not the blueprint's `Version:`; each file's `Scope:` line states the version of the sources that feed it. What the sources show is written as Rules, Limits or Construction, and an item with another source ends with `Source: <file or document>`.
 - What the sources only suggest, such as intent and reasons, is written as an Assumption with its `Basis:`.
-- A choice the sources show with no stated reason is a Decision with `Reason: Not supplied: <what is needed>`; when a commit or a document gives the reason, the `Reason:` names it.
+- A choice the sources show with no stated reason is a Decision with `Reason: Not supplied: <what is needed>`; when a commit message or a document says why, the `Reason:` names it; a title that only states the change gives no reason.
 - Where two sources disagree, write an Open Concern that names both. The blueprint author raises it.
 - For a program's exact text, the program outranks its documentation; the difference is an Open Concern.
 - Ask the owner only for intent the sources cannot show. With no owner to ask, write `Not supplied:` for each unknown and keep `Status: Draft`.
-- When the sources change, re-read each named source, list the items it feeds, run `--impact` on each id you change, and settle what it reaches. A `Not supplied:` that a source now answers stays until the owner confirms; an Open Concern names the source that answers it. A settled Open Concern becomes a Decision or an Assumption, and its number is never reused. That item names the concern it settles in its `Reason:` or `Basis:`, by number and not as a citation (`settles open concern 10.1`).
+- When the sources change, re-read each named source, list the items it feeds, run `--impact` on each id you change, and settle what it reaches. A `Not supplied:` that a source now answers stays until the owner confirms; an Open Concern names the source that answers it. A settled Open Concern becomes a Decision or an Assumption, and its number is never reused. That item names the concern it settles, by number and not as a citation (`settles open concern 10.1`).
 - When the project has tests, they are a source: list by script each test's inputs and the strings, values and errors it expects, and look each one up in the blueprint. A missing one is a gap to write, not to guess.
 
 ### How to interview
