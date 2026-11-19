@@ -2102,6 +2102,16 @@ test("limit-quality: a Limit that cites a Layer 1 id draws no limit-quality warn
   assert.equal(lq(lqDoc("Speedy")).length, 1);
 });
 
+test("limit-quality: a Limit that cites an id of another document warns like an unnamed quality", () => {
+  const s = lq(lqDoc("structure-3.1"));
+  assert.equal(s.length, 1);
+  assert.match(s[0], /^WARN limit-quality: 'structure-3\.1' is not named in Layer 1 Qualities and constraints \(line \d+\)$/);
+  const d = lq(lqDoc("detail.brakes-6.1"));
+  assert.equal(d.length, 1);
+  assert.match(d[0], /detail\.brakes-6\.1/);
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+});
+
 // limit-quality reads a quality name in every form the Layer 1 guide allows
 const lqRaw = (items, cite) => L1 + item("###", 6, "Qualities and constraints") + items.map((i) => `- ${i}\n`).join("") + "\n" + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
 

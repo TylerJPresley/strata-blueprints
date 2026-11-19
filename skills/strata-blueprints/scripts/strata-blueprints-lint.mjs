@@ -290,7 +290,7 @@ for (const e of live) {
   }
 }
 
-// limit-quality: a Limit cites (Layer 1, <quality or topic>); the quality is named in bold in Layer 1 Qualities and constraints, or is a Layer 1 topic.
+// limit-quality: a Limit cites (Layer 1, <quality, topic or Layer 1 id>); the quality is named in bold in Layer 1 Qualities and constraints, or is a Layer 1 topic, or is a vision id.
 {
   const norm = (x) => x.replace(/\s+/g, " ").trim().toLowerCase();
   const names = new Set();
@@ -311,7 +311,7 @@ for (const e of live) {
       const cites = [...e.body.matchAll(/\(Layer 1,\s*([^()]*?)\)/g)];
       if (!cites.length) continue;
       const x = cites.at(-1)[1].trim();
-      if (x.startsWith("Not supplied:") || new RegExp(`^${IDCORE}$`).test(x) || names.has(norm(x))) continue;
+      if (x.startsWith("Not supplied:") || /^vision-[1-9]\d*\.[1-9]\d*$/.test(x) || names.has(norm(x))) continue;
       warn("limit-quality", `'${x}' is not named in Layer 1 Qualities and constraints`, e.n);
     }
   }
