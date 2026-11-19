@@ -2015,3 +2015,49 @@ test("ring: a Layer number inside a code span draws nothing, the same words in p
   assert.equal(ring("See `Layer 3` and Layer 1 and Layer 3 here.\n"), 1);
   assert.equal(ring("```\nLayer 3\n```\n"), 0);
 });
+
+test("impact: several ids print one block each, in the order given, with one empty line between blocks", () => {
+  const one = (id) => fxImp(IMP, id).out;
+  const ab = fxImp(IMP, "vision-3.1,vision-12.11");
+  assert.equal(ab.code, 0);
+  assert.equal(ab.out, one("vision-3.1") + "\n" + one("vision-12.11"));
+  assert.equal(ab.out.split("\n\n").length, 2);
+  const ba = fxImp(IMP, "vision-12.11,vision-3.1");
+  assert.equal(ba.code, 0);
+  assert.equal(ba.out, one("vision-12.11") + "\n" + one("vision-3.1"));
+  const abc = fxImp(IMP, "vision-3.1,vision-12.11,structure-6.1");
+  assert.equal(abc.out, one("vision-3.1") + "\n" + one("vision-12.11") + "\n" + one("structure-6.1"));
+});
+
+test("impact: an undefined id among several exits 1 and every id still prints", () => {
+  const r = fxImp(IMP, "vision-3.1,vision-99.9,vision-12.11");
+  assert.equal(r.code, 1);
+  const blocks = r.out.split("\n\n");
+  assert.equal(blocks.length, 3);
+  assert.match(blocks[0], /^impact vision-3\.1: defined in Layer 1/);
+  assert.match(blocks[1], /^WARN impact: vision-99\.9 is not defined in /);
+  assert.match(blocks[2], /^impact vision-12\.11: defined in Layer 1/);
+});
+
+test("impact: a malformed element in the list exits 2 with an empty stdout and one stderr line", () => {
+  fxDoc(IMP, (f) => {
+    for (const list of ["vision-3.1,", "vision-3.1,x1", ",vision-3.1", "vision-3.1,,vision-12.11"]) {
+      const r = fxImpact([list, f]);
+      assert.equal(r.code, 2, list);
+      assert.equal(r.out, "", list);
+      assert.equal(r.err.trim().split("\n").length, 1, list);
+      assert.match(r.err, /^strata-blueprints-lint: not an id: /, list);
+    }
+    assert.match(fxImpact(["vision-3.1,x1", f]).err, /not an id: x1\n$/);
+  });
+});
+
+test("impact: a repeated id prints once, and a single id prints as before", () => {
+  const single = fxImp(IMP, "vision-3.1");
+  const twice = fxImp(IMP, "vision-3.1,vision-3.1");
+  assert.equal(twice.out, single.out);
+  assert.equal(twice.code, single.code);
+  const mixed = fxImp(IMP, "vision-3.1,vision-12.11,vision-3.1");
+  assert.equal(mixed.out.split("\n\n").length, 2);
+  assert.equal(mixed.out.split("\n\n")[0] + "\n", single.out);
+});

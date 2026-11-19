@@ -3,7 +3,7 @@
 // Advisory lint for Strata Blueprints documents: shape checks a program can decide. No model needed.
 // usage: node strata-blueprints-lint.mjs <file.md> [--strict]
 //        node strata-blueprints-lint.mjs <folder> [--strict]
-//        node strata-blueprints-lint.mjs --impact <id> <file.md or folder>
+//        node strata-blueprints-lint.mjs --impact <id>[,<id>...] <file.md or folder>
 import fs from "node:fs";
 import path from "node:path";
 
@@ -39,7 +39,7 @@ const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m &&
 const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
-const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
+const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id>[,<id>...] <file.md or folder>";
 // A reader that closes the pipe early ends the run quietly, with the exit code the run would have had.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); else throw e; });
 if (process.argv[2] === "--impact") await runImpact(process.argv.slice(3));
@@ -578,13 +578,17 @@ function folderChecks(f, warnAt) {
   }
 }
 
-// --impact <id> <file or folder>
+// --impact <id>[,<id>...] <file or folder>
 async function runImpact(args) {
   const opts = args.filter((a) => a.startsWith("--"));
   if (opts.length) die(`unknown option in --impact mode: ${opts[0]}`);
   if (args.length < 1) die("--impact needs an id and a file or folder");
-  const [id, arg] = args;
-  if (!new RegExp(`^${IDCORE}$`).test(id)) die(`not an id: ${id}`);
+  const [idList, arg] = args;
+  const ids = [];
+  for (const id of idList.split(",")) {
+    if (!new RegExp(`^${IDCORE}$`).test(id)) die(`not an id: ${id}`);
+    if (!ids.includes(id)) ids.push(id);
+  }
   if (arg === undefined) die("--impact needs a file or folder after the id");
   if (args.length > 2) die(`unexpected extra argument: ${args[2]}`);
   const target = loadTarget(arg);
@@ -602,53 +606,57 @@ async function runImpact(args) {
   const defs = new Map(), dups = [];
   for (const e of els) if (e.id) { if (defs.has(e.id)) dups.push([e.id, defs.get(e.id), e]); else defs.set(e.id, e); }
   const place = (e) => target.where(e.n);
-  const seed = defs.get(id) || null;
-  const citers = (x) => els.filter((e) => e.cites.includes(x));
-  // Breadth first by depth; each element once, under the earliest parent at the smallest depth.
-  const parent = new Map(), depth = new Map(), kids = new Map();
-  const cycles = [], seenCycle = new Set();
-  let level = [{ e: seed, id }], d = 0;
-  const onPath = (e, p) => { for (let x = p; x; x = parent.get(x)) if (x === e) return true; return false; };
-  while (level.length) {
-    d++;
-    const next = [];
-    for (const { e: p, id: pid } of level) {
-      for (const c of citers(pid)) {
-        if (c === p) continue;
-        if (seed && (c === seed || onPath(c, p))) {
-          const key = `${c.id}>${pid}`;
-          if (!seenCycle.has(key)) { seenCycle.add(key); cycles.push(`WARN impact: cycle ${c.id} ... ${pid}`); }
-          continue;
-        }
-        if (depth.has(c)) continue;
-        depth.set(c, d); parent.set(c, p);
-        if (!kids.has(p)) kids.set(p, []);
-        kids.get(p).push(c);
-        if (c.id) next.push({ e: c, id: c.id });
-      }
-    }
-    next.sort((a, b) => els.indexOf(a.e) - els.indexOf(b.e));
-    level = next;
-  }
-  const out = [];
-  let code = 0;
-  if (seed) out.push(`impact ${id}: defined in ${seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
-  else { out.push(`WARN impact: ${id} is not defined in ${arg}`); code = 1; }
-  out.push(id);
   const cut = (s) => (s.length > 80 ? s.slice(0, 80) + "..." : s);
-  const walk = (p, dd) => {
-    for (const c of (kids.get(p) || []).sort((a, b) => els.indexOf(a) - els.indexOf(b))) {
-      out.push(`${"  ".repeat(dd)}d${dd}  ${place(c)}  ${c.label}  ${c.id || "-"}  ${cut(c.text)}`);
-      walk(c, dd + 1);
+  const blocks = [];
+  let code = 0;
+  for (const id of ids) {
+    const seed = defs.get(id) || null;
+    const citers = (x) => els.filter((e) => e.cites.includes(x));
+    // Breadth first by depth; each element once, under the earliest parent at the smallest depth.
+    const parent = new Map(), depth = new Map(), kids = new Map();
+    const cycles = [], seenCycle = new Set();
+    let level = [{ e: seed, id }], d = 0;
+    const onPath = (e, p) => { for (let x = p; x; x = parent.get(x)) if (x === e) return true; return false; };
+    while (level.length) {
+      d++;
+      const next = [];
+      for (const { e: p, id: pid } of level) {
+        for (const c of citers(pid)) {
+          if (c === p) continue;
+          if (seed && (c === seed || onPath(c, p))) {
+            const key = `${c.id}>${pid}`;
+            if (!seenCycle.has(key)) { seenCycle.add(key); cycles.push(`WARN impact: cycle ${c.id} ... ${pid}`); }
+            continue;
+          }
+          if (depth.has(c)) continue;
+          depth.set(c, d); parent.set(c, p);
+          if (!kids.has(p)) kids.set(p, []);
+          kids.get(p).push(c);
+          if (c.id) next.push({ e: c, id: c.id });
+        }
+      }
+      next.sort((a, b) => els.indexOf(a.e) - els.indexOf(b.e));
+      level = next;
     }
-  };
-  walk(seed, 1);
-  for (const [dupId, a, b] of dups) if (dupId === id) out.push(`WARN impact: ${id} is defined on lines ${a.n} and ${b.n}`);
-  out.push(...cycles);
-  const deepest = Math.max(0, ...depth.values());
-  out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
+    const out = [];
+    if (seed) out.push(`impact ${id}: defined in ${seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
+    else { out.push(`WARN impact: ${id} is not defined in ${arg}`); code = 1; }
+    out.push(id);
+    const walk = (p, dd) => {
+      for (const c of (kids.get(p) || []).sort((a, b) => els.indexOf(a) - els.indexOf(b))) {
+        out.push(`${"  ".repeat(dd)}d${dd}  ${place(c)}  ${c.label}  ${c.id || "-"}  ${cut(c.text)}`);
+        walk(c, dd + 1);
+      }
+    };
+    walk(seed, 1);
+    for (const [dupId, a, b] of dups) if (dupId === id) out.push(`WARN impact: ${id} is defined on lines ${a.n} and ${b.n}`);
+    out.push(...cycles);
+    const deepest = Math.max(0, ...depth.values());
+    out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
+    blocks.push(out.join("\n"));
+  }
   // Wait for the write to finish so a slow pipe reader still receives every byte, then exit before the rest of the script runs.
   process.exitCode = code;
-  await new Promise((done) => process.stdout.write(out.join("\n") + "\n", done));
+  await new Promise((done) => process.stdout.write(blocks.join("\n\n") + "\n", done));
   process.exit(code);
 }
