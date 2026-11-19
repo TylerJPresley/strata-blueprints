@@ -69,7 +69,7 @@ Load while interviewing for, writing or checking Layer 2.
   - **Shared things**
     - **How to write it:**
       - For: lists what several parts rely on in common, once, so no part redefines it.
-      - Write: one bullet per shared thing: what it is, the part that establishes it where one does, and the parts that rely on it.
+      - Write: one bullet per shared thing: what it is, the part that establishes it where one does, and the parts that rely on it. Number an item that a Detail cites, such as `5.1.`; a Detail then cites it as `structure-5.1`. Also list here a fact that two parts must keep identical, such as a line of text or an input one part's tests read and another part's tests set, naming the parts; each part's Detail cites the item and states what it keeps.
       - Example:
         - The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds to that one keeper.
         - A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same everywhere.

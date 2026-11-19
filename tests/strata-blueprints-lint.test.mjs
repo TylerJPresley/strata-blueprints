@@ -2158,3 +2158,27 @@ test("scenario-form: None., Not supplied:, a table row and a plain Layer 3 rule 
   assert.deepEqual(sf(L1 + "### 3. Value\n\n- The cat sleeps.\n\n" + L2), []);
   assert.deepEqual(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a cat, when fed, then it sleeps.\n\n") + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. A stop takes time.\n"), []);
 });
+
+test("shared things: a numbered item is cited from a Detail, and --impact reaches the citer", () => {
+  const md = [
+    "# T", "",
+    "## Layer 1: Vision", "", "Scope: all.", "",
+    "## Layer 2: Structure", "", "Scope: all.", "",
+    "### 1. Parts", "", "- Rota (part): plans.", "- Pay (part): pays.", "",
+    "### 5. Shared things", "", "- 5.1. The date format is ISO, kept by Rota and Pay.", "",
+    "## Layer 3: Detail", "", "Scope: one part.", "",
+    "### Rota (part)", "",
+    "#### 4. Rules", "",
+    "- 4.1. Dates are written in ISO. Reason: structure-5.1.", "",
+    "### Pay (part)", "",
+    "#### 4. Rules", "",
+    "- 4.1. Amounts are whole cents.", "",
+  ].join("\n");
+  const r = lintText(md);
+  assert.deepEqual(r.lines.filter((l) => /^WARN (id|id-ref):/.test(l)), []);
+  const imp = fxImp(md, "structure-5.1");
+  assert.equal(imp.code, 0);
+  assert.match(imp.lines.find((l) => /Dates are written in ISO/.test(l)), /^ {2}d1 {2}line \d+ {2}Layer 3 > Rota \(part\) > Rules {2}detail\.rota-4\.1 {2}4\.1\. Dates are written/);
+  const other = lintText(md.replace("Reason: structure-5.1.", "Reason: detail.pay-4.1."));
+  assert.equal(warns(other, "id-ref").length, 1);
+});
