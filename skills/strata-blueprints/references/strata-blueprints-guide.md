@@ -166,6 +166,7 @@ Every layer opens with a title and a one-line scope. A layer that uses symbols, 
 - Write costs, risks and open concerns as list bullets, never as a table.
 - A part's own stack may open with `Parent: <subject>, part <part>` before its `## Layer 1: Vision` heading, in its `sbp-vision.md` when split.
 - Write a missing fact as `Not supplied: <what is needed>`.
+- Write an unfinished-work marker word (`TODO`, `TBD`, `FIXME`) inside a code span or a fenced block; written in prose it draws a warning. A code span opens with a run of backticks and closes at the next run of the same length on the same line, so a span opened with two backticks may hold one. A fenced block opens at a row that starts with three or more backticks or tildes and closes at a row of the same mark at least as long. Close every fence; a block that is never closed draws a warning. To show a run of backticks inside a span, open the span with a longer run and put a space inside each end.
 
 **Diagrams (optional)**
 
