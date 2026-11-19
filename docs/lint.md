@@ -149,7 +149,6 @@ Silent when:
 - The element is inside a table row
 - The element is `None.`, `Not supplied:` or starts with `Title:`
 - The item is a Layer 3 rule, limit, refusal, or other Layer 3 item without `Realizes`
-- The item is a Layer 1 or Layer 2 item without an id or `Realizes` sentence
 
 
 #### Check: `reasons`
@@ -187,12 +186,12 @@ Silent when:
 
 Fires when a Limit item in a Layer 3 entry cites a quality by name (in the form `(Layer 1, <X>)`) that is not named in Layer 1 Qualities and constraints.
 
-A quality's name is the text inside the first `**...**` at the start of an item of that topic, with a trailing `:` removed and trimmed. The named quality, differently cased names, and the twelve Layer 1 topic names are all allowed, compared without case and with runs of white space collapsed. The citation reads as the last `(Layer 1, <X>)` in the element text, with X trimmed.
+A quality's name is read from each item of Layer 1 Qualities and constraints, after the item's own number and leading stars are taken off. The name is the text of the first `**...**` pair anywhere in the item, with a trailing `:` removed. When at least one item holds a bold pair, a plain name counts too: the text before the first `:` when that colon is followed by white space or ends the item and that text holds no `*`. A number with no space after it, a single star, and a colon glued to the next word name nothing. The text is read as written, so a bold name inside a code span names a quality. A Limit is read by its last `(Layer 1, <X>)`, X holding no parenthesis and trimmed; a citation with a parenthesis inside X is not read. X may be a quality name, a Layer 1 topic name or a Layer 1 id, or begin with `Not supplied:`; names are compared without case, with runs of white space collapsed.
 
 Silent when:
 - The element has no citation, or its citation reads `Not supplied:` after the opening paren
 - The cited item is a Layer 1 id (format `vision-N.M`)
-- Layer 1 has no Qualities and constraints topic, or no item with a bold name
+- Layer 1 has no Qualities and constraints topic, or no item with a bold name (the check then prints nothing, not even an INFO line)
 - The item is a table row
 
 #### Check: `realizes-text`
@@ -202,6 +201,7 @@ Fires when a Layer 2 or Layer 3 element holds a `Realizes <id>` sentence (the fi
 The Given-and-when text is the element text after its number and after the `Realizes <id>.` sentence, up to the first `, then `, compared word for word with the scenario's text after its number, also up to the first `, then `. White space is collapsed for comparison.
 
 Silent when:
+- The `Realizes <id>` sentence is inside a code span (a span is not read, as in `scenario-form`)
 - Either text does not start with `Given` or has no `, then ` (`scenario-form` speaks)
 - The id is undefined (`id-ref` speaks)
 - The item is a table row

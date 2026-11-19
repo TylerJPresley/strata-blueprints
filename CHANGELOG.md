@@ -8,8 +8,8 @@ Fixes from a test run in which the standard was used to write a blueprint of thi
 
 - Lint: `ring` skips code spans.
 - Lint: `--impact` takes several ids joined by commas, each printing its block in the order given, with one empty line between blocks. Exit codes: 0 when every id is defined; 1 when any id is not defined; 2 for usage error.
-- Lint: new advisory check `limit-quality` warns when a Limit cites a quality by name that Layer 1 Qualities and constraints does not name; silent when the cited item is a Layer 1 id, when `Not supplied:` is read, or when Layer 1 names no qualities in bold.
-- Lint: new advisory check `realizes-text` warns when a Layer 2 or Layer 3 element rewords the Given and when text of the Layer 1 scenario it realizes.
+- Lint: new advisory check `limit-quality` warns when a Limit cites a quality by name that Layer 1 Qualities and constraints does not name; silent when the cited item is a Layer 1 id, when `Not supplied:` is read, or when Layer 1 names no qualities in bold. A quality's name is the first bold pair in an item, or a plain leading `Name:` when another item of the topic holds a bold name.
+- Lint: new advisory check `realizes-text` warns when a Layer 2 or Layer 3 element rewords the Given and when text of the Layer 1 scenario it realizes; a `Realizes` sentence inside a code span is not read.
 - Lint: `scenario-form` also warns when a Value item, a path or a `Realizes` item does not start with `Given`.
 - Templates: each layer cut opens as the file it becomes, with the title row, the metadata lines, and every heading at the full template's level.
 - Core guide and guides: a Detail cites a numbered Shared things item; a project's tests are a source and a subject's tests are run against the build; every fenced block carries a `Title:` line; Layer 1 may name what the subject does.
