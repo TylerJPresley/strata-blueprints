@@ -17,13 +17,16 @@ function markdownFiles(dir, out = []) {
   return out;
 }
 
+// A code span: a run of N backticks to the next run of N, on one line (the lint's rule).
+const CODE_SPAN = /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
+
 // Text outside fenced code blocks, with inline code spans removed.
 function prose(text) {
   const keep = [];
   let fence = false;
   for (const line of text.split('\n')) {
     if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
-    if (!fence) keep.push(line.replace(/`[^`]*`/g, ''));
+    if (!fence) keep.push(line.replace(CODE_SPAN, ''));
   }
   return keep;
 }

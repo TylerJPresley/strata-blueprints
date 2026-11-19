@@ -14,6 +14,8 @@ const PUBLISHED_PREFIX = "<!-- strata-blueprints: condensed, published";
 export const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 export const NAMES = ["Vision", "Structure", "Detail"];
+// A code span: a run of N backticks to the next run of N, on one line. The same line as in the lint.
+const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
 export const TOPICS = {
   1: ["Need", "Target audience", "Value", "Focus", "Success measures", "Qualities and constraints", "Vocabulary", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
@@ -209,7 +211,7 @@ export function publishFiles(input, opts = {}) {
   const problems = [];
   for (const p of parsed) p.lines.forEach((line, i) => {
     if (p.skip.has(i) || p.drop.has(i) || p.mask[i]) return;
-    for (const m of line.replace(/`[^`]*`/g, " ").matchAll(TOKEN)) {
+    for (const m of clean(line).matchAll(TOKEN)) {
       const id = m[1].match(/^(.+)-(\d+)\.\d+$/);
       const d = gone.get(`${id[1]}-${id[2]}`);
       if (d) problems.push(`${p.f.name} line ${i + 1}: cites ${m[1]}, which is in topic ${d.no}. ${d.name} of ${d.doc}, left out of the published document (${d.kind === "none" ? "None." : "Not supplied:"})`);
@@ -289,7 +291,7 @@ export function publishFiles(input, opts = {}) {
   let questions = 0;
   out.forEach((line, i) => {
     if (om[i] || /^## /.test(line.trim())) return;
-    const c = (line.replace(/`[^`]*`/g, "").match(/Not supplied:/g) || []).length;
+    const c = (clean(line).match(/Not supplied:/g) || []).length;
     if (!c) return;
     questions += c;
     open.push({ line: i + 1, text: cut(line.trim()) });

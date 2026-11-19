@@ -160,7 +160,7 @@ for (let i = 0; i < rows.length; i++) {
     if (+m[1] > layer && !/^## /.test(t)) warn("ring", `Layer ${layer} refers outward to Layer ${m[1]}`, n);
   }
 
-  notSupplied += (line.replace(/`[^`]*`/g, "").match(/Not supplied:/g) || []).length;
+  notSupplied += (clean(line).match(/Not supplied:/g) || []).length;
 }
 
 if (!seen.includes(1)) warn("layer-heading", "missing '## Layer 1: Vision'", 1);

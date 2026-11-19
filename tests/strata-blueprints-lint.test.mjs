@@ -1866,3 +1866,17 @@ test("id-ref: a double-backtick span hides an id", () => {
   assert.equal(warns(lintText(L1 + need + "- 1.1. See `vision-9.9`.\n\n" + L2), "id-ref").length, 0);
   assert.equal(warns(lintText(L1 + need + "- 1.1. See vision-9.9.\n\n" + L2), "id-ref").length, 1);
 });
+
+// --- One span rule: the Not supplied: count reads a code span the way clean does. ---
+const notSupCount = (body) => +lintText(L1 + body + L2).out.match(/^INFO not-supplied: (\d+)$/m)[1];
+
+test("not-supplied: a double-backtick span is not counted", () => {
+  assert.equal(notSupCount("Not supplied: a.\n"), 1);
+  assert.equal(notSupCount("Write ``Not supplied: x`` in the text.\n"), 0);
+  assert.equal(notSupCount("Write ``Not`x supplied: x`` and Not supplied: y.\n"), 1);
+});
+
+test("not-supplied: a single-backtick span is still not counted and a stray backtick does not hide the count", () => {
+  assert.equal(notSupCount("Write `Not supplied: x` here.\n"), 0);
+  assert.equal(notSupCount("A ` stray and Not supplied: x.\n"), 1);
+});

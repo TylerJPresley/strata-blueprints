@@ -56,3 +56,10 @@ test("links: _internal, .kiro and node_modules are excluded; code is not scanned
   }, t);
   assert.deepEqual(linkProblems(root), []);
 });
+
+test("links: a link inside a double-backtick span is ignored", (t) => {
+  const inSpan = linkRoot({ "README.md": "# R\n\nWrite ``[a](missing.md)`` and ``x`[b](gone.md)`` and `[c](none.md)` here.\n" }, t);
+  assert.deepEqual(linkProblems(inSpan), []);
+  const inProse = linkRoot({ "README.md": "# R\n\nWrite [a](missing.md) here.\n" }, t);
+  assert.equal(linkProblems(inProse).length, 1);
+});

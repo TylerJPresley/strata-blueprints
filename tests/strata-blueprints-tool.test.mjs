@@ -280,3 +280,10 @@ test("tool: condensed examples lint --strict clean and keep the same INFO not-su
     assert.equal(info(c), info(runLint(src)), name);
   });
 });
+
+test("span rule: the lint and the tool carry the same clean line", () => {
+  const line = (f) => get(f).split("\n").filter((l) => l.startsWith("const clean = "));
+  const a = line(lint), b = line(tool);
+  assert.equal(a.length, 1);
+  assert.deepEqual(b, a);
+});

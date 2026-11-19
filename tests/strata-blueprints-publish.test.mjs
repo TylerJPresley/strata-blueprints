@@ -610,3 +610,17 @@ test("publish and condense: Status, Version and Parent in the top matter of ever
     assert.match(l.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
   });
 });
+
+test("publish: a double-backtick span around an id is not a citation", () => {
+  const src = (need) => doc({ Need: need, "Success measures": "None." });
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See ``vision-5.1`` for the measure.") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See `vision-5.1` for the measure.") }));
+  assert.throws(() => pub({ "club.md": src("- 1.1. See vision-5.1 for the measure.") }), /cites vision-5\.1, which is in topic 5/);
+});
+
+test("publish: Not supplied inside a double-backtick span is not an open question", () => {
+  const q = (need) => pub({ "club.md": doc({ Need: need }) }).questions;
+  assert.equal(q("- 1.1. Write ``Not supplied: x`` in the text."), 0);
+  assert.equal(q("- 1.1. Write `Not supplied: x` in the text."), 0);
+  assert.equal(q("- 1.1. Not supplied: x."), 1);
+});
