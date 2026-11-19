@@ -1744,7 +1744,13 @@ test("metadata: a Status line below the first ## heading is still read as an ite
 // --- Large output on a pipe: a slow reader still receives every byte (no truncation at the pipe buffer). ---
 async function slowRead(args) {
   const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "inherit"] });
-  const exited = new Promise((resolve) => child.on("close", resolve));
+  // A child that fails to start or never ends is killed and fails the test (the bound is a test mechanism).
+  const exited = new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", resolve);
+    setTimeout(() => { child.kill("SIGKILL"); reject(new Error("pipe child did not finish within 60 s")); }, 60000).unref();
+  });
+  exited.catch(() => {});
   let bytes = 0, tail = "";
   for await (const d of child.stdout) {
     bytes += d.length; tail = (tail + d.toString()).slice(-200);
@@ -1784,8 +1790,17 @@ async function earlyClose(args) {
   const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "pipe"] });
   let err = "";
   child.stderr.on("data", (d) => { err += d; });
-  const exited = new Promise((resolve) => child.on("close", resolve));
-  await new Promise((resolve) => child.stdout.once("data", resolve));
+  // A child that exits or fails before it writes, or never writes, fails the test (the bound is a test mechanism).
+  const exited = new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", resolve);
+    setTimeout(() => { child.kill("SIGKILL"); reject(new Error("pipe child did not finish within 60 s")); }, 60000).unref();
+  });
+  exited.catch(() => {});
+  await new Promise((resolve, reject) => {
+    child.stdout.once("data", resolve);
+    exited.then(() => reject(new Error(`pipe child ended before it wrote output: ${err.slice(0, 200)}`)), reject);
+  });
   child.stdout.destroy();
   return { code: await exited, err };
 }
