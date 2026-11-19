@@ -309,6 +309,27 @@ for (const e of live) {
   }
 }
 
+// realizes-text: an item that says Realizes <id> keeps the Given and when text of that Layer 1 Value item word for word.
+{
+  const gw = (s) => {
+    const t = s.replace(/\s+/g, " ").trim();
+    const i = t.indexOf(", then ");
+    return t.startsWith("Given") && i >= 0 ? t.slice(0, i) : null;
+  };
+  const RZ = new RegExp(String.raw`(?<![\w.-])Realizes\s+(${IDCORE})(?!\w|-|\.\d)[.:)]*\s*`);
+  for (const e of live) {
+    if (e.layer < 2 || e.table) continue;
+    const m = e.text.match(RZ);
+    if (!m) continue;
+    const v = defined.get(m[1]);
+    if (!v || v.layer !== 1 || !v.own || v.own.topic !== 3) continue;
+    const mine = gw(e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(RZ, ""));
+    const theirs = gw(v.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), ""));
+    if (mine === null || theirs === null || mine === theirs) continue;
+    warn("realizes-text", `does not keep the Given and when text of ${m[1]} word for word`, e.n);
+  }
+}
+
 // --- costs and risks topics ----------------------------------------------
 const AMOUNT = /^(?:[A-Za-z]+ )*[$€£¥]?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s+[A-Za-z][^\n]*$/;
 const validAmount = (s) => /^Not supplied:\s*\S/.test(s) || AMOUNT.test(s);

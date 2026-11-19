@@ -2101,3 +2101,34 @@ test("limit-quality: a Limit that cites a Layer 1 id draws no limit-quality warn
   assert.equal(warns(lintText(lqDoc("vision-9.9")), "id-ref").length, 1);
   assert.equal(lq(lqDoc("Speedy")).length, 1);
 });
+
+// --- realizes-text: a Realizes item keeps the Given and when text of its scenario ---------------------
+const RT_SCEN = "Given a rider on a hill, when braking hard, then the bike stops.";
+const rtDoc = (path, scen = RT_SCEN) => L1 + `- 3.1. ${scen}\n\n` + L2 + `- 6.1. Realizes vision-3.1. ${path}\n`;
+const rt = (md) => warns(lintText(md), "realizes-text");
+
+test("realizes-text: a path that rewords the Given or the when of its scenario warns once and names the scenario", () => {
+  const given = rt(rtDoc("Given a cyclist on a hill, when braking hard, then the bike stops."));
+  assert.equal(given.length, 1);
+  assert.match(given[0], /^WARN realizes-text: does not keep the Given and when text of vision-3\.1 word for word \(line \d+\)$/);
+  assert.match(given[0], new RegExp(`\\(line ${fxLine(rtDoc("Given a cyclist"), "Realizes vision-3.1")}\\)$`));
+  assert.equal(rt(rtDoc("Given a rider on a hill, when braking, then the bike stops.")).length, 1);
+  assert.equal(rt(rtDoc("Given a rider on a hill, when braking hard, then the bike stops.").replace("Given", "Given that")).length, 1);
+  // a Layer 3 rule is read the same way
+  const l3 = rtDoc(RT_SCEN) + "\n" + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. Realizes vision-3.1. Given a cyclist, when braking, then it stops.\n";
+  assert.equal(rt(l3).length, 1);
+});
+
+test("realizes-text: the same words, a wrapped line, an undefined id and an item with no Given draw none", () => {
+  // control: the same fixtures warn once when the path is reworded
+  assert.equal(rt(rtDoc("Given a cyclist, when braking, then stops.")).length, 1);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill, when braking hard, then the bike stops quickly.")), []);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill,\n  when braking hard, then the bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.").replace("Realizes vision-3.1", "Realizes vision-3.9")), []);
+  assert.deepEqual(rt(rtDoc("The bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill, when braking hard.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.", "The bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.", "Given a cat it sleeps.")), []);
+  // a Realizes item that cites a Layer 2 id, not a Value item, is not compared
+  assert.deepEqual(rt(rtDoc(RT_SCEN) + "- 6.2. Realizes structure-6.1. Given a cyclist, when braking, then it stops.\n"), []);
+});
