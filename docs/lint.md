@@ -190,7 +190,7 @@ A quality's name is read from each item of Layer 1 Qualities and constraints, af
 
 Silent when:
 - The element has no citation, or its citation reads `Not supplied:` after the opening paren
-- The cited item is a Layer 1 id (format `vision-N.M`)
+- The cited item is a Layer 1 id (format `vision-N.M`, in lower case, N and M plain numbers from 1; `Vision-3.6`, `vision-03.6`, `vision-3.0` and `vision-3.6.1` warn)
 - Layer 1 has no Qualities and constraints topic, or no item with a bold name (the check then prints nothing, not even an INFO line)
 - The item is a table row
 
