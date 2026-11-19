@@ -192,7 +192,8 @@ for (const e of els) {
   e.topicNo = e.layer ? topicNo(e.layer, e.topic) : null;
 }
 // scenario-form: Given, when, then is required where tracing needs it: a Layer 1 Value scenario, a Layer 2 Scenario path
-// and any item that says Realizes <id>. It reads after the item's own id and after a Realizes sentence. Other items are not checked.
+// and any item that says Realizes <id>. It reads after the item's own id and after a Realizes sentence. A numbered item, a Realizes item or an item
+// that starts with Given must read in full; None., Not supplied:, Title: and a table row are exempt, and so is an unnumbered item that does not start with Given.
 const REALIZES = new RegExp(String.raw`(?<![\w.-])Realizes\s+${IDCORE}(?!\w|-|\.\d)`);
 const traced = (e) => (e.layer === 1 && (e.topic === "Value" || (e.own && e.own.topic === 3)))
   || (e.layer === 2 && (e.topic === "Scenario paths" || (e.own && e.own.topic === 6)))
@@ -200,7 +201,9 @@ const traced = (e) => (e.layer === 1 && (e.topic === "Value" || (e.own && e.own.
 for (const e of els) {
   if (!traced(e)) continue;
   const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
-  if (scen.startsWith("Given") && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
+  const numbered = e.own || new RegExp(String.raw`^\**[1-9]\d*\.[1-9]\d*[.:)]*\**\s`).test(e.text);
+  if (e.table || /^(None\.|Not supplied:|Title:)/.test(scen)) continue;
+  if ((numbered || REALIZES.test(e.body) || scen.startsWith("Given")) && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
 }
 const live = els.filter((e) => e.layer !== null);
 const defined = new Map();             // id -> element, any own id in layers 1 to 3

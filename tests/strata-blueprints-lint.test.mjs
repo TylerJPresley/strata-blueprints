@@ -1326,7 +1326,7 @@ test("scenario-trace: a Realizes sentence is the trace and the line still reads 
   const form = (body) => warns(lintText(l1 + l2(body + path2)), "scenario-form");
   assert.equal(form(`- 6.1. Realizes vision-3.1. Given a it stops.\n`).length, 1);
   assert.deepEqual(form(path1), []);
-  assert.deepEqual(form("- 6.1. A path that realizes nothing, with no Given.\n"), []);
+  assert.deepEqual(form("- A path that realizes nothing, with no Given.\n"), []);
   assert.equal(form("- 6.1. Given a it stops.\n").length, 1);
   // A line that realizes no scenario has its own id and no Realizes: it needs nothing more.
   assert.deepEqual(iw(l1 + l2(path1 + path2 + `- 6.3. ${GWT}\n`)), []);
@@ -2131,4 +2131,30 @@ test("realizes-text: the same words, a wrapped line, an undefined id and an item
   assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.", "Given a cat it sleeps.")), []);
   // a Realizes item that cites a Layer 2 id, not a Value item, is not compared
   assert.deepEqual(rt(rtDoc(RT_SCEN) + "- 6.2. Realizes structure-6.1. Given a cyclist, when braking, then it stops.\n"), []);
+});
+
+// --- scenario-form: Given is asked for where tracing needs it ----------------------------------------
+const sf = (md) => warns(lintText(md), "scenario-form");
+const sfL2 = (body) => L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, then it sleeps.\n\n" + L2 + body;
+
+test("scenario-form: a Value item, a path and a Realizes item that do not start with Given each warn once", () => {
+  const value = sf(L1 + "### 3. Value\n\n- 3.1. The cat sleeps.\n\n" + L2);
+  assert.equal(value.length, 1);
+  assert.match(value[0], /^WARN scenario-form: must read 'Given \.\.\., when \.\.\., then \.\.\.' \(line \d+\)$/);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. The cat sleeps.\n")).length, 1);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. The cat sleeps.\n")).length, 1);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a cat, when fed, then it sleeps.\n\n") + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. Realizes vision-3.1. The cat sleeps.\n").length, 1);
+  assert.equal(sf(L1 + "### 3. Value\n\n- vision-3.1. The cat sleeps.\n\n" + L2).length, 1);
+});
+
+test("scenario-form: None., Not supplied:, a table row and a plain Layer 3 rule draw none", () => {
+  // control: the same Value item warns when it is a plain sentence
+  assert.equal(sf(L1 + "### 3. Value\n\n- 3.1. The cat sleeps.\n\n" + L2).length, 1);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. None.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\nNone.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. Not supplied: the scenarios.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. Title: a cat\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n| Who | What |\n|---|---|\n| cat | sleeps |\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- The cat sleeps.\n\n" + L2), []);
+  assert.deepEqual(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a cat, when fed, then it sleeps.\n\n") + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. A stop takes time.\n"), []);
 });
