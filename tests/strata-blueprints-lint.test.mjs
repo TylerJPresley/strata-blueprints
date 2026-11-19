@@ -2102,6 +2102,30 @@ test("limit-quality: a Limit that cites a Layer 1 id draws no limit-quality warn
   assert.equal(lq(lqDoc("Speedy")).length, 1);
 });
 
+// limit-quality reads a quality name in every form the Layer 1 guide allows
+const lqRaw = (items, cite) => L1 + item("###", 6, "Qualities and constraints") + items.map((i) => `- ${i}\n`).join("") + "\n" + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
+
+test("limit-quality: a bold name anywhere in the item counts, and an absent name still warns", () => {
+  const q = ["**Durable:** lasts.", "The **Prompt** quality: quick."];
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
+test("limit-quality: a plain leading Name: counts when other qualities are bold, and an absent name still warns", () => {
+  const q = ["**Prompt:** quick.", "Durable: lasts."];
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
+test("limit-quality: either form counts after a leading item number, and an absent name still warns", () => {
+  const q = ["6.1. **Prompt:** quick.", "6.2. Durable: lasts."];
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
 // --- realizes-text: a Realizes item keeps the Given and when text of its scenario ---------------------
 const RT_SCEN = "Given a rider on a hill, when braking hard, then the bike stops.";
 const rtDoc = (path, scen = RT_SCEN) => L1 + `- 3.1. ${scen}\n\n` + L2 + `- 6.1. Realizes vision-3.1. ${path}\n`;

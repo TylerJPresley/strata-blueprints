@@ -294,11 +294,16 @@ for (const e of live) {
 {
   const norm = (x) => x.replace(/\s+/g, " ").trim().toLowerCase();
   const names = new Set();
+  const plain = new Set();
   for (const e of live) {
     if (e.layer !== 1 || e.topic !== "Qualities and constraints" || e.table) continue;
-    const m = e.text.replace(/^\**(?:[1-9]\d*\.[1-9]\d*[.:)]*\s+)?/, "**").match(/^\*\*(.+?)\*\*/);
-    if (m) names.add(norm(m[1].replace(/:\s*$/, "")));
+    const t = e.text.replace(/^\**(?:[1-9]\d*\.[1-9]\d*[.:)]*\s+)?/, (m) => (m.startsWith("**") ? "**" : ""));
+    const b = t.match(/\*\*(.+?)\*\*/);
+    if (b) names.add(norm(b[1].replace(/:\s*$/, "")));
+    const p = t.match(/^([^*:]+):(?:\s|$)/);
+    if (p) plain.add(norm(p[1]));
   }
+  if (names.size) for (const x of plain) names.add(x);
   if (names.size) {
     for (const t of TOPICS[1]) names.add(norm(t));
     for (const e of live) {
