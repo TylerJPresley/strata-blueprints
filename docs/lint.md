@@ -145,7 +145,7 @@ Fires when an element text (after any id number and any `Realizes <id>.` sentenc
 - Any item anywhere that contains a `Realizes <id>` sentence
 
 Silent when:
-- The element does not begin with `Given`
+- The item has no number, no `Realizes` sentence and does not start with `Given`
 - The element is inside a table row
 - The element is `None.`, `Not supplied:` or starts with `Title:`
 - The item is a Layer 3 rule, limit, refusal, or other Layer 3 item without `Realizes`
@@ -191,6 +191,7 @@ A quality's name is the text inside the first `**...**` at the start of an item 
 
 Silent when:
 - The element has no citation, or its citation reads `Not supplied:` after the opening paren
+- The cited item is a Layer 1 id (format `vision-N.M`)
 - Layer 1 has no Qualities and constraints topic, or no item with a bold name
 - The item is a table row
 
