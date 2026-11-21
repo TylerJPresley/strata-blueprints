@@ -4,7 +4,7 @@ description: "Describe any subject as three zoom layers (Vision, Structure, Deta
 license: "MIT"
 compatibility: "Plain Markdown; only the scripts in scripts/ need a Node.js LTS"
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Strata Blueprints (three zoom layers for any subject)
@@ -51,13 +51,13 @@ The builder is an agent working with a person. The blueprint is the reference fo
 1. Resolve where the blueprints live (core guide, Where the blueprints live). To build one part, read only the core guide, the Layer 3 guide file, that part's Detail, and the Layer 1 and Layer 2 entries it cites. In a stack of separate files, that part's Detail is the file Layer 2 Standing names. Layer 1 gives intent and success measures, Layer 2 the parts and seams, Layer 3 the part's Rules, Limits and Construction. Assumptions are built on as given.
 2. Find every `Not supplied:` (search the text for it). Group them by part and ask the person in one round before building the part each one blocks. Build the unblocked parts meanwhile. Never fill a `Not supplied:` with a guess, a default or an example value.
 3. Build part by part, in the order the Layer 2 seams allow. Each part meets its Responsibility, Rules and Limits and keeps its seams as named. Use the means Construction names. Where Construction is silent on a means and no Rule or Limit depends on the choice, choose the plainest means and tell the person; where one does depend on it, ask.
-4. Check the result against the blueprint: each Layer 1 value scenario along its Layer 2 path, each Layer 3 rule and limit, each success measure. Use a test or a command where the subject allows one; for a document, a read-through against each rule. Report each by id.
+4. Check the result against the blueprint: each Layer 1 value scenario along its Layer 2 path, each Layer 3 rule and limit, each success measure. Use a test or a command where the subject allows one; for a document, a read-through against each rule. Report each by id. When the subject has tests of its own, run them against the build and report each failure by the id of the rule it breaks.
 5. When the blueprint contradicts itself, or the work shows an assumption is wrong (`If wrong:` says what moves), stop that part and tell the person. The blueprint changes only with the person's yes, and then gets the impact check (Limits).
 6. Report: what was built, what was checked and how, `Not supplied:` items still open, and the choices made in step 3. When the person answers a `Not supplied:`, offer to write the answer into the blueprint so it stays the source; the written answer gets the impact check (Limits).
 
 ## Limits
 - An agent works with a person: it asks, confirms and reports. It never settles an open question, or fills a `Not supplied:`, on its own.
-- After any change to a blueprint, run the impact check (`node scripts/strata-blueprints-lint.mjs --impact <id> <blueprint-or-folder>` for each id changed) and settle every element it lists before moving on.
+- After any change to a blueprint, run the impact check (`node scripts/strata-blueprints-lint.mjs --impact <id>[,<id>...] <blueprint-or-folder>`, naming every id changed) and settle every element it lists before moving on.
 - Never record an answer for a lower layer that changes an upper layer. Move it to the upper layer first, have the owner confirm it there, then cascade it down.
 - Change a blueprint under review only when the owner asks.
 

@@ -2,7 +2,7 @@
 // Tests for strata-blueprints-lint.mjs. Run: node --test tests/strata-blueprints-lint.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs"; import os from "node:os"; import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -70,7 +70,7 @@ test("ring: outward reference warns, inward does not; fences ignored", () => {
 });
 
 test("scenario-form", () => {
-  assert.equal(warns(lintText(L1 + "- Given a cat it sleeps.\n" + L2), "scenario-form").length, 1);
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat it sleeps.\n\n" + L2), "scenario-form").length, 1);
   assert.equal(warns(lintText(L1 + "- Given a cat, when it is fed, then it sleeps.\n" + L2), "scenario-form").length, 0);
   assert.equal(warns(lintText(L1 + "```\nGiven bad\n```\n" + L2), "scenario-form").length, 0);
 });
@@ -700,7 +700,7 @@ test("missing-topic: Costs, Risks and Open Concerns must appear in every written
 const fxVision = `# Club
 
 Version: 0.1.0
-Status: draft
+Status: Draft
 
 ## Layer 1: Vision
 
@@ -769,7 +769,7 @@ Plans the shifts.
 `;
 // The same stack with every topic written (each missing one reads None.), so strict runs stay clean under the topics check.
 const fxFull = {
-  "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
+  "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: Draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
     fxT("###", T1, { Value: "- 3.1. Given a member, when they join, then they are listed.", Decisions: "- 12.1. Keep lists. Reason: simple." }),
   "sbp-structure.md": "# Club\n\n## Layer 2: Structure\n\nScope: the whole club.\n\n" +
     fxT("###", T2, { Parts: "- Ledger (part): holds the records.\n- Rota (part): plans the shifts.", Standing: "- Ledger: sbp-detail-ledger.md\n- Rota: sbp-detail-rota.md", "Scenario paths": "- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record." }) +
@@ -1326,7 +1326,7 @@ test("scenario-trace: a Realizes sentence is the trace and the line still reads 
   const form = (body) => warns(lintText(l1 + l2(body + path2)), "scenario-form");
   assert.equal(form(`- 6.1. Realizes vision-3.1. Given a it stops.\n`).length, 1);
   assert.deepEqual(form(path1), []);
-  assert.deepEqual(form("- 6.1. A path that realizes nothing, with no Given.\n"), []);
+  assert.deepEqual(form("- A path that realizes nothing, with no Given.\n"), []);
   assert.equal(form("- 6.1. Given a it stops.\n").length, 1);
   // A line that realizes no scenario has its own id and no Realizes: it needs nothing more.
   assert.deepEqual(iw(l1 + l2(path1 + path2 + `- 6.3. ${GWT}\n`)), []);
@@ -1575,4 +1575,686 @@ test("condensed: folder --impact reaches the same elements as the full folder", 
   assert.equal(full.code, 0);
   assert.ok(full.lines.length >= 2);
   assert.deepEqual(strip(cond), strip(full));
+});
+
+// scenario-trace follows Rule 4: a Layer 3 rule is asked for only where a scenario's path runs through a part that has an entry.
+const stParts = L2 + item("###", 5, "Parts") + "- Brakes (part): stops the bike.\n- Frame (part): carries the rider.\n\n";
+const stL1 = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.2. Given d, when e, then f.\n\n`;
+const stPaths = (p1, p2) => item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${p1}\n- 6.2. Realizes vision-3.2. ${p2}\n\n`;
+const stBrakes = (rules) => L3 + ENTRY("Brakes") + item("####", 4, "Rules") + rules;
+const stTrace = (md) => warns(lintText(md), "scenario-trace");
+
+test("scenario-trace (entries): a path through a part with no entry needs no Layer 3 rule", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes stop.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. Realizes vision-3.1. ${GWT}\n`);
+  assert.deepEqual(stTrace(md), []);
+});
+
+test("scenario-trace (entries): a path through a part with an entry and no rule warns", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes stop.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  const r = stTrace(md);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): one part with an entry among several named still warns", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Brakes and Frame act.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  const r = stTrace(md);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): a path that names no Layer 2 part keeps the old requirement", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then it stops.", "Given d, when e, then it moves.") +
+    stBrakes(`- 4.1. ${GWT}\n`);
+  assert.equal(stTrace(md).length, 2);
+  const one = stL1 + stParts + stPaths("Given a, when b, then it stops.", "Given d, when e, then Frame carries.") +
+    stBrakes(`- 4.1. Realizes vision-3.2. Given d, when e, then f.\n`);
+  const r = stTrace(one);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("scenario-trace (entries): a Layer 3 heading with no entry needs no rule", () => {
+  const md = stL1 + stParts + stPaths("Given a, when b, then Frame carries.", "Given d, when e, then Frame holds.") + L3;
+  assert.deepEqual(stTrace(md), []);
+});
+
+test("scenario-trace (entries): a folder follows the same rule", () => {
+  const over = (path) => ({
+    ...fxFull,
+    "sbp-detail-rota.md": null,
+    "sbp-structure.md": fxFull["sbp-structure.md"].replace(/- Rota: sbp-detail-rota\.md\n?/, "").replace("then Ledger adds a record", path),
+    "sbp-detail-ledger.md": fxFull["sbp-detail-ledger.md"].replace("Realizes vision-3.1. ", ""),
+  });
+  assert.deepEqual(fxWarns(over("then Rota adds a record"), "scenario-trace"), []);
+  const r = fxWarns(over("then Ledger adds a record"), "scenario-trace");
+  assert.equal(r.length, 1);
+  assert.match(r[0], /vision-3\.1 has no rule in Layer 3/);
+});
+
+test("folder: the error for a folder with no sbp- files says to pass the file", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-"));
+  try {
+    fs.writeFileSync(path.join(dir, "notes.md"), "# a single document\n");
+    const r = spawnSync(process.execPath, [script, dir], { encoding: "utf8" });
+    assert.equal(r.status, 2);
+    assert.equal(r.stdout, "");
+    assert.equal(r.stderr.trim().split("\n").length, 1, r.stderr);
+    assert.match(r.stderr.trim(), /; to lint one document, pass the file$/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// --- owner decisions: trace context (P3), status (P5), scenario-form scope (P7) ----------------
+
+test("scenario-trace: the missing-Layer-3-rule warning names the part and the path id", () => {
+  const md = L1 + "### 3. Value\n\n- 3.1. Given a rider, when braking, then stops.\n\n" +
+    L2 + "### 1. Parts\n\n- Brakes (part): stops the bike.\n\n### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a rider, when braking, then Brakes stops the bike.\n\n" +
+    L3 + "### Brakes (part)\n\n#### 4. Rules\n\n- A rule with no id.\n";
+  const r = warns(lintText(md), "scenario-trace");
+  assert.equal(r.length, 1);
+  assert.match(r[0], /^WARN scenario-trace: vision-3\.1 has no rule in Layer 3/);
+  assert.match(r[0], /Brakes/);
+  assert.match(r[0], /structure-6\.1/);
+});
+
+test("status: a value other than Draft, Review or Approved warns with its line", () => {
+  const bad = warns(lintText("# T\n\nStatus: draft\n\n" + L1 + L2), "status");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /\(line 3\)$/);
+  assert.equal(warns(lintText("# T\n\nStatus: Final\n\n" + L1 + L2), "status").length, 1);
+  for (const v of ["Draft", "Review", "Approved"]) assert.equal(warns(lintText(`# T\n\nStatus: ${v}\n\n` + L1 + L2), "status").length, 0);
+  const bp = warns(lintText("# T\n\nStatus: Draft\nBlueprint status: done\n\n" + L1 + L2), "status");
+  assert.equal(bp.length, 1);
+  assert.match(bp[0], /\(line 4\)$/);
+  assert.equal(warns(lintText("# T\n\nStatus: Draft\nBlueprint status: Review\n\n" + L1 + L2), "status").length, 0);
+});
+
+test("status: a single document reports one INFO status line before INFO not-supplied", () => {
+  const r = lintText("# T\n\nStatus: Review\n\n" + L1 + L2);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: Review"]);
+  assert.equal(r.lines.at(-3), "INFO status: Review");
+  assert.match(r.lines.at(-2), /^INFO not-supplied: 0$/);
+});
+
+test("status: no INFO status line when no document has a Status line", () => {
+  assert.equal(lintText(L1 + L2).lines.filter((l) => l.startsWith("INFO status")).length, 0);
+});
+
+test("status: a folder reports blueprint, vision, structure and each detail, with - for none", () => {
+  const files = {
+    ...fxFull,
+    "sbp-vision.md": fxFull["sbp-vision.md"].replace("Status: Draft\n", "Status: Review\nBlueprint status: Draft\n"),
+    "sbp-detail-ledger.md": fxFull["sbp-detail-ledger.md"].replace("# Club\n\n", "# Club\n\nStatus: Approved\n\n"),
+  };
+  const r = fxWith(files, (d) => run(d, "--strict"));
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: blueprint Draft; vision Review; structure -; detail.ledger Approved; detail.rota -"]);
+  const i = r.lines.findIndex((l) => l.startsWith("INFO status"));
+  assert.match(r.lines[i + 1], /^INFO not-supplied/);
+  const bad = fxWarns({ ...files, "sbp-detail-rota.md": fxFull["sbp-detail-rota.md"].replace("# Club\n\n", "# Club\n\nStatus: nope\n\n") }, "status");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /\(sbp-detail-rota\.md line 3\)$/);
+});
+
+test("scenario-form: silent for a Layer 3 rule without Realizes, a limit and a view scenario", () => {
+  const rule = (body) => L1 + L2 + "## Layer 3: Detail\n\nScope: x.\n\n### Brakes (part)\n\n" + body;
+  assert.deepEqual(warns(lintText(rule("#### 4. Rules\n\n- 4.1. Given a cat it sleeps.\n")), "scenario-form"), []);
+  assert.deepEqual(warns(lintText(rule("#### 6. Limits\n\n- 6.1. Given a cat it sleeps.\n")), "scenario-form"), []);
+  assert.deepEqual(warns(lintText(L1 + L2 + "## View: Life\n\n- Given a cat it sleeps.\n"), "scenario-form"), []);
+});
+
+test("scenario-form: still warns on a Realizes item without when, and on a Layer 1 Value item without then", () => {
+  const rule = "## Layer 3: Detail\n\nScope: x.\n\n### Brakes (part)\n\n#### 4. Rules\n\n- 4.1. Realizes vision-3.1. Given a cat, then it sleeps.\n";
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, then it sleeps.\n\n" + L2 + rule), "scenario-form").length, 1);
+  assert.equal(warns(lintText(L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, it sleeps.\n\n" + L2), "scenario-form").length, 1);
+});
+
+// --- metadata lines in the top matter of every document of a stack ----------------
+const fxMeta = (title, lines) => title.replace("# Club\n\n", "# Club\n\n" + lines.join("\n") + "\n\n");
+const fxMetaStack = () => ({
+  ...fxFull,
+  "sbp-vision.md": fxFull["sbp-vision.md"].replace("Version: 0.1.0\nStatus: Draft\n", "Version: 0.1.0\nBlueprint status: Approved\nStatus: Approved\nParent: Org\n"),
+  "sbp-structure.md": fxMeta(fxFull["sbp-structure.md"], ["Status: Draft", "Version: 0.2.0", "Parent: Org"]),
+  "sbp-detail-ledger.md": fxMeta(fxFull["sbp-detail-ledger.md"], ["Status: Review", "Blueprint status: Review"]),
+  "sbp-detail-rota.md": fxMeta(fxFull["sbp-detail-rota.md"], ["Status: Approved"]),
+});
+
+test("metadata: Status, Version, Blueprint status and Parent lines in the top matter of every file lint with no warning", () => {
+  const r = fxWith(fxMetaStack(), (d) => run(d, "--strict"));
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("INFO status")), ["INFO status: blueprint Approved; vision Approved; structure Draft; detail.ledger Review; detail.rota Approved"]);
+});
+
+test("metadata: top-matter lines of a later file do not change INFO not-supplied", () => {
+  const notSup = (over) => fxWith(over, (d) => run(d)).lines.find((l) => l.startsWith("INFO not-supplied"));
+  const base = notSup({});
+  assert.match(base, /^INFO not-supplied: \d+$/);
+  assert.equal(notSup(fxMetaStack()), base);
+});
+
+test("metadata: a Status line below the first ## heading is still read as an item", () => {
+  const w = fxWarns({ "sbp-structure.md": fxFull["sbp-structure.md"].replace("### 11. Decisions\n\nNone.", "### 11. Decisions\n\nStatus: Draft") }, "id");
+  assert.equal(w.length, 1);
+});
+
+// --- Large output on a pipe: a slow reader still receives every byte (no truncation at the pipe buffer). ---
+async function slowRead(args) {
+  const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "inherit"] });
+  // A child that fails to start or never ends is killed and fails the test (the bound is a test mechanism).
+  const exited = new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", resolve);
+    setTimeout(() => { child.kill("SIGKILL"); reject(new Error("pipe child did not finish within 60 s")); }, 60000).unref();
+  });
+  exited.catch(() => {});
+  let bytes = 0, tail = "";
+  for await (const d of child.stdout) {
+    bytes += d.length; tail = (tail + d.toString()).slice(-200);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return { bytes, tail, code: await exited };
+}
+function bigDir(body) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sbp-big-"));
+  const f = path.join(dir, "big.md");
+  fs.writeFileSync(f, body);
+  return f;
+}
+
+test("pipe: a lint with 3000 warnings read slowly delivers its final summary line", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n" + Array.from({ length: 3000 }, (_, i) => `- 3.1. Realizes vision-9.${i}. Given ${"z ".repeat(40)}`).join("\n") + "\n");
+  const r = await slowRead([f]);
+  assert.ok(r.bytes > 500000, `got only ${r.bytes} bytes`);
+  assert.match(r.tail, /strata-blueprints-lint: \d+ warning\(s\)\n$/);
+  const s = await slowRead([f, "--strict"]);
+  assert.equal(s.code, 1);
+  assert.equal(s.bytes, r.bytes);
+});
+
+test("pipe: a large --impact run read slowly delivers its final INFO line and keeps its exit code", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n- 3.1. Given a, when b, then c.\n" + Array.from({ length: 3000 }, (_, i) => `- 3.${i + 2}. Realizes vision-3.1. Given x, when y, then ${"z ".repeat(40)}`).join("\n") + "\n");
+  const r = await slowRead(["--impact", "vision-3.1", f]);
+  assert.ok(r.bytes > 300000, `got only ${r.bytes} bytes`);
+  assert.match(r.tail, /INFO impact: 3000 element\(s\) reached, deepest 1\n$/);
+  assert.equal(r.code, 0);
+  const u = await slowRead(["--impact", "vision-9.9", f]);
+  assert.equal(u.code, 1);
+});
+
+// --- Large output on a pipe: a reader that closes early ends the lint quietly, with the exit code it would have had. ---
+async function earlyClose(args) {
+  const child = spawn(process.execPath, [script, ...args], { stdio: ["ignore", "pipe", "pipe"] });
+  let err = "";
+  child.stderr.on("data", (d) => { err += d; });
+  // A child that exits or fails before it writes, or never writes, fails the test (the bound is a test mechanism).
+  const exited = new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", resolve);
+    setTimeout(() => { child.kill("SIGKILL"); reject(new Error("pipe child did not finish within 60 s")); }, 60000).unref();
+  });
+  exited.catch(() => {});
+  await new Promise((resolve, reject) => {
+    child.stdout.once("data", resolve);
+    exited.then(() => reject(new Error(`pipe child ended before it wrote output: ${err.slice(0, 200)}`)), reject);
+  });
+  child.stdout.destroy();
+  return { code: await exited, err };
+}
+
+test("pipe: a reader that closes early gets no stack trace and the usual exit code", async () => {
+  const f = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n- 3.1. Given a, when b, then c.\n" + Array.from({ length: 3000 }, (_, i) => `- 3.${i + 2}. Realizes vision-3.1. Given x, when y, then ${"z ".repeat(40)}`).join("\n") + "\n");
+  const w = bigDir("# Big\n\n## Layer 1: Vision\n\n### Scenarios\n\n" + Array.from({ length: 3000 }, (_, i) => `- 3.1. Realizes vision-9.${i}. Given ${"z ".repeat(40)}`).join("\n") + "\n");
+  const cases = [
+    [["--impact", "vision-3.1", f], 0],
+    [["--impact", "vision-9.9", f], 1],
+    [[w], 0],
+    [[w, "--strict"], 1],
+  ];
+  for (const [args, code] of cases) {
+    const r = await earlyClose(args);
+    assert.equal(r.err, "", `stderr for ${args.slice(0, -1).join(" ")}: ${r.err.slice(0, 120)}`);
+    assert.equal(r.code, code, `exit code for ${args.slice(0, -1).join(" ")}`);
+  }
+});
+
+const unf = (body) => warns(lintText(L1 + body + L2), "unfinished");
+
+test("unfinished: a code span hides the marker, prose still warns", () => {
+  assert.equal(unf("The word `TODO` is a marker.\n").length, 0);
+  assert.equal(unf("A ` mark and FIXME here.\n").length, 1);
+});
+
+test("unfinished: a double-backtick span may hold a backtick, a longer run closes at its own length", () => {
+  assert.equal(unf("Write ``TODO`x`` in the text.\n").length, 0);
+  assert.equal(unf("Write ```TBD``` in the text.\n").length, 0);
+});
+
+test("unfinished: prose beside a span warns once and names the prose marker", () => {
+  const w = unf("`TODO` and TBD together.\n");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TBD'/);
+});
+
+test("unfinished: backtick and tilde fences hide the marker, including info string and closing line", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~\nTBD\n~~~\n").length, 0);
+  assert.equal(unf("Title: t.\n```FIXME\nx\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~\n```\nTODO\n~~~\n").length, 0);
+});
+
+test("unfinished: an unclosed fence hides later lines, a marker after a closed fence warns at its line", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\nmore TBD\n").length, 0);
+  const md = L1 + "Title: t.\n```\nTODO inside\n```\nTODO after\n" + L2;
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${md.split("\n").findIndex((l) => l === "TODO after") + 1}\\)`));
+});
+
+// --- fence: a fenced block that is never closed draws one advisory warning per file. ---
+const FENCE_MSG = "fenced block is never closed; the checks skip every row after it";
+const fenceW = (md, ...flags) => warns(lintText(md, ...flags), "fence");
+const rowOf = (md, text) => md.split("\n").findIndex((l) => l === text) + 1;
+
+test("fence: an unclosed fence warns once at the row that opens it", () => {
+  const md = L1 + "```\nopen\n" + L2;
+  const w = fenceW(md);
+  assert.deepEqual(w, [`WARN fence: ${FENCE_MSG} (line ${rowOf(md, "```")})`]);
+});
+
+test("fence: a closed fence and a fence closed by a longer run draw no fence warning", () => {
+  assert.equal(fenceW(L1 + "```\nx\n```\n" + L2).length, 0);
+  assert.equal(fenceW(L1 + "```\nx\n`````\n" + L2).length, 0);
+  assert.equal(fenceW(L1 + "~~~\nx\n~~~~\n" + L2).length, 0);
+});
+
+test("fence: a shorter closing row leaves a four-backtick block open and warns", () => {
+  const md = L1 + "````\nx\n```\ny\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "````")}\\)$`));
+});
+
+test("fence: an unclosed tilde fence warns", () => {
+  const md = L1 + "~~~\nx\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "~~~")}\\)$`));
+});
+
+test("fence: a backtick row with a backtick after the run opens nothing and draws no fence warning", () => {
+  assert.equal(fenceW(L1 + "```x``` more\n" + L2).length, 0);
+});
+
+test("fence: the warning counts, so --strict exits 1 and a plain run exits 0", () => {
+  const md = L1 + L2 + "Title: t.\n```\nopen\n";
+  assert.equal(lintText(md).code, 0);
+  assert.equal(lintText(md, "--strict").code, 1);
+  assert.match(lintText(md).lines.at(-1), /^strata-blueprints-lint: 1 warning\(s\)$/);
+});
+
+test("fence: a folder names the file and row of the open block even when a later file has a row that would close it", () => {
+  const vision = fxVision + "```\nopen\n";
+  const row = vision.split("\n").findIndex((l) => l === "```") + 1;
+  const w = fxWarns({ "sbp-vision.md": vision, "sbp-structure.md": fxStructure + "```\nx\n```\n" }, "fence");
+  assert.deepEqual(w, [`WARN fence: ${FENCE_MSG} (sbp-vision.md line ${row})`]);
+});
+
+test("fence: a block opened on the last row warns, and CRLF rows that close a block draw no warning", () => {
+  const md = L1 + L2 + "```";
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "```")}\\)$`));
+  assert.equal(fenceW((L1 + "```\r\nx\r\n```\r\n" + L2).replace(/\n/g, "\r\n").replace(/\r\r/g, "\r")).length, 0);
+});
+
+test("fence: two openers in one file give one warning", () => {
+  const md = L1 + "```\na\n~~~\nb\n" + L2;
+  const w = fenceW(md);
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`\\(line ${rowOf(md, "```")}\\)$`));
+});
+
+test("unfinished: stray backticks on two lines make no span across lines", () => {
+  const w = unf("A ` stray\nTODO on its own line\nanother ` stray\n");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TODO'/);
+});
+
+test("id-ref: a double-backtick span hides an id", () => {
+  const need = "### 1. Need\n\n";
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See ``vision-9.9``.\n\n" + L2), "id-ref").length, 0);
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See `vision-9.9`.\n\n" + L2), "id-ref").length, 0);
+  assert.equal(warns(lintText(L1 + need + "- 1.1. See vision-9.9.\n\n" + L2), "id-ref").length, 1);
+});
+
+// --- One span rule: the Not supplied: count reads a code span the way clean does. ---
+const notSupCount = (body) => +lintText(L1 + body + L2).out.match(/^INFO not-supplied: (\d+)$/m)[1];
+
+test("not-supplied: a double-backtick span is not counted", () => {
+  assert.equal(notSupCount("Not supplied: a.\n"), 1);
+  assert.equal(notSupCount("Write ``Not supplied: x`` in the text.\n"), 0);
+  assert.equal(notSupCount("Write ``Not`x supplied: x`` and Not supplied: y.\n"), 1);
+});
+
+test("not-supplied: a single-backtick span is still not counted and a stray backtick does not hide the count", () => {
+  assert.equal(notSupCount("Write `Not supplied: x` here.\n"), 0);
+  assert.equal(notSupCount("A ` stray and Not supplied: x.\n"), 1);
+});
+
+// --- One fence rule: a fence closes at a row of the same mark at least as long; a backtick row with a backtick after the run is text. ---
+const unfAt = (body, word) => {
+  const md = L1 + body + L2;
+  return { w: warns(lintText(md), "unfinished"), n: md.split("\n").findIndex((l) => l === word) + 1 };
+};
+
+test("fence: a four-backtick fence closes at a row of four backticks and an inner three-backtick row stays content", () => {
+  const { w, n } = unfAt("Title: t.\n````\n```\nTODO\n````\nTBD after\n", "TBD after");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TBD'.*\\(line ${n}\\)`));
+});
+
+test("fence: a closing row shorter than the opening run does not close it", () => {
+  assert.equal(unf("Title: t.\n````\nTODO\n```\nTBD still inside\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~~\nTODO\n~~~\nTBD still inside\n").length, 0);
+});
+
+test("fence: a closing row longer than the opening run closes it", () => {
+  const { w, n } = unfAt("Title: t.\n```\nTODO\n`````\nFIXME after\n", "FIXME after");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'FIXME'.*\\(line ${n}\\)`));
+  assert.equal(unf("Title: t.\n~~~\nTODO\n~~~~~\nFIXME after\n").length, 1);
+});
+
+test("fence: a closing row with text after the run does not close", () => {
+  assert.equal(unf("Title: t.\n```\nTODO\n``` more\nTBD inside\n```\n").length, 0);
+  assert.equal(unf("Title: t.\n```\nTODO\n```x\nTBD inside\n```\n").length, 0);
+});
+
+test("fence: a backtick row with a backtick after the opening run is text", () => {
+  const md = L1 + "Title: t.\n```TODO``` more\nTBD next\n" + L2;
+  const r = lintText(md);
+  const w = warns(r, "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TBD'.*\\(line ${md.split("\n").findIndex((l) => l === "TBD next") + 1}\\)`));
+  assert.equal(warns(lintText(L1 + "```a`b\nTODO\n" + L2), "diagram-title").length, 0);
+});
+
+test("fence: a tilde fence text after the run may hold a backtick", () => {
+  assert.equal(unf("Title: t.\n~~~ a`b\nTODO\n~~~\n").length, 0);
+  assert.equal(unf("Title: t.\n~~~ a`b\nTODO\n~~~\nTBD after\n").length, 1);
+});
+
+test("fence: CRLF rows open and close a fence", () => {
+  const md = (L1 + "Title: t.\n````\n```\nTODO\n````\nTBD after\n" + L2).replace(/\n/g, "\r\n");
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /marker 'TBD'/);
+});
+
+test("fence: an indented fence opens and closes like any other and hides its rows", () => {
+  const md = L1 + L2 + "    ```\nTODO inside\n\t```\nTODO outside\n";
+  const w = warns(lintText(md), "unfinished");
+  assert.equal(w.length, 1);
+  assert.match(w[0], new RegExp(`marker 'TODO'.*\\(line ${rowOf(md, "TODO outside")}\\)`));
+});
+
+test("diagram-title: a fenced block that holds a command draws it like a diagram", () => {
+  assert.equal(warns(lintText(L1 + L2 + "text\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 1);
+  assert.equal(warns(lintText(L1 + L2 + "Title: t.\n```bash\nnode gate.mjs\n```\n"), "diagram-title").length, 0);
+});
+
+test("ring: a Layer number inside a code span draws nothing, the same words in prose still warn", () => {
+  const ring = (body) => warns(lintText(L1 + body + L2), "ring").length;
+  assert.equal(ring("See `Layer 3` for more.\n"), 0);
+  assert.equal(ring("See ``Layer 3`` for more.\n"), 0);
+  assert.equal(ring("See Layer 3 for more.\n"), 1);
+  assert.equal(ring("See `Layer 3` and Layer 1 and Layer 3 here.\n"), 1);
+  assert.equal(ring("```\nLayer 3\n```\n"), 0);
+});
+
+test("impact: several ids print one block each, in the order given, with one empty line between blocks", () => {
+  const one = (id) => fxImp(IMP, id).out;
+  const ab = fxImp(IMP, "vision-3.1,vision-12.11");
+  assert.equal(ab.code, 0);
+  assert.equal(ab.out, one("vision-3.1") + "\n" + one("vision-12.11"));
+  assert.equal(ab.out.split("\n\n").length, 2);
+  const ba = fxImp(IMP, "vision-12.11,vision-3.1");
+  assert.equal(ba.code, 0);
+  assert.equal(ba.out, one("vision-12.11") + "\n" + one("vision-3.1"));
+  const abc = fxImp(IMP, "vision-3.1,vision-12.11,structure-6.1");
+  assert.equal(abc.out, one("vision-3.1") + "\n" + one("vision-12.11") + "\n" + one("structure-6.1"));
+});
+
+test("impact: an undefined id among several exits 1 and every id still prints", () => {
+  const r = fxImp(IMP, "vision-3.1,vision-99.9,vision-12.11");
+  assert.equal(r.code, 1);
+  const blocks = r.out.split("\n\n");
+  assert.equal(blocks.length, 3);
+  assert.match(blocks[0], /^impact vision-3\.1: defined in Layer 1/);
+  assert.match(blocks[1], /^WARN impact: vision-99\.9 is not defined in /);
+  assert.match(blocks[2], /^impact vision-12\.11: defined in Layer 1/);
+});
+
+test("impact: a malformed element in the list exits 2 with an empty stdout and one stderr line", () => {
+  fxDoc(IMP, (f) => {
+    for (const list of ["vision-3.1,", "vision-3.1,x1", ",vision-3.1", "vision-3.1,,vision-12.11"]) {
+      const r = fxImpact([list, f]);
+      assert.equal(r.code, 2, list);
+      assert.equal(r.out, "", list);
+      assert.equal(r.err.trim().split("\n").length, 1, list);
+      assert.match(r.err, /^strata-blueprints-lint: not an id: /, list);
+    }
+    assert.match(fxImpact(["vision-3.1,x1", f]).err, /not an id: x1\n$/);
+  });
+});
+
+test("impact: a repeated id prints once, and a single id prints as before", () => {
+  const single = fxImp(IMP, "vision-3.1");
+  const twice = fxImp(IMP, "vision-3.1,vision-3.1");
+  assert.equal(twice.out, single.out);
+  assert.equal(twice.code, single.code);
+  const mixed = fxImp(IMP, "vision-3.1,vision-12.11,vision-3.1");
+  assert.equal(mixed.out.split("\n\n").length, 2);
+  assert.equal(mixed.out.split("\n\n")[0] + "\n", single.out);
+});
+
+// --- limit-quality: a Limit cites a quality Layer 1 names -----------------------------------------
+const lqQual = (names) => item("###", 6, "Qualities and constraints") + names.map((n) => `- **${n}:** it holds.\n`).join("") + "\n";
+const lqDoc = (cite, quals = ["Prompt", "Durable"]) => L1 + lqQual(quals) + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
+const lq = (md) => warns(lintText(md), "limit-quality");
+
+test("limit-quality: a Limit that cites a quality Layer 1 does not name warns once; a named quality, a different case, a topic name and Not supplied draw none", () => {
+  const w = lq(lqDoc("Speedy"));
+  assert.equal(w.length, 1);
+  assert.match(w[0], /^WARN limit-quality: 'Speedy' is not named in Layer 1 Qualities and constraints \(line \d+\)$/);
+  assert.match(w[0], new RegExp(`\\(line ${fxLine(lqDoc("Speedy"), "A stop takes")}\\)$`));
+  assert.deepEqual(lq(lqDoc("Prompt")), []);
+  assert.deepEqual(lq(lqDoc("  Durable ")), []);
+  assert.deepEqual(lq(lqDoc("pROMPT")), []);
+  assert.deepEqual(lq(lqDoc("Prompt", ["Prompt  Fast", "Durable"]).replace("(Layer 1, Prompt)", "(Layer 1, prompt fast)")), []);
+  assert.deepEqual(lq(lqDoc("Costs")), []);
+  assert.deepEqual(lq(lqDoc("Target audience")), []);
+  assert.deepEqual(lq(lqDoc("Not supplied: which quality")), []);
+  // the last citation counts; an element with no citation is silent; a table row and a Rules item are not read
+  assert.equal(lq(lqDoc("Speedy").replace("(Layer 1, Speedy)", "(Layer 1, Prompt) and (Layer 1, Speedy)")).length, 1);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(" (Layer 1, Speedy)", "")), []);
+  assert.deepEqual(lq(lqDoc("Speedy").replace("#### 6. Limits", "#### 4. Rules")), []);
+});
+
+test("limit-quality: silent when Layer 1 names no quality in bold, or the document has no Layer 1", () => {
+  // control: the same Limit warns when Layer 1 names its qualities in bold
+  assert.equal(lq(lqDoc("Speedy")).length, 1);
+  assert.equal(lq(lqDoc("Speedy") + "- 6.2. A start takes under a second (Layer 1, Fast).\n").length, 2);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(/- \*\*(Prompt|Durable):\*\*/g, "- $1:")), []);
+  assert.deepEqual(lq(lqDoc("Speedy").replace(/### 6\. Qualities and constraints\n\n[\s\S]*?\n\n(?=## Layer 2)/, "")), []);
+  assert.deepEqual(lq(lqDoc("Speedy", []).replace(L1, L1)), []);
+  assert.deepEqual(lq(L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + "- 6.1. A stop takes under two seconds (Layer 1, Speedy).\n"), []);
+});
+
+test("limit-quality: a Limit that cites a Layer 1 id draws no limit-quality warning; an id that does not exist still draws id-ref", () => {
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+  assert.deepEqual(lq(lqDoc("vision-9.9")), []);
+  assert.equal(warns(lintText(lqDoc("vision-9.9")), "id-ref").length, 1);
+  assert.equal(lq(lqDoc("Speedy")).length, 1);
+});
+
+test("limit-quality: a Limit that cites an id of another document warns like an unnamed quality", () => {
+  const s = lq(lqDoc("structure-3.1"));
+  assert.equal(s.length, 1);
+  assert.match(s[0], /^WARN limit-quality: 'structure-3\.1' is not named in Layer 1 Qualities and constraints \(line \d+\)$/);
+  const d = lq(lqDoc("detail.brakes-6.1"));
+  assert.equal(d.length, 1);
+  assert.match(d[0], /detail\.brakes-6\.1/);
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+});
+
+test("limit-quality: a Layer 1 id is read in lower case with plain numbers; other forms warn once each", () => {
+  for (const c of ["Vision-3.6", "VISION-3.6", "vision-03.6", "vision-3.0", "vision-3.6.1"]) assert.equal(lq(lqDoc(c)).length, 1, c);
+  assert.deepEqual(lq(lqDoc("vision-3.6")), []);
+});
+
+// limit-quality reads a quality name in every form the Layer 1 guide allows
+const lqRaw = (items, cite) => L1 + item("###", 6, "Qualities and constraints") + items.map((i) => `- ${i}\n`).join("") + "\n" + L2 + L3 + ENTRY("Brakes") + item("####", 6, "Limits") + `- 6.1. A stop takes under two seconds (Layer 1, ${cite}).\n`;
+
+test("limit-quality: a bold name anywhere in the item counts, and an absent name still warns", () => {
+  const q = ["**Durable:** lasts.", "The **Prompt** quality: quick."];
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
+test("limit-quality: a plain leading Name: counts when other qualities are bold, and an absent name still warns", () => {
+  const q = ["**Prompt:** quick.", "Durable: lasts."];
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
+test("limit-quality: either form counts after a leading item number, and an absent name still warns", () => {
+  const q = ["6.1. **Prompt:** quick.", "6.2. Durable: lasts."];
+  assert.deepEqual(lq(lqRaw(q, "Prompt")), []);
+  assert.deepEqual(lq(lqRaw(q, "Durable")), []);
+  assert.equal(lq(lqRaw(q, "Speedy")).length, 1);
+});
+
+// --- realizes-text: a Realizes item keeps the Given and when text of its scenario ---------------------
+const RT_SCEN = "Given a rider on a hill, when braking hard, then the bike stops.";
+const rtDoc = (path, scen = RT_SCEN) => L1 + `- 3.1. ${scen}\n\n` + L2 + `- 6.1. Realizes vision-3.1. ${path}\n`;
+const rt = (md) => warns(lintText(md), "realizes-text");
+
+test("realizes-text: a path that rewords the Given or the when of its scenario warns once and names the scenario", () => {
+  const given = rt(rtDoc("Given a cyclist on a hill, when braking hard, then the bike stops."));
+  assert.equal(given.length, 1);
+  assert.match(given[0], /^WARN realizes-text: does not keep the Given and when text of vision-3\.1 word for word \(line \d+\)$/);
+  assert.match(given[0], new RegExp(`\\(line ${fxLine(rtDoc("Given a cyclist"), "Realizes vision-3.1")}\\)$`));
+  assert.equal(rt(rtDoc("Given a rider on a hill, when braking, then the bike stops.")).length, 1);
+  assert.equal(rt(rtDoc("Given a rider on a hill, when braking hard, then the bike stops.").replace("Given", "Given that")).length, 1);
+  // a Layer 3 rule is read the same way
+  const l3 = rtDoc(RT_SCEN) + "\n" + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. Realizes vision-3.1. Given a cyclist, when braking, then it stops.\n";
+  assert.equal(rt(l3).length, 1);
+});
+
+test("realizes-text: the same words, a wrapped line, an undefined id and an item with no Given draw none", () => {
+  // control: the same fixtures warn once when the path is reworded
+  assert.equal(rt(rtDoc("Given a cyclist, when braking, then stops.")).length, 1);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill, when braking hard, then the bike stops quickly.")), []);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill,\n  when braking hard, then the bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.").replace("Realizes vision-3.1", "Realizes vision-3.9")), []);
+  assert.deepEqual(rt(rtDoc("The bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a rider on a hill, when braking hard.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.", "The bike stops.")), []);
+  assert.deepEqual(rt(rtDoc("Given a cyclist, when braking, then stops.", "Given a cat it sleeps.")), []);
+  // a Realizes item that cites a Layer 2 id, not a Value item, is not compared
+  assert.deepEqual(rt(rtDoc(RT_SCEN) + "- 6.2. Realizes structure-6.1. Given a cyclist, when braking, then it stops.\n"), []);
+});
+
+// --- scenario-form: Given is asked for where tracing needs it ----------------------------------------
+const sf = (md) => warns(lintText(md), "scenario-form");
+const sfL2 = (body) => L1 + "### 3. Value\n\n- 3.1. Given a cat, when fed, then it sleeps.\n\n" + L2 + body;
+
+test("scenario-form: a Value item, a path and a Realizes item that do not start with Given each warn once", () => {
+  const value = sf(L1 + "### 3. Value\n\n- 3.1. The cat sleeps.\n\n" + L2);
+  assert.equal(value.length, 1);
+  assert.match(value[0], /^WARN scenario-form: must read 'Given \.\.\., when \.\.\., then \.\.\.' \(line \d+\)$/);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. The cat sleeps.\n")).length, 1);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. The cat sleeps.\n")).length, 1);
+  assert.equal(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a cat, when fed, then it sleeps.\n\n") + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. Realizes vision-3.1. The cat sleeps.\n").length, 1);
+  assert.equal(sf(L1 + "### 3. Value\n\n- vision-3.1. The cat sleeps.\n\n" + L2).length, 1);
+});
+
+test("scenario-form: None., Not supplied:, a table row and a plain Layer 3 rule draw none", () => {
+  // control: the same Value item warns when it is a plain sentence
+  assert.equal(sf(L1 + "### 3. Value\n\n- 3.1. The cat sleeps.\n\n" + L2).length, 1);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. None.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\nNone.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. Not supplied: the scenarios.\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- 3.1. Title: a cat\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n| Who | What |\n|---|---|\n| cat | sleeps |\n\n" + L2), []);
+  assert.deepEqual(sf(L1 + "### 3. Value\n\n- The cat sleeps.\n\n" + L2), []);
+  assert.deepEqual(sf(sfL2("### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a cat, when fed, then it sleeps.\n\n") + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + "- 4.1. A stop takes time.\n"), []);
+});
+
+test("shared things: a numbered item is cited from a Detail, and --impact reaches the citer", () => {
+  const md = [
+    "# T", "",
+    "## Layer 1: Vision", "", "Scope: all.", "",
+    "## Layer 2: Structure", "", "Scope: all.", "",
+    "### 1. Parts", "", "- Rota (part): plans.", "- Pay (part): pays.", "",
+    "### 5. Shared things", "", "- 5.1. The date format is ISO, kept by Rota and Pay.", "",
+    "## Layer 3: Detail", "", "Scope: one part.", "",
+    "### Rota (part)", "",
+    "#### 4. Rules", "",
+    "- 4.1. Dates are written in ISO. Reason: structure-5.1.", "",
+    "### Pay (part)", "",
+    "#### 4. Rules", "",
+    "- 4.1. Amounts are whole cents.", "",
+  ].join("\n");
+  const r = lintText(md);
+  assert.deepEqual(r.lines.filter((l) => /^WARN (id|id-ref):/.test(l)), []);
+  const imp = fxImp(md, "structure-5.1");
+  assert.equal(imp.code, 0);
+  assert.match(imp.lines.find((l) => /Dates are written in ISO/.test(l)), /^ {2}d1 {2}line \d+ {2}Layer 3 > Rota \(part\) > Rules {2}detail\.rota-4\.1 {2}4\.1\. Dates are written/);
+  const other = lintText(md.replace("Reason: structure-5.1.", "Reason: detail.pay-4.1."));
+  assert.equal(warns(other, "id-ref").length, 1);
+});
+
+test("realizes-text: a Realizes sentence inside a code span is not read", () => {
+  const doc = (path) => L1 + "### 3. Value\n\n- 3.1. Given a keeper is idle, when they write, then it is saved.\n\n" + L2 + "### 6. Scenario paths\n\n" + path + "\n";
+  assert.deepEqual(rt(doc("- 6.1. Given the keeper is away, when they return, then it is saved, as in `Realizes vision-3.1` above.")), []);
+  const prose = rt(doc("- 6.1. Realizes vision-3.1. Given the keeper is away, when they return, then it is saved."));
+  assert.equal(prose.length, 1);
+  assert.match(prose[0], /vision-3\.1/);
+});
+
+test("existing project: a Reason that names a settled concern by number draws no warning", () => {
+  const doc = (ref) => L1 + "### 10. Open Concerns\n\n- 10.1. Given the club grows, when the shed fills, then a second shed is priced. Raised by the club.\n\n### 12. Decisions\n\n- 12.1. Chosen X. Reason: settles open concern " + ref + ".\n\n" + L2;
+  const ok = lintText(doc("10.1"));
+  assert.deepEqual(warns(ok, "id-ref"), []);
+  assert.deepEqual(warns(ok, "reasons"), []);
+  const bad = lintText(doc("vision-10.1").replace(/### 10\. Open Concerns\n\n- 10\.1\.[^\n]*\n\n/, "### 10. Open Concerns\n\nNone.\n\n"));
+  const refs = warns(bad, "id-ref");
+  assert.equal(refs.length, 1);
+  assert.match(refs[0], /vision-10\.1/);
+});
+
+test("shared things: a numbered item among unnumbered bullets keeps its own count", () => {
+  const doc = (cite) => [
+    "# T", "",
+    "## Layer 1: Vision", "", "Scope: all.", "",
+    "## Layer 2: Structure", "", "Scope: all.", "",
+    "### 1. Parts", "", "- Rota (part): plans.", "", 
+    "### 5. Shared things", "", "- A plain first bullet.", "- A plain second bullet.", "- 5.1. A numbered fact the Detail cites.", "",
+    "## Layer 3: Detail", "", "Scope: one part.", "",
+    "### Rota (part)", "",
+    "#### 4. Rules", "",
+    `- 4.1. Dates are written in ISO. Reason: ${cite}.`, "",
+  ].join("\n");
+  assert.deepEqual(warns(lintText(doc("structure-5.1")), "id-ref"), []);
+  const bad = warns(lintText(doc("structure-5.2")), "id-ref");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0], /structure-5\.2/);
 });

@@ -58,9 +58,11 @@ Each layer rests on the layers above it. A change to Vision reaches every layer 
 
 A stack can be written as one document with all three layers, or as separate files in one folder, the blueprint directory (see Usage, With an agent).
 
-One document: write `<subject>.md` in the blueprint directory with all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`).
+One document: write `<subject>.md` in the blueprint directory, with a name that does not start with `sbp-` or `strata-blueprints-`, holding all three layers and all details under `## Layer 1: Vision`, `## Layer 2: Structure` and `## Layer 3: Detail` headings (see the template in `skills/strata-blueprints/assets/strata-blueprints-template.md`).
 
 Separate files: write `sbp-vision.md`, `sbp-structure.md` and one `sbp-detail-<part>.md` per part (for example, `sbp-detail-ledger.md`) in the blueprint directory.
+
+Every document carries a `Status:` line under its title: `Draft`, `Review` or `Approved`. In separate files each file has its own, and `sbp-vision.md` also carries `Blueprint status:`, the status of the whole blueprint. The lint reports them in its `INFO status:` line.
 
 ### The standard's files
 
@@ -136,6 +138,8 @@ Directory is a directory relative to the project root, never a file. Form is `si
 ```sh
 node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <path-to-blueprint.md or folder>
 ```
+
+Lint a folder as a whole: a lone Detail file draws layer warnings because it has no Layer 1 or 2. Paths in this README start at the repository root; in the skill's own files `scripts/...` means the skill folder's scripts (`skills/strata-blueprints/scripts/` here).
 
 See [docs/lint.md](docs/lint.md) for what each check does, how to use `--strict` to fail on warnings, and how to use `--impact <id>` to find what a change reaches.
 

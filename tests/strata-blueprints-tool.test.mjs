@@ -280,3 +280,39 @@ test("tool: condensed examples lint --strict clean and keep the same INFO not-su
     assert.equal(info(c), info(runLint(src)), name);
   });
 });
+
+test("span rule: the lint and the tool carry the same clean line", () => {
+  const line = (f) => get(f).split("\n").filter((l) => l.startsWith("const clean = "));
+  const a = line(lint), b = line(tool);
+  assert.equal(a.length, 1);
+  assert.deepEqual(b, a);
+});
+
+test("fence: a four-backtick fence in condense keeps an inner three-backtick row as content", () => {
+  const t = "# C\n\n" + L1 + "### 1. Need\n\n````\n```\n### 2. Target audience\n\nNone.\n````\n\n### 2. Target audience\n\nNone.\n\n### 3. Value\n\nN.\n\n" + L2 + "### 1. Parts\n\nP.\n";
+  const c = condenseText(t);
+  assert.ok(c.includes("````\n```\n### 2. Target audience\n\nNone.\n````"), "the fenced heading stays");
+  assert.ok(!c.includes("\n### 2. Target audience\n\nNone.\n\n### 3."), "the real None. topic is dropped");
+});
+
+test("fence: a backtick row with a backtick after the run is text in condense", () => {
+  const t = "# C\n\n" + L1 + "### 1. Need\n\n```x``` more\n\n### 2. Target audience\n\nNone.\n\n### 3. Value\n\nN.\n\n" + L2 + "### 1. Parts\n\nP.\n";
+  const c = condenseText(t);
+  assert.ok(c.includes("```x``` more"));
+  assert.ok(!c.includes("### 2. Target audience"), "the topic after the text row is read and dropped");
+});
+
+test("fence: the lint and the tool carry the same fenceOpen and fenceCloses lines", () => {
+  for (const name of ["const fenceOpen = ", "const fenceCloses = "]) {
+    const pick = (f) => get(f).split("\n").filter((l) => l.startsWith(name));
+    const a = pick(lint), b = pick(tool);
+    assert.equal(a.length, 1, name);
+    assert.deepEqual(b, a, name);
+  }
+});
+
+test("fence: an indented fence is read by the tool like the lint reads it", () => {
+  const t = "# C\n\n" + L1 + "### 1. Need\n\nN.\n\n- Item:\n\n    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```\n\n### 2. Target audience\n\nN.\n\n" + L2 + "### 1. Parts\n\nP.\n";
+  const c = condenseText(t);
+  assert.ok(c.includes("    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```"), "the rows inside an indented fence stay unchanged");
+});

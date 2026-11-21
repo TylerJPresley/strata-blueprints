@@ -13,6 +13,10 @@ import { linkProblems } from './scripts/links-check.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
+// The lint's fence rule: a block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
+
 // --- links check (fn) ---
 function linksCheck() {
   const problems = [];
@@ -27,10 +31,11 @@ function linksCheck() {
     const abs = join(root, f);
     if (!existsSync(abs)) continue;
     const text = readFileSync(abs, 'utf8');
-    let inFence = false;
+    let fence = null;
     for (const line of text.split('\n')) {
-      if (/^\s*```/.test(line)) { inFence = !inFence; continue; }
-      if (!inFence) continue;
+      const t = line.trim();
+      if (fence) { if (fenceCloses(t, fence)) { fence = null; continue; } }
+      else { fence = fenceOpen(t); continue; }
       const cm = line.match(cmdRe);
       if (cm && !existsSync(join(root, cm[1]))) problems.push(`${f}: command names missing file ${cm[1]}`);
     }
@@ -60,7 +65,7 @@ function layoutCheck() {
   return problems;
 }
 
-// --- templates check (fn): each layer cut equals the matching section of the full template, headings one level up ---
+// --- templates check (fn): each layer cut is the title, the metadata and the matching section of the full template, row for row (line 1 and the blank row 2 aside) ---
 function templateProblems() {
   const dir = join(root, 'skills', 'strata-blueprints', 'assets');
   const names = ['strata-blueprints-template.md', 'strata-blueprints-template-layer-1.md', 'strata-blueprints-template-layer-2.md', 'strata-blueprints-template-layer-3.md'];
@@ -78,16 +83,27 @@ function templateProblems() {
   }
   const full = text[names[0]];
   if (!full) return problems;
+  const CUT_TOP = { 1: ['Version: 0.1.0', 'Status: Draft', 'Blueprint status: Draft'], 2: ['Status: Draft'], 3: ['Status: Draft'] };
+  const head = full.split('\n');
+  const firstSection = head.findIndex((l) => /^## /.test(l));
+  const top = head.slice(0, firstSection < 0 ? head.length : firstSection);
+  const vi = top.findIndex((l) => /^Version:/.test(l));
+  if (vi < 0 || top[vi + 1] !== 'Status: Draft') problems.push(`${names[0]}: top matter lacks "Status: Draft" right after "Version:"`);
   const lines = full.replace(/\n$/, '').split('\n');
+  const title = lines.find((l) => /^# /.test(l));
+  if (title === undefined) { problems.push(`${names[0]}: has no title row`); return problems; }
   for (let n = 1; n <= 3; n++) {
     const name = `strata-blueprints-template-layer-${n}.md`;
     if (!text[name]) continue;
-    const want = [];
-    let inLayer = false, fence = false;
+    const want = [title, '', ...CUT_TOP[n], ''];
+    let inLayer = false, fence = null;
     for (const l of lines) {
-      if (/^\s*(```|~~~)/.test(l)) fence = !fence;
-      if (!fence && /^## /.test(l)) inLayer = l.startsWith(`## Layer ${n}:`);
-      if (inLayer) want.push(!fence && /^#/.test(l) ? l.slice(1) : l);
+      const t = l.trim();
+      const wasFence = fence !== null;
+      if (fence) { if (fenceCloses(t, fence)) fence = null; } else fence = fenceOpen(t);
+      const hidden = wasFence || fence !== null;
+      if (!hidden && /^## /.test(l)) inLayer = l.startsWith(`## Layer ${n}:`);
+      if (inLayer) want.push(l);
     }
     while (want.length && want[want.length - 1] === '') want.pop();
     const have = text[name].replace(/\n$/, '').split('\n').slice(2);
@@ -114,6 +130,7 @@ const CHECKS = [
   ['examples tests', process.execPath, ['--test', 'tests/strata-blueprints-examples.test.mjs']],
   ['version check tests', process.execPath, ['--test', 'tests/version-check.test.mjs']],
   ['links check tests', process.execPath, ['--test', 'tests/links-check.test.mjs']],
+  ['gate tests', process.execPath, ['--test', 'tests/gate.test.mjs']],
   ['example lint: garden', process.execPath, [LINT, `${REFS}/strata-blueprints-example.md`, '--strict']],
   ['example lint: todo app', process.execPath, [LINT, `${REFS}/strata-blueprints-example-todo-app`, '--strict']],
   ['example lint: RFP', process.execPath, [LINT, `${REFS}/strata-blueprints-example-rfp.md`, '--strict']],

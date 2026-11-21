@@ -237,7 +237,8 @@ function singleEntryName(layer3) {
 function assemble(folder) {
   const names = fs.readdirSync(folder);
   const read = (n) => fs.readFileSync(path.join(folder, n), "utf8").replace(/\r\n/g, "\n");
-  const dropTitle = (t) => t.replace(/^# [^\n]*\n\n?/, "");
+  // Drops the title and the metadata lines (Version, Status, Blueprint status, Parent) that follow it, as the lint's loadFolder does.
+  const dropTitle = (t) => t.replace(/^# [^\n]*\n\n?(?:(?:Version|Status|Blueprint status|Parent):[^\n]*\n)*\n?/, "");
   const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const structure = read("sbp-structure.md");
   const order = parseParts(splitLayers(structure).find((l) => l.num === 2) || { lines: [] }).map((p) => slug(p.name));
@@ -1075,6 +1076,10 @@ test("manifest covers every example file and no extra", () => {
 });
 
 // --- A folder example lints the same as its assembled single document (file labels stripped). ---
+const FOLDER_STATUS = {
+  "strata-blueprints-example-todo-app": "INFO status: blueprint Review; vision Approved; structure Approved; " +
+    ["access", "ledger", "folders", "timing", "notifier", "presence"].map((p) => `detail.${p} Review`).join("; "),
+};
 test("folder lint equals assembled-document lint", () => {
   for (const [name, spec] of Object.entries(MANIFEST)) {
     if (!spec.folder) continue;
@@ -1084,9 +1089,18 @@ test("folder lint equals assembled-document lint", () => {
     const norm = (f) => {
       let out;
       try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
-      return out.split("\n").filter(Boolean).map((l) => l.replace(/\s*\((?:\S+ )?line \d+\)/g, ""));
+      // The INFO status line lists one status per file in a folder and one in a document, by design; both exact lines are asserted below.
+      const lines = out.split("\n").filter(Boolean);
+      return {
+        status: lines.filter((l) => l.startsWith("INFO status:")),
+        rest: lines.filter((l) => !l.startsWith("INFO status:")).map((l) => l.replace(/\s*\((?:\S+ )?line \d+\)/g, "")),
+      };
     };
-    assert.deepEqual(norm(real), norm(doc), name);
+    const folderOut = norm(real);
+    const docOut = norm(doc);
+    assert.deepEqual(folderOut.status, [FOLDER_STATUS[name]], `${name}: folder status line`);
+    assert.deepEqual(docOut.status, ["INFO status: Approved"], `${name}: assembled document status line`);
+    assert.deepEqual(folderOut.rest, docOut.rest, name);
   }
 });
 
@@ -1449,5 +1463,35 @@ test("guide files: no removed file name appears in skills/, tests/, gate.mjs or 
   for (const f of files) {
     const text = fs.readFileSync(f, "utf8");
     for (const r of removed) assert.ok(!text.includes(r), `${path.relative(root, f)} names the removed ${r}`);
+  }
+});
+
+// --- Every shipped example reports its INFO status line (values: the idea is a Draft, the RFP is in Review, the to-do stack has an Approved Vision and Structure and Details in Review). ---
+test("every shipped example reports its INFO status line", () => {
+  const want = {
+    "strata-blueprints-example.md": "INFO status: Draft",
+    "strata-blueprints-example-rfp.md": "INFO status: Review",
+    "strata-blueprints-example-todo-app": "INFO status: blueprint Review; vision Approved; structure Approved; " +
+      ["access", "ledger", "folders", "timing", "notifier", "presence"].map((p) => `detail.${p} Review`).join("; "),
+  };
+  for (const [name, line] of Object.entries(want)) {
+    const out = execFileSync(process.execPath, [LINT, path.join(EXAMPLES_DIR, name), "--strict"], { encoding: "utf8" });
+    const got = out.split("\n").find((l) => l.startsWith("INFO status:"));
+    // The details follow the Parts order, compared in order.
+    assert.equal(got, line, name);
+  }
+});
+
+// --- The guide says every document carries `Version: 0.1.0` under its title: the single-file examples and the to-do Vision do. ---
+test("every shipped example carries Version: 0.1.0 as the first metadata line under its title", () => {
+  const files = [
+    "strata-blueprints-example.md",
+    "strata-blueprints-example-rfp.md",
+    path.join("strata-blueprints-example-todo-app", "sbp-vision.md"),
+  ];
+  for (const f of files) {
+    const lines = fs.readFileSync(path.join(EXAMPLES_DIR, f), "utf8").split("\n").filter((l) => l.trim() !== "");
+    assert.ok(lines[0].startsWith("# "), `${f} opens with a title`);
+    assert.equal(lines[1], "Version: 0.1.0", `${f} has Version: 0.1.0 right under the title`);
   }
 });

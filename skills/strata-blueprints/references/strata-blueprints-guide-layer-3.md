@@ -5,7 +5,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
 - **Intent:** how one part does its job and what it is made with. A part's Detail is an entry in the parent's stack, under `### <Part> (part)` with each topic as `#### N. <Topic>`, or the part's own stack, both named in Layer 2 Standing.
 - **Audience:** the makers and reviewers of that part.
 - **Success:** Given one part's entry, when a maker reads it, then they can make the part and check it: what it does, what it offers and needs at each seam, what it is made of, and the values at each seam, without asking.
-- **Status:** written for each part a maker needs it for.
+- **Written:** for each part a maker needs it for.
 - **Rests on:** Layers 1 and 2; see "How the layers depend on each other" in the core guide.
 - **Contents:**
   1. **Responsibility:** what the part is accountable for.
@@ -46,7 +46,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Seams**
     - **How to write it:**
       - For: states what this part offers and needs at each seam it takes part in, so the makers on both sides can work apart.
-      - Write: one bullet per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2.
+      - Write: one bullet per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
       - Example:
         - Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
         - Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
@@ -57,14 +57,14 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Rules**
     - **How to write it:**
       - For: states how the part acts, as scenarios that can each be run as a check.
-      - Write: one scenario per line, Given, when, then, about this part, each with its own number. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave.
+      - Write: one rule per line, about this part, each with its own number. Given, when, then is required where a rule says `Realizes <id>.` and is the suggested form elsewhere; a rule may be written plainly. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave. When a program builds the part and tests check it, its Rules and Limits carry the contract the tests assert (the exact strings it prints, its inputs and outputs as signatures, and Given, when, then cases), so that someone with only the blueprint can build a part that passes. Where a rule gives an exact string or an exact operation, it says for each `<...>` whether it is filled in or printed as written; for each "in order" which key orders; for each split, trim or comparison whether case, trim and first or last occurrence apply; and whether a state such as a fence carries across the files of a stack. An operation named by a word is defined once in Construction. A rule about a program is checked by running the program, and its `Source:` says `run` when it was. A rule may state an observable behavior that no scenario covers, such as how output reaches a slow reader, with the recipe that tests it. A rule holds one test of the program; a rule with several independent clauses is written as several numbered rules. A rule for a function that a test calls says what it returns, with the keys of an object, and what it throws, with the message. Where a test reads the program's own text, or an environment variable, the rule names the text or the variable and the test that reads it. A rule that skips a case names the checks it skips and the checks that still apply. Name a test by its title (a group of tests by their shared title prefix), and the parts of a source by their names; a count or a place in a file goes stale, but a count the program prints is part of its output and stays.
       - Example:
         - 4.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
         - 4.2. Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
       - Mistake: a rule nobody can check ("Ledger is reliable"). Each rule states a situation, an event and a result that can be observed.
     - **Ask the owner:** the rules for this part, each with its threshold, trigger and renewal. Follow-up: the edge (smallest, longest, none, missed) and what happens when broken or missed. Not supplied: the value or the broken case.
     - **Check:**
-      - [ ] Is every rule a scenario that can be run as a check, with its own number and `Realizes` and its Layer 1 id where it realizes one?
+      - [ ] Is every rule that realizes a Layer 1 or Layer 2 item a scenario that can be run as a check, with `Realizes` and its id? May other rules be written plainly?
   - **Inside**
     - **How to write it:**
       - For: names the pieces the part is made of, so a maker sees its inner shape without any means.
@@ -79,7 +79,7 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Limits**
     - **How to write it:**
       - For: gives the checkable share of the Layer 1 qualities that this part must meet, so makers can check it.
-      - Write: one bullet per limit, with its number (`6.1`), a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. Name no means.
+      - Write: one bullet per limit, with its number (`6.1`), a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. The id of a Layer 1 item, such as `vision-3.6`, may stand in place of the name. Name no means.
       - Example:
         - 6.1. A commitment is confirmed saved within one second of the keeper writing it (Layer 1, Prompt).
         - 6.2. A saved commitment survives a closed app, a dead battery and a lost connection (Layer 1, Durable).

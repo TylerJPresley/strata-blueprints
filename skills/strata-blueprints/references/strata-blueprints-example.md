@@ -1,5 +1,8 @@
 # Example: a community garden, still an idea (companion to the Strata Blueprints guide)
 
+Version: 0.1.0
+Status: Draft
+
 This companion fills the layers for a subject that is still an idea. A street of
 households wants to grow food together, and nothing has been built or agreed yet.
 It has Vision and Structure only; it gains Detail for a part when a maker needs
@@ -103,10 +106,6 @@ Scope: the whole garden idea, divided into parts, with the seams between them an
 - Water: described here.
 - Shed: described here.
 - Rota: described here.
-
-No part has its own stack yet. While the garden is an idea, each part is named
-and bounded here; a part gains its own Detail, as an entry or an own stack, when
-a maker needs it.
 
 ### 3. Seams between parts
 
