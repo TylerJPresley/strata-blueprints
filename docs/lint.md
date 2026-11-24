@@ -36,7 +36,7 @@ The script produces three kinds of output:
 
 ### Warnings
 
-`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `id`, `id-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
+`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `list`, `id`, `id-ref`, `count-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
 
 #### Check: `layer-heading`
 
@@ -139,13 +139,14 @@ Silent when:
 
 #### Check: `scenario-form`
 
-Fires when an element text (after any id number and any `Realizes <id>.` sentence) does not read `Given <situation>, when <event>, then <result>`, on these items only:
+Fires when an element text (after any `Realizes <id>.` sentence) does not read `Given <situation>, when <event>, then <result>`, on these items only:
 - A Layer 1 Value item
 - A Layer 2 Scenario path item
 - Any item anywhere that contains a `Realizes <id>` sentence
 
 Silent when:
-- The item has no number, no `Realizes` sentence and does not start with `Given`
+- The item is a paragraph with no `Realizes` sentence that does not start with `Given`
+- The item is nested in another list item (only depth-1 items are read)
 - The element is inside a table row
 - The element is `None.`, `Not supplied:` or starts with `Title:`
 - The item is a Layer 3 rule, limit, refusal, or other Layer 3 item without `Realizes`
@@ -163,7 +164,9 @@ Silent when:
 
 #### Check: `scenario-trace`
 
-Fires when a Layer 1 Value scenario (a numbered item under Value) is not realized in Layer 2 or Layer 3:
+An item whose text starts `Not supplied:` is an open question. `scenario-form`, `scenario-trace`, `reasons`, `limit-quality`, `realizes-text` and the shape checks skip it, so an open placeholder can be inserted into any topic with no new warning.
+
+Fires when a Layer 1 Value scenario (an item under Value) is not realized in Layer 2 or Layer 3:
 - Missing from Layer 2: no `Realizes <vision-N.M>.` sentence in any Layer 2 element
 - Missing from Layer 3: when the scenario's path runs through a part that has a Layer 3 entry, no `Realizes <vision-N.M>.` sentence appears in any Layer 3 element. A path is built from the Layer 2 text that realizes the scenario, a part is on the path when its Parts name appears as a whole word in that text, and an empty path (no valid Layer 2 heading) names no part. If the path names no part but any Layer 3 entry exists, Layer 3 must have the sentence anyway. The warning message ends with what the path names. The path ids are those of the Layer 2 elements that realize the scenario, joined with `, `; the parts are those found in the path text, joined with `, `. The lint prints exactly these forms, each shown here as the lint printed it:
   - A path with one part: `vision-3.1 has no rule in Layer 3; path structure-6.1 names part Brakes`
@@ -180,17 +183,17 @@ Fires when a Layer 1 Value scenario (a numbered item under Value) is not realize
 Silent when:
 - Layer 3 has no `(part)` entry at all (no trace needed)
 - The Layer 2 check does not run when the document has no valid `## Layer 2: Structure` heading (`<id> has no path in Layer 2` is silent); the Layer 3 check does not run when it has no valid Layer 3 heading
-- The Value item is not numbered
+- The Value item is a paragraph
 
 #### Check: `limit-quality`
 
 Fires when a Limit item in a Layer 3 entry cites a quality by name (in the form `(Layer 1, <X>)`) that is not named in Layer 1 Qualities and constraints.
 
-A quality's name is read from each item of Layer 1 Qualities and constraints, after the item's own number and leading stars are taken off. The name is the text of the first `**...**` pair anywhere in the item, with a trailing `:` removed. When at least one item holds a bold pair, a plain name counts too: the text before the first `:` when that colon is followed by white space or ends the item and that text holds no `*`. A number with no space after it, a single star, and a colon glued to the next word name nothing. The text is read as written, so a bold name inside a code span names a quality. A Limit is read by its last `(Layer 1, <X>)`, X holding no parenthesis and trimmed; a citation with a parenthesis inside X is not read. X may be a quality name, a Layer 1 topic name or a Layer 1 id, or begin with `Not supplied:`; names are compared without case, with runs of white space collapsed. An id of another document (`structure-N.M`, `detail.<part>-N.M`) is not a Layer 1 id and warns like an unnamed quality.
+A quality's name is read from each item of Layer 1 Qualities and constraints, after leading stars are taken off. The name is the text of the first `**...**` pair anywhere in the item, with a trailing `:` removed. When at least one item holds a bold pair, a plain name counts too: the text before the first `:` when that colon is followed by white space or ends the item and that text holds no `*`. A single star and a colon glued to the next word name nothing. The text is read as written, so a bold name inside a code span names a quality. A Limit is read by its last `(Layer 1, <X>)`, X holding no parenthesis and trimmed; a citation with a parenthesis inside X is not read. X may be a quality name, a Layer 1 topic name or a Layer 1 id, or begin with `Not supplied:`; names are compared without case, with runs of white space collapsed. An id of another document (`structure-N.M`, `detail.<part>-N.M`) is not a Layer 1 id and warns like an unnamed quality.
 
 Silent when:
 - The element has no citation, or its citation reads `Not supplied:` after the opening paren
-- The cited item is a Layer 1 id (format `vision-N.M`, in lower case, N and M plain numbers from 1; `Vision-3.6`, `vision-03.6`, `vision-3.0` and `vision-3.6.1` warn)
+- The cited item is a Layer 1 id (format `vision-N.M`, nested ids such as `vision-6.1.2` included, in lower case, N and M plain numbers from 1; `Vision-3.6`, `vision-03.6` and `vision-3.0` warn)
 - Layer 1 has no Qualities and constraints topic, or no item with a bold name (the check then prints nothing, not even an INFO line)
 - The item is a table row
 
@@ -198,7 +201,7 @@ Silent when:
 
 Fires when a Layer 2 or Layer 3 element holds a `Realizes <id>` sentence (the first one only), where `<id>` is a defined Layer 1 Value item, and the element does not keep the Given and when text of the scenario word for word.
 
-The Given-and-when text is the element text after its number and after the `Realizes <id>.` sentence, up to the first `, then `, compared word for word with the scenario's text after its number, also up to the first `, then `. White space is collapsed for comparison.
+The Given-and-when text is the element text after the `Realizes <id>.` sentence, up to the first `, then `, compared word for word with the scenario's text, also up to the first `, then `. White space is collapsed for comparison.
 
 Silent when:
 - The `Realizes <id>` sentence is inside a code span (a span is not read, as in `scenario-form`)
@@ -209,9 +212,9 @@ Silent when:
 #### Check: `cost-shape`, `risk-shape`, `concern-shape`
 
 Each fires when an item under Costs, Risks or Open Concerns is malformed or does not match its shape:
-- Costs: `<number>. Given <condition>, when <subject state>, then it costs <amount>. Paid by <who>.` or the older form `<number>. <What>: <amount>. Paid by <who>.` with a valid amount (number, optional decimals, currency symbol optional)
-- Risks: `<number>. Given <situation>, when <event>, then <result>. Severity: High|Medium|Low|Not rated. Answered by <answer>.`
-- Open Concerns: `<number>. Given <situation>, when <event>, then <result>. Raised by <who>.`
+- Costs: `Given <condition>, when <subject state>, then it costs <amount>. Paid by <who>.` or the older form `<What>: <amount>. Paid by <who>.` with a valid amount (number, optional decimals, currency symbol optional)
+- Risks: `Given <situation>, when <event>, then <result>. Severity: High|Medium|Low|Not rated. Answered by <answer>.`
+- Open Concerns: `Given <situation>, when <event>, then <result>. Raised by <who>.`
 - A line reading `None.` or `Not supplied: <text>` is accepted without the shape
 
 Silent when:
@@ -219,21 +222,35 @@ Silent when:
 - The item is `None.` or every line of the item body is `Not supplied:`
 - The item sits in Layer 3 with no `(part)` entry
 
+#### Check: `list`
+
+Fires when a list is not a standard Markdown ordered list:
+- An item starts with `-`, `*` or `+`. The message is `'-' starts an unordered list item; write it as '<n>.'`, where `<n>` is the item's place in its list. When the item text starts with a number or a full id, the message ends `and drop the number from the text`.
+- An item starts `N)`. The message is `'N)' is not the list marker; write it as 'N.'`.
+- An item's number is not its place in its list. The message is `item number <N> is not <n>, its place in the list; a list counts 1, 2, 3 with no gap`.
+
+A list is the run of items at one depth under one parent. The first list under a topic starts at 1; a second list under the same topic, after a paragraph, a fenced block or a table, continues the count; a list nested in an item starts at 1. A nested item belongs to the item above it when its marker sits at or after the item's text column (three spaces under `1.` to `9.`, four under `10.` to `99.`). The check reads the whole document outside fenced blocks, so it also reads a view, text before the first topic and the Layer 3 text before the first entry. An ordered marker starts a list item in the middle of a paragraph only when its number is 1 (CommonMark), and a marker of ten or more digits is text.
+
+Silent when: the line is inside a fenced block, is a table row, is a thematic break (`---`, `***`) or is an indented code block.
+
 #### Check: `id`
 
-Fires when an item's number is wrong or taken:
-- A numbered topic item with no number, in topics that require one (in any layer or entry)
-- A number under the wrong topic by name
-- The same id appears twice in the same document
-- A Layer 3 item in an entry whose slug does not match a part in Layer 2 Parts
-- A part name in Layer 2 Parts that is not one word (letters, digits, underscores)
-- The item starts with a full id form like `vision-3.1.` (the old style); only the number should be written
+Fires when an item's place or text is wrong:
+- A paragraph under a topic that counts a paragraph as an item (Value, Costs, Risks, Open Concerns, Assumptions, Decisions in every layer; Scenario paths; Rules, Limits and Construction). The message is `an item under <Topic> has no number`.
+- A topic heading whose number is not the topic's number in its layer guide, when a list sits under it. The message is `<Topic> is numbered <N>, but it is topic <T> of Layer <L>; its items take ids for topic <T>`, once, at the heading.
+- An item whose text starts with a number (`6.1.`) or a full id (`vision-6.1.`). The message is `the item starts with '<text>'; the list gives its number, so write the item without it`.
+- The same id twice in one document, which only a repeated topic can cause.
+- A Layer 3 item in an entry whose slug does not match a part in Layer 2 Parts.
+- A part name in Layer 2 Parts that is not one word (letters, digits, underscores).
 
-Reports once per item. A prose paragraph (lines up to a blank) counts as one item, numbered or not. An item under a numbered topic needs a number; prose and items under unnumbered topics do not. Table rows, `None.`, `Not supplied:` and `Title:` lines are exempt. The lint checks that numbers are unique, not their order or gaps.
+A `## View: <Name>` section is a document of its own for ids. Its items take the id `view.<name>-<place>`, the name in lower case (`view.lifecycle-1`), and a nested list extends it (`view.lifecycle-2.1`); the whole section is one list, so its items count 1, 2, 3 across it. A view name that is not one word of letters and digits draws `view name '<Name>' is not one word`; two views with one name draw the repeated-id warning. A view may cite the ids of any layer, and no part is shut out; a layer that cites a view id draws `id-ref` (outward).
+
+The id of a list item is the document, a hyphen, the topic's number and the item's place in its list, with nested places joined by dots (`vision-6.2`, `vision-6.2.1`). The topic's number is the canonical number of the topic named in the heading. Table rows, `None.`, `Not supplied:` and `Title:` lines are not checked for form. The form checks (`scenario-form`, `reasons`, `limit-quality`, `realizes-text` and the three shape checks) read depth-1 items only.
 
 Silent when:
 - The layer is invalid (no topics to judge)
 - The item is in a Layer 3 with no entry
+- The line sits under no topic (text before the first topic, the Layer 3 text before the first entry); such items have no id. The items of a view take view ids.
 
 #### Check: `id-ref`
 
@@ -247,6 +264,16 @@ Does not fire for ids cited in the `Answered by` field of a Risk item after the 
 Silent when:
 - The id is defined in the layer or inward of it
 - The id is inside a code span or fence
+
+#### Check: `count-ref`
+
+Fires when blueprint text names an item by its count or its place in words, which no tool can keep true when a list changes. The message is `'<text>' names an item by its count or place; cite it by its id (for example vision-6.2)`. It reads four forms, case-insensitive:
+- an ordinal (`first`, `second`, ... `tenth`, `last`, `previous`, `next`), at most one more word, and a kind of item: `item`, `quality`, `constraint`, `cost`, `risk`, `concern`, `scenario`, `decision`, `assumption`, `rule`, `limit`, `term`, `path` or `seam` (`the third quality`, `the next open concern`)
+- `item` and a number (`item 2`), or a kind from the list, then `#` or `no.` and a number (`risk #3`)
+- a kind from the list with `above` or `below` on either side (`the rule above`, `below risks`)
+- `see` or `cf.` and a number with a dot (`see 6.2`)
+
+It reads all blueprint text outside code spans and fenced blocks, including a view and the text before the first layer heading, one line at a time. Silent when: the text cites an id (`vision-6.2`), uses the `settles open concern <number>` form, is a table row or a `Title:` line, or names a part by ordinal (`the first part`; a part is cited by its name). The check is advisory: rewrite the sentence as an id citation, or rephrase it when it is not a reference.
 
 #### Check: `risk-ref`
 
@@ -364,15 +391,21 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `reasons` | `decision needs 'Reason:'` |
 | `scenario-trace` | `<id> has no path in Layer 2` |
 | `scenario-trace` | `<id> has no rule in Layer 3; path <path-ids> names part <Part>` or `... names parts <Part>, <Part>`, `<id> has no rule in Layer 3; its path <path-ids> names no part`, `<id> has no rule in Layer 3; its path names part <Part>` or `... names parts <Part>, <Part>`, or `<id> has no rule in Layer 3; its path names no part` |
-| `cost-shape` | `a line under Costs must be 'None.' or start '<T>.<n>.'` where T is the Costs topic number of the layer (8 in Layers 1 and 3, 7 in Layer 2), or `a cost must read '<T>.<n>. Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '<T>.<n>. <What>: <amount>. Paid by <who>.' is also accepted)` |
-| `risk-shape` | `a line under Risks must be 'None.' or start '<T>.<n>.'` where T is the Risks topic number of the layer (9 in Layers 1 and 3, 8 in Layer 2), or `a risk must read '<T>.<n>. Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'` |
-| `concern-shape` | `a line under Open Concerns must be 'None.' or start '<T>.<n>.'` where T is the Open Concerns topic number of the layer (10 in Layers 1 and 3, 9 in Layer 2), or `an open concern must read '<T>.<n>. Given ..., when ..., then .... Raised by <who>.'` |
+| `cost-shape` | `a line under Costs must be 'None.' or a list item`, or `a cost must read 'Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '<What>: <amount>. Paid by <who>.' is also accepted)` |
+| `risk-shape` | `a line under Risks must be 'None.' or a list item`, or `a risk must read 'Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'` |
+| `concern-shape` | `a line under Open Concerns must be 'None.' or a list item`, or `an open concern must read 'Given ..., when ..., then .... Raised by <who>.'` |
 | `id` | `an item under <Topic> has no number` |
-| `id` | `<id> is numbered for topic <T>, but sits under <Topic>` |
+| `id` | `<Topic> is numbered <N>, but it is topic <T> of Layer <L>; its items take ids for topic <T>` |
+| `id` | `the item starts with '<text>'; the list gives its number, so write the item without it` |
+| `list` | `'<m>' starts an unordered list item; write it as '<n>.'` (with ` and drop the number from the text` when the item text starts with a number or a full id) |
+| `list` | `'<N>)' is not the list marker; write it as '<N>.'` |
+| `list` | `item number <N> is not <n>, its place in the list; a list counts 1, 2, 3 with no gap` |
+| `id` | `view name '<Name>' is not one word` |
+| `count-ref` | `'<text>' names an item by its count or place; cite it by its id (for example vision-6.2)` |
 | `id` | `<id> repeats the one on <place>` |
 | `id` | `<id> names '<slug>', which is not a part in Layer 2 Parts` |
 | `id` | `part name '<name>' is not one word` |
-| `id` | `write '<Topic>.<N>.' at the start of the item; the document goes only in a citation` (old form) |
+| `id` | `the item starts with '<text>'; the list gives its number, so write the item without it` |
 | `id-ref` | `<id> is not defined` |
 | `id-ref` | `<id> is defined in <doc>, which is outward of Layer <N>` |
 | `id-ref` | `<id> belongs to another part, and the entry '<Part>' may not cite it` |
@@ -397,6 +430,16 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/documen
 ```
 
 Use this in a gate to fail a build when warnings are present.
+
+## Use --ids
+
+To list every id a document defines, with the file and the lines of the item, run:
+
+```
+node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --ids path/to/document.md
+```
+
+One line per id, in document order, tab separated: `<id>`, `<file>`, `<line>`, `<end>`. `<file>` is the file name inside a folder and the path as given for one file. `<line>` is the item's first line and `<end>` its last line, counting its continuation lines and its nested items; both are lines of that file. Paragraphs have no id and print nothing, and the items of a view print as view ids. The run prints no warning. Exit codes: `0`, and `2` for a missing path, an unreadable file or an extra argument, with nothing on stdout. The `insert` and `delete` commands of `strata-blueprints.mjs` read this listing.
 
 ## Use --impact
 
@@ -427,7 +470,7 @@ INFO impact: <count> element(s) reached, deepest <depth>
 
 - Line 1: `impact <id>: defined in Layer N, <place>` where `<place>` is the file and line number
 - Line 2: the id bare, on its own line
-- Tree lines: each element that cites the id, indented two spaces per depth level. Fields are separated by two spaces: depth marker `d<N>`, place (`line N` or `file line N`), layer path (`Layer <N> > <Topic Name>`, such as `Layer 1 > Value` or `Layer 2 > Scenario paths`; `Layer <N> > -` for an element of Layer 1 or 2 with no topic, such as the Scope line; `Layer 3 > <Part> (part) > <Topic Name>`, or `Layer 3 > <Part> (part)` with no topic; `Layer 3 > -` in Layer 3 outside any entry; `Other` for an element outside any layer), the citing id if numbered or `-` if prose, and the element's text. Text is cut at 80 characters with `...` appended if longer. Text of an item with an id includes its number at the start, like `6.1. Given ...`
+- Tree lines: each element that cites the id, indented two spaces per depth level. Fields are separated by two spaces: depth marker `d<N>`, place (`line N` or `file line N`), layer path (`Layer <N> > <Topic Name>`, such as `Layer 1 > Value` or `Layer 2 > Scenario paths`; `Layer <N> > -` for an element of Layer 1 or 2 with no topic, such as the Scope line; `Layer 3 > <Part> (part) > <Topic Name>`, or `Layer 3 > <Part> (part)` with no topic; `Layer 3 > -` in Layer 3 outside any entry; `View <Name>` for an element of a view, `Other` for an element outside any layer), the citing id if a list item or `-` if prose, and the element's text. Text is cut at 80 characters with `...` appended if longer. Text of an item is its text as written, with no number (the list gives it), like `Given ...`
 - Only explicit citations are listed: an element that cites the id by writing it. A Limit that cites a quality by name is not listed; re-read those by hand.
 - Elements appear in document order, each once, under the first element that cites it at the shallowest depth
 - Warnings: `WARN impact: cycle <id1> ... <id2>` when a citation would loop back; such elements are not followed. `WARN impact: <id> is defined on lines <line1> and <line2>` when the id is defined twice (in a folder run the two numbers are lines of the assembled document, not of the files; this is accidental)

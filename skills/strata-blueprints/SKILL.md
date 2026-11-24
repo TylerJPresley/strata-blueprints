@@ -4,7 +4,7 @@ description: "Describe any subject as three zoom layers (Vision, Structure, Deta
 license: "MIT"
 compatibility: "Plain Markdown; only the scripts in scripts/ need a Node.js LTS"
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Strata Blueprints (three zoom layers for any subject)
@@ -32,7 +32,7 @@ Load a file when its job comes up, and no sooner.
 | `references/strata-blueprints-example-todo-app/` | Unsure how all three layers look, or how a stack in separate files looks: a software product. |
 | `references/strata-blueprints-example-rfp.md` | Writing a spec for others to answer, such as an RFP: the issuer fixes the limits and leaves the means to the bidder. |
 | `scripts/strata-blueprints-lint.mjs` | Linting a blueprint or folder, and the impact check. |
-| `scripts/strata-blueprints.mjs` | Condensing a blueprint for reading, or publishing it as one document. |
+| `scripts/strata-blueprints.mjs` | Condensing a blueprint for reading, publishing it as one document, or adding or deleting one list item with its cascade. |
 | `LICENSE` | Never: MIT. |
 
 ## AUTHOR
@@ -58,6 +58,7 @@ The builder is an agent working with a person. The blueprint is the reference fo
 ## Limits
 - An agent works with a person: it asks, confirms and reports. It never settles an open question, or fills a `Not supplied:`, on its own.
 - After any change to a blueprint, run the impact check (`node scripts/strata-blueprints-lint.mjs --impact <id>[,<id>...] <blueprint-or-folder>`, naming every id changed) and settle every element it lists before moving on.
+- When a change adds or deletes a list item, run `node scripts/strata-blueprints.mjs insert <id> <blueprint> --text <text>` or `delete <id> <blueprint>` first, read the impact, settle every unresolved citation, then add `--apply`.
 - Never record an answer for a lower layer that changes an upper layer. Move it to the upper layer first, have the owner confirm it there, then cascade it down.
 - Change a blueprint under review only when the owner asks.
 

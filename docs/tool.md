@@ -24,7 +24,7 @@ Exit codes: 0 for success; 2 for a refusal or a usage error, with `strata-bluepr
 
 Condense leaves out a topic only when its whole body is the single line `None.`. All other cases keep the topic:
 - `None.` followed by another line
-- `- None.`, `**None.**`, or `None` without the period
+- `1. None.`, `**None.**`, or `None` without the period
 - A fenced code block inside the topic
 - Any line with `Not supplied:` anywhere
 
@@ -60,7 +60,9 @@ See [example-published.md](example-published.md), created with `node skills/stra
 
 ### The merge
 
-When the input is a folder, the files are merged in this order: `sbp-vision.md`, `sbp-structure.md`, then each `sbp-detail-*.md` in the order that parts are listed in the Parts topic (any detail file not named in Parts comes last, by file name).
+When the input is a folder, the files are merged in this order: `sbp-vision.md`, `sbp-structure.md`, then each `sbp-detail-*.md` in the order that parts are listed in the Parts topic (any detail file not named in Parts comes last, by file name). A Parts line is an ordered list item (`1. Ledger (part): ...`).
+
+The table of contents is an ordered list: `1. [Layer 1: Vision](#layer-1-vision)`, with the topics of a layer nested under it and counting from 1 again, indented to the parent's text (three spaces under `1.` to `9.`, four under `10.` to `99.`). Its numbers count entries; they are not topic numbers.
 
 **First file:** The first file keeps its leading `# ` title heading, any `Version:`, `Status:`, `Blueprint status:` and `Parent:` metadata lines, and all text before its first layer heading. If the first file holds a `Blueprint status:` line in its top matter, that line is renamed to `Status:` in the published document and the file's own `Status:` line (if present) is dropped; otherwise the first file's `Status:` line is kept. The `Status:` lines of the later files are dropped either way. `Condense` preserves all lines as-is; `publish` applies this rule when merging. Note: `publish` copies an invalid `Blueprint status:` value unchecked; the lint must be run on source files to catch status errors before publishing.
 
@@ -72,15 +74,15 @@ When the input is a folder, the files are merged in this order: `sbp-vision.md`,
 
 ### What publish leaves out
 
-A topic is dropped when its whole body is `None.`, or when every non-blank line of its body is `Not supplied:` preceded by an optional leading list marker (`-`, `*`, or `+`). Examples:
-- `6.1. None.` — kept (numbered items are not dropped)
-- `- Not supplied: Pending owner decision.` — dropped if that is the only line
-- `- Not supplied: pending\n- Not supplied: owner decision` — dropped if those are the only lines
-- `6.1. Not supplied: part 1\nNot supplied: part 2` — kept, because it has a number
+A topic is dropped when its whole body is `None.`, or when every non-blank line of its body is `Not supplied:` preceded by an optional list marker (`1.`, `-`, `*` or `+`). Examples:
+- `1. None.` — kept (a list item is not dropped)
+- `1. Not supplied: Pending owner decision.` — dropped if that is the only line
+- `1. Not supplied: pending` and `2. Not supplied: owner decision` — dropped if those are the only lines
+- `1. Not supplied: part 1` followed by a line that is not a `Not supplied:` line (another item, or a wrapped line) — kept
 
-Topics with an item number, a wrapped continuation, a fenced block or a table are kept with `Not supplied:` lines included. Nothing is renumbered and no id or citation is rewritten.
+A topic with any line that is not a `Not supplied:` line (an item, a wrapped line, a fenced block or a table) is kept with its `Not supplied:` lines included. Nothing is renumbered and no id or citation is rewritten; only `insert` and `delete` (below) change positions, and they rewrite the citations of every id they move.
 
-A Standing line still names the original source file of its part, even in the published document (e.g., `Ledger: sbp-detail-ledger.md`).
+A Standing line still names the original source file of its part, even in the published document (e.g., `1. Ledger: sbp-detail-ledger.md`).
 
 When a topic body is entirely `None.` (alone) or entirely `Not supplied:` lines with no other text (after blank lines are removed), the topic is dropped and the reason reported. `None.` and `Not supplied:` are dropped only in that case, never when they appear with other content.
 
@@ -146,6 +148,25 @@ Exit codes: 0 for success; 2 for a refusal or error, with `strata-blueprints: <m
 | Input file has no layer heading at all | `strata-blueprints: <filename>: no layer heading found` |
 | Publishing: a layer heading is wrong (for publish, folder mode) | `strata-blueprints: <filename>: '## Layer X: ...' does not belong in <filename>, which holds Layer Y` |
 | Publishing: a kept line cites an id inside a topic that was dropped | `strata-blueprints: <file> line <N>: cites <id>, which is in topic <T>. <Name> of <doc>, left out of the published document (<kind>)` where `<kind>` is `None.` or `Not supplied:` |
+
+## Insert and delete an item
+
+```
+node skills/strata-blueprints/scripts/strata-blueprints.mjs delete <id> <file or folder> [--apply] [--ack <handle>[,<handle>...]]
+node skills/strata-blueprints/scripts/strata-blueprints.mjs insert <id> <file or folder> [--text <text> | --text-file <path> | --needs <text>] [--apply]
+```
+
+Both commands cascade the change through the stack: every later item in the list and every item nested in them takes the id of its new place, and every citation of a moved id, in every layer and file, is rewritten to the new id. Without `--apply` they print the report and write nothing. With `--apply` they write every changed file or none. `--apply`, `--ack`, `--text`, `--text-file` and `--needs` are unknown options for `condense` and `publish`, and `--out` and `--force` are unknown options for `insert` and `delete`.
+
+`delete` removes the item with its nested items. `insert` puts the new item at `<id>`; the item now there and every later one move down. To add an item at the end of a list, give the id one past the last item (nothing moves), or write the next number by hand. To add the first nested item, give `<parent id>.1`. A move is `delete`, then `insert`. With `--text` or `--text-file` the item is the text you give (a file holds the first line and its continuation lines). With neither, the item is an open placeholder, `Not supplied: what this item says.` (or `Not supplied: <text>` with `--needs <text>`), which the lint treats as an open question and not as a malformed item; write its text, and a Value scenario's path, by hand afterwards. A new item whose text needs a path, a rule or a reason draws a new lint warning and the tool refuses it, so add such an item as a placeholder first.
+
+The report has these parts, in this order: the line `cascade <command> <id> in <path>`; `== impact ==` and the output of `--impact` for the id and the ids nested in it; `== shift ==`, which lists each old id and its new id, first item to last; `== citations ==`, with a `rewrite` line for each citation of a moved id and an `UNRESOLVED` line for each citation of a deleted id (each line carries the citing item's handle, its id, or `<file>:<line>`, and how it cites: `id`, `Realizes`, `Answered by`, `(Layer N, id)` or `settles open concern`); `== lint ==`, the warnings before and after and every new warning; `== result ==`.
+
+A citation of the deleted item cannot be rewritten; the citing item reopens for you. `--apply` is refused until each `UNRESOLVED` line is gone (edit the citing item and run again) or acknowledged with `--ack <handle>`, the handle the line prints. An acknowledged citation stays as written. When the deleted item was the last in its list, the id no longer exists and the lint reports it as not defined. When a later item moved up, the id now names that item, and the lint reports `realizes-text` (or another mismatch) because the citing item does not match the item it now cites. A `settles open concern <number>` citation of a deleted concern cannot be acknowledged, and the delete is refused until the Decision is reworded to name the concern by its words.
+
+The tool lints a scratch copy of the result. It refuses the change, and writes nothing, when the result has a warning the original did not have (two equal warnings count as two). It first writes every changed file to a temporary file beside it (`.<name>.strata-tmp-<pid>`), and only then renames each into place; if one rename fails it restores the files it already renamed. If a run is killed part-way (an interrupted run), the temporary files stay. The next `insert` or `delete` run, preview or apply, finds them first, lists each with the file it was meant for, writes nothing and exits 2. The tool never deletes them: delete each temporary file to undo the run, or rename each over its file, in the order listed, to finish it, then run the lint. A rename replaces a file whole, so each file is old or new, never half written; git is the backstop against a power loss. The tool refuses a document that draws a `list` warning (close the gap first), a condensed copy or a published document (edit the source files), a symlink and a duplicated id.
+
+It rewrites ids and `settles open concern` numbers only. A sentence that names an item by its count or place (`the third risk`) draws a `count-ref` warning from the lint; rewrite it as an id citation before you run the command, and the cascade then keeps it true. A sentence that names an item by its words stays as written, because words do not move when a list does, and an id inside a code span or a fenced block is an example and is neither read nor rewritten. It reads the lint's `--ids` listing, so the lint script must sit next to the tool. Exit codes: 0 for a preview or an applied change; 2 for a refusal, with `strata-blueprints: <message>` on stderr.
 
 ## Output safety
 

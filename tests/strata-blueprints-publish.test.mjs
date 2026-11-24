@@ -33,10 +33,10 @@ const fxT = (h, names, have = {}) => names.map((n, i) => `${h} ${i + 1}. ${n}\n\
 const L1 = "## Layer 1: Vision\n\nScope: all.\n\n";
 const L2 = "## Layer 2: Structure\n\nScope: all.\n\n";
 const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
-const vision = (have = { Need: "- 1.1. Members need a shed.", Decisions: "- 12.1. Keep it. Reason: simple." }) =>
+const vision = (have = { Need: "1. Members need a shed.", Decisions: "1. Keep it. Reason: simple." }) =>
   "# Club\n\nVersion: 1.0\nStatus: Draft\n\n" + L1 + fxT("###", T1, have);
 const structure = (parts, have = {}, views = "") =>
-  "# Club\n\n" + L2 + fxT("###", T2, { Parts: parts.map((p) => `- ${p} (part): holds ${p}.`).join("\n"), ...have }) + views;
+  "# Club\n\n" + L2 + fxT("###", T2, { Parts: parts.map((p, i) => `${i + 1}. ${p} (part): holds ${p}.`).join("\n"), ...have }) + views;
 const detail = (part, have = {}) =>
   "# Club\n\n" + L3 + `### ${part} (part)\n\n` + fxT("####", T3, { Responsibility: `${part} holds things.`, ...have });
 const stack = (parts, views = "") => ({
@@ -46,7 +46,7 @@ const stack = (parts, views = "") => ({
 });
 const writeStack = (dir, o) => { for (const [n, t] of Object.entries(o)) put(dir, n, t); return dir; };
 // A one-document source in standard form.
-const doc = (o1 = { Need: "N." }, o2 = { Parts: "- Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }, tail = "") =>
+const doc = (o1 = { Need: "N." }, o2 = { Parts: "1. Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }, tail = "") =>
   "# Club\n\n" + L1 + fxT("###", T1, o1) + "\n" + L2 + fxT("###", T2, o2) + "\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, o3) + tail;
 const headingsOf = (text, re) => lines(text).filter((l) => re.test(l));
 const partNames = (text) => headingsOf(text, /^### .+ \(part\)$/).map((l) => l.slice(4, -7));
@@ -63,7 +63,7 @@ function linkProblems(text) {
     have.add(k ? `${s}-${k}` : s);
   }
   const bad = [];
-  for (const m of text.matchAll(/^\s*- \[.*\]\(#([^)]*)\)\r?$/gm)) if (!have.has(m[1])) bad.push(m[1]);
+  for (const m of text.matchAll(/^\s*\d+\. \[.*\]\(#([^)]*)\)\r?$/gm)) if (!have.has(m[1])) bad.push(m[1]);
   return bad;
 }
 
@@ -158,13 +158,13 @@ test("publish: table of contents", () => {
   const src = [
     "# Club", "",
     "## Layer 1: Vision", "", "Scope: all.", "",
-    "### 1. Need", "", "- 1.1. Members need a shed.", "", "```", "### Hidden", "```", "",
+    "### 1. Need", "", "1. Members need a shed.", "", "```", "### Hidden", "```", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Access (part): gate.", "",
+    "### 1. Parts", "", "1. Access (part): gate.", "",
     "## Layer 3: Detail", "", "Scope: one part.", "",
     "### Access (part)", "",
     "#### 1. Responsibility", "", "Opens the gate.", "",
-    "#### 12. Decisions", "", "- 12.1. Keep. Reason: simple.", "",
+    "#### 12. Decisions", "", "1. Keep. Reason: simple.", "",
     "## View: X", "", "Text.", "",
     "## View: X", "", "Text 2.", "",
     "## View: [beta]", "", "Text 3.", "",
@@ -174,17 +174,17 @@ test("publish: table of contents", () => {
   const t = pub({ "club.md": src }).text;
   const toc = [
     "## Contents", "",
-    "- [Layer 1: Vision](#layer-1-vision)",
-    "  - [1. Need](#1-need)",
-    "- [Layer 2: Structure](#layer-2-structure)",
-    "  - [1. Parts](#1-parts)",
-    "- [Layer 3: Detail](#layer-3-detail)",
-    "  - [Access (part)](#access-part)",
-    "- [View: X](#view-x)",
-    "- [View: X](#view-x-1)",
-    "- [View: \\[beta\\]](#view-beta)",
-    "- [12. Decisions](#12-decisions-1)",
-    "- [Hidden](#hidden)",
+    "1. [Layer 1: Vision](#layer-1-vision)",
+    "   1. [1. Need](#1-need)",
+    "2. [Layer 2: Structure](#layer-2-structure)",
+    "   1. [1. Parts](#1-parts)",
+    "3. [Layer 3: Detail](#layer-3-detail)",
+    "   1. [Access (part)](#access-part)",
+    "4. [View: X](#view-x)",
+    "5. [View: X](#view-x-1)",
+    "6. [View: \\[beta\\]](#view-beta)",
+    "7. [12. Decisions](#12-decisions-1)",
+    "8. [Hidden](#hidden)",
     "", "## Layer 1: Vision",
   ].join("\n");
   assert.ok(t.includes("# Club\n\n" + toc + "\n"), t);
@@ -236,7 +236,7 @@ test("publish: None. and Not supplied: mixed", () => {
   const o1 = {
     Need: "None.\n\nMore text.",
     "Target audience": "- None.",
-    Value: "Not supplied: x.\n\n- 3.1. Item.",
+    Value: "Not supplied: x.\n\n1. Item.",
     Focus: "Not supplied: a.\n\nNone.",
     "Success measures": "- Not supplied: a\n  wrapped continuation.",
     "Qualities and constraints": "- Not supplied: a.\n- Not supplied: b.\n\nNot supplied: c.",
@@ -260,14 +260,14 @@ test("publish: dropped and open lines", () => {
   const src = [
     "# Club", "",
     "## Layer 1: Vision", "", "Scope: all.", "",
-    "### 1. Need", "", "- 1.1. Members need a shed.", longOpen, "",
+    "### 1. Need", "", "1. Members need a shed.", longOpen, "",
     "### 3. Value", "", "Not supplied: the value.", "",
     "### 4. Focus", "", `Not supplied: ${long}`, "",
     "### 8. Costs", "", "None.", "",
     "### 9. Risks", "", "- Not supplied: a risk.", "- Not supplied: another.", "",
-    "### 12. Decisions", "", "- 12.1. Write `Not supplied:` for gaps. Reason: r.", "",
+    "### 12. Decisions", "", "1. Write `Not supplied:` for gaps. Reason: r.", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Shed (part): holds tools.", "",
+    "### 1. Parts", "", "1. Shed (part): holds tools.", "",
   ].join("\n");
   tmp((dir) => {
     const f = put(dir, "club.md", src);
@@ -293,16 +293,16 @@ test("publish: dropped and open lines", () => {
 
 test("publish: dangling citation", () => {
   const src = (need, extra = {}) => doc({ Need: need, "Success measures": "None.", ...extra }, undefined, undefined);
-  const cite = "- 1.1. See vision-5.1 for the measure.";
+  const cite = "1. See vision-5.1 for the measure.";
   const lns = lines(src(cite));
   const n = lns.indexOf(cite) + 1;
   assert.throws(() => pub({ "club.md": src(cite) }), (e) => e.message === `club.md line ${n}: cites vision-5.1, which is in topic 5. Success measures of vision, left out of the published document (None.)`);
   assert.throws(() => pub({ "club.md": src(cite, { "Success measures": "Not supplied: the measure." }) }), /\(Not supplied:\)$/);
   // not an error: in a code span, in a fence, in a dropped topic, a kept topic
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See `vision-5.1`.") }));
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Fine.\n\n```\nvision-5.1\n```") }));
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Fine.", { Costs: "Not supplied: see vision-5.1." }) }));
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See vision-1.1.") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("1. See `vision-5.1`.") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("1. Fine.\n\n```\nvision-5.1\n```") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("1. Fine.", { Costs: "Not supplied: see vision-5.1." }) }));
+  assert.doesNotThrow(() => pub({ "club.md": src("1. See vision-1.1.") }));
   // a detail.<part> citation is checked, across files
   const s = stack(["Shed"]);
   s["sbp-detail-shed.md"] = detail("Shed", { Responsibility: "Holds things. See detail.shed-4.1." });
@@ -312,7 +312,7 @@ test("publish: dangling citation", () => {
   assert.throws(() => pub(s2), /sbp-structure\.md line \d+: cites detail\.shed-4\.1/);
   // the command writes nothing and prints one line per citation
   tmp((dir) => {
-    const f = put(dir, "club.md", src(cite + "\n- 1.2. Also vision-5.2."));
+    const f = put(dir, "club.md", src(cite + "\n2. Also vision-5.2."));
     const out = path.join(dir, "out.md");
     const c = cli("publish", f, "--out", out);
     assert.equal(c.code, 2);
@@ -369,12 +369,12 @@ test("publish: marker lines of merged files", () => {
 
 test("publish: numbers and ids kept", () => {
   const s = {
-    "sbp-vision.md": vision({ Need: "- 1.1. Members need a shed.", Value: "- 3.1. A shed is held. Realizes vision-1.1.", Decisions: "- 12.1. Keep it. Reason: vision-1.1." }),
-    "sbp-structure.md": structure(["Shed"], { "Seams between parts": "- 3.1. Seam. See vision-3.1 and detail.shed-1.1.", "Scenario paths": "- 6.1. Path. Realizes vision-3.1." }),
-    "sbp-detail-shed.md": detail("Shed", { Responsibility: "- 1.1. Holds tools. Realizes vision-3.1.", Rules: "- 4.1. Lock it. See structure-3.1.", Decisions: "- 12.1. Keep. Reason: simple." }),
+    "sbp-vision.md": vision({ Need: "1. Members need a shed.", Value: "1. A shed is held. Realizes vision-1.1.", Decisions: "1. Keep it. Reason: vision-1.1." }),
+    "sbp-structure.md": structure(["Shed"], { Parts: "Shed (part): holds Shed.", "Seams between parts": "1. Seam. See vision-3.1 and detail.shed-1.1.", "Scenario paths": "1. Path. Realizes vision-3.1." }),
+    "sbp-detail-shed.md": detail("Shed", { Responsibility: "1. Holds tools. Realizes vision-3.1.", Rules: "1. Lock it. See structure-3.1.", Decisions: "1. Keep. Reason: simple." }),
   };
   const r = pub(s);
-  const keep = (text) => lines(text).filter((l) => /^\s*[-*]?\s*\**\d+\.\d+\./.test(l) || /\b(?:vision|structure|detail\.[a-z0-9]+)-\d+\.\d+/.test(l));
+  const keep = (text) => lines(text).filter((l) => /^\s*\d+\.\s(?!\[)/.test(l) || /\b(?:vision|structure|detail\.[a-z0-9]+)-\d+\.\d+/.test(l));
   const want = ["sbp-vision.md", "sbp-structure.md", "sbp-detail-shed.md"].flatMap((n) => keep(s[n]));
   assert.equal(want.length, 8);
   assert.deepEqual(keep(r.text), want);
@@ -613,20 +613,53 @@ test("publish and condense: Status, Version and Parent in the top matter of ever
 
 test("publish: a double-backtick span around an id is not a citation", () => {
   const src = (need) => doc({ Need: need, "Success measures": "None." });
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See ``vision-5.1`` for the measure.") }));
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See `vision-5.1` for the measure.") }));
-  assert.throws(() => pub({ "club.md": src("- 1.1. See vision-5.1 for the measure.") }), /cites vision-5\.1, which is in topic 5/);
+  assert.doesNotThrow(() => pub({ "club.md": src("1. See ``vision-5.1`` for the measure.") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("1. See `vision-5.1` for the measure.") }));
+  assert.throws(() => pub({ "club.md": src("1. See vision-5.1 for the measure.") }), /cites vision-5\.1, which is in topic 5/);
 });
 
 test("publish: Not supplied inside a double-backtick span is not an open question", () => {
   const q = (need) => pub({ "club.md": doc({ Need: need }) }).questions;
-  assert.equal(q("- 1.1. Write ``Not supplied: x`` in the text."), 0);
-  assert.equal(q("- 1.1. Write `Not supplied: x` in the text."), 0);
-  assert.equal(q("- 1.1. Not supplied: x."), 1);
+  assert.equal(q("1. Write ``Not supplied: x`` in the text."), 0);
+  assert.equal(q("1. Write `Not supplied: x` in the text."), 0);
+  assert.equal(q("Context.\n\n1. Not supplied: x."), 1);
 });
 
 test("publish: an id after an inner three-backtick row in a four-backtick fence stays hidden", () => {
   const src = (need) => doc({ Need: need, "Success measures": "None." });
-  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nvision-5.1\n````") }));
-  assert.throws(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nx\n````\n\nSee vision-5.1.") }), /cites vision-5\.1, which is in topic 5/);
+  assert.doesNotThrow(() => pub({ "club.md": src("1. Ok.\n\n````\n```\nvision-5.1\n````") }));
+  assert.throws(() => pub({ "club.md": src("1. Ok.\n\n````\n```\nx\n````\n\nSee vision-5.1.") }), /cites vision-5\.1, which is in topic 5/);
+});
+
+test("ordered: detail files follow Parts written as ordered items, bold or plain", () => {
+  // Parts names Zulu before Mike before Bravo; alpha is not named and goes last.
+  const ordered = (names) => names.map((p, i) => `${i + 1}. ${i === 2 ? `**${p}**` : p} (part): holds ${p}.`).join("\n");
+  const files = {
+    "sbp-detail-alpha.md": detail("Alpha"),
+    "sbp-detail-bravo.md": detail("Bravo"),
+    "sbp-detail-mike.md": detail("Mike"),
+    "sbp-detail-zulu.md": detail("Zulu"),
+    "sbp-structure.md": "# Club\n\n" + L2 + fxT("###", T2, { Parts: ordered(["Zulu", "Mike", "Bravo"]) }),
+    "sbp-vision.md": vision(),
+  };
+  assert.deepEqual(partNames(pub(files).text), ["Zulu", "Mike", "Bravo", "Alpha"]);
+});
+
+test("ordered: the table of contents is an ordered list that counts each level from 1, and the published example lints strict", () => {
+  const t = pub({ "club.md": doc() }).text;
+  const toc = t.slice(t.indexOf("## Contents"), t.indexOf("## Layer 1: Vision"));
+  assert.match(toc, /^## Contents\n\n1\. \[Layer 1: Vision\]\(#layer-1-vision\)\n   1\. \[1\. Need\]\(#1-need\)\n/);
+  assert.match(toc, /\n2\. \[Layer 2: Structure\]/);
+  assert.ok(!/^\s*[-*+] /m.test(toc), toc);
+  const pubFile = path.join(here, "..", "docs", "example-published.md");
+  assert.equal(runLint(pubFile, "--strict").code, 0);
+});
+
+test("ordered: a topic of only ordered Not supplied: items is dropped, and a citation into it refuses", () => {
+  const only = pub({ "club.md": doc({ Need: "1. Not supplied: a.\n2. Not supplied: b." }) });
+  assert.ok(!/### 1\. Need/.test(only.text));
+  assert.ok(only.dropped.length >= 1);
+  const mixed = pub({ "club.md": doc({ Need: "Context.\n\n1. Not supplied: a." }) });
+  assert.ok(/### 1\. Need/.test(mixed.text));
+  assert.throws(() => pub({ "club.md": doc({ Need: "1. Not supplied: a.", Decisions: "1. Keep it. Reason: vision-1.1." }) }), /cites vision-1\.1/);
 });
