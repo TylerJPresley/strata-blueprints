@@ -13,7 +13,7 @@ const TOPICS = {
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   3: ["Responsibility", "Concepts and states", "Seams", "Rules", "Inside", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
 };
-// Topics where a prose paragraph counts as an item and needs its number (each item, written <topic>.<count>, at the start of its line). A list item needs one under any topic.
+// Topics where a prose paragraph counts as an item (core guide, How to fill it out, list rule): each item is its own list item.
 const NEEDS_ID = {
   1: ["Value", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   2: ["Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
@@ -25,15 +25,12 @@ const hasMarker = (firstLine) => (firstLine || "").trim().startsWith(MARKER_PREF
 const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : 3);
 const topicNo = (layer, name) => (TOPICS[layer] ? TOPICS[layer].indexOf(name) + 1 || null : null);
 
-// An item is written with its number, <topic>.<count>: 9.1, 6.2, 7.1. Its id is the document it sits in plus the number:
-// vision-9.1, structure-6.2, detail.ledger-7.1. A citation writes the id in full.
-const NUMBER = /^\**([1-9]\d*)\.([1-9]\d*)(?!\w|-|\.\d)(?=[.:)*\s]|$)/;
-const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
+// Every list is a Markdown ordered list. An item's id is its document, the topic's number from its heading and its place in the list,
+// nested places joined by dots: vision-9.1, structure-6.2, detail.ledger-7.1, vision-6.1.2. A citation writes the id in full.
+const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
-const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`);
-const stripNumber = (s) => s.replace(/^\**[1-9]\d*\.[1-9]\d*(?!\w|-|\.\d)[.:)*]*\s+/, "");
-const START = (s) => NUMBER.test(s) || OWNID.test(s);
-const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
+const parseId = (id) => { const m = id.match(/^(.+?)-([1-9]\d*)((?:\.[1-9]\d*)+)$/); const pos = [m[2], ...m[3].slice(1).split(".")].slice(1).map(Number); return { id, doc: m[1], topic: +m[2], item: pos[0], pos }; };
+const THEMATIC = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
 // A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
 const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
@@ -189,22 +186,31 @@ const els = readElements(rows);
 assignOwn(els);
 for (const e of els) {
   e.cites = [];
-  for (const c of e.body.matchAll(TOKEN)) if (c[1] !== (e.own && e.own.id) && c[1] !== e.oldTok) e.cites.push({ id: c[1], at: c.index });
+  for (const c of e.body.matchAll(TOKEN)) if (c[1] !== (e.own && e.own.id)) e.cites.push({ id: c[1], at: c.index });
   e.topicNo = e.layer ? topicNo(e.layer, e.topic) : null;
 }
 // scenario-form: Given, when, then is required where tracing needs it: a Layer 1 Value scenario, a Layer 2 Scenario path
-// and any item that says Realizes <id>. It reads after the item's own id and after a Realizes sentence. A numbered item, a Realizes item or an item
-// that starts with Given must read in full; None., Not supplied:, Title: and a table row are exempt, and so is an unnumbered item that does not start with Given.
+// and any item that says Realizes <id>. It reads after a Realizes sentence. A list item, a Realizes item or an item
+// that starts with Given must read in full; None., Not supplied:, Title: and a table row are exempt, and so is a paragraph that does not start with Given. It reads depth-1 items only.
 const REALIZES = new RegExp(String.raw`(?<![\w.-])Realizes\s+${IDCORE}(?!\w|-|\.\d)`);
 const traced = (e) => (e.layer === 1 && (e.topic === "Value" || (e.own && e.own.topic === 3)))
   || (e.layer === 2 && (e.topic === "Scenario paths" || (e.own && e.own.topic === 6)))
   || REALIZES.test(e.body);
 for (const e of els) {
   if (!traced(e)) continue;
-  const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
-  const numbered = e.own || new RegExp(String.raw`^\**[1-9]\d*\.[1-9]\d*[.:)]*\**\s`).test(e.text);
-  if (e.table || /^(None\.|Not supplied:|Title:)/.test(scen)) continue;
+  const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
+  const numbered = e.own;
+  if (e.table || e.depth > 1 || /^(None\.|Not supplied:|Title:)/.test(scen)) continue;
   if ((numbered || REALIZES.test(e.body) || scen.startsWith("Given")) && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
+}
+// list: every list is a Markdown ordered list that counts 1, 2, 3 with no gap (core guide, How to fill it out, list rule).
+const ID_START = /^\**((?:(?:vision|structure|detail\.[a-z0-9]+)-)?[1-9]\d*(?:\.[1-9]\d*)+\.)(?=\s|$)/;
+for (const e of els) {
+  if (!e.list) continue;
+  const lead = e.text.match(ID_START);
+  if (/^[-*+]$/.test(e.marker)) warn("list", `'${e.marker}' starts an unordered list item; write it as '${e.place}.'${lead ? " and drop the number from the text" : ""}`, e.n);
+  else if (e.marker.endsWith(")")) warn("list", `'${e.written})' is not the list marker; write it as '${e.written}.'`, e.n);
+  else if (e.written !== e.place) warn("list", `item number ${e.written} is not ${e.place}, its place in the list; a list counts 1, 2, 3 with no gap`, e.n);
 }
 const live = els.filter((e) => e.layer !== null);
 const defined = new Map();             // id -> element, any own id in layers 1 to 3
@@ -212,23 +218,29 @@ const slugsListed = [];                // part names from Layer 2 Parts
 for (const e of live) if (e.own && !defined.has(e.own.id)) defined.set(e.own.id, e);
 for (const e of live) {
   if (e.layer !== 2 || e.topic !== "Parts" || e.table) continue;
-  const pm = stripNumber(e.text).replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
+  if (e.depth > 1) continue;
+  const pm = e.text.replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
   if (pm) slugsListed.push({ name: pm[1].replace(/\*+$/, "").trim(), n: e.n });
 }
 for (const p of slugsListed) if (!/^[A-Za-z0-9]+$/.test(p.name)) warn("id", `part name '${p.name}' is not one word`, p.n);
 const partSlugs = new Set(slugsListed.map((p) => p.name.toLowerCase()));
 
 const firstOf = new Map();
+const headWarned = new Set();
 for (const e of live) {
+  if (e.list && e.headNo != null && e.topicNo !== null && e.headNo !== e.topicNo && !(e.layer === 3 && e.entry === null) && !headWarned.has(e.headN)) {
+    headWarned.add(e.headN);
+    warn("id", `${e.topic} is numbered ${e.headNo}, but it is topic ${e.topicNo} of Layer ${e.layer}; its items take ids for topic ${e.topicNo}`, e.headN);
+  }
   if (!e.own) {
     const exempt = e.table || /^(None\.|Not supplied:|Title:)/.test(e.body);
-    if (e.topic && e.topicNo !== null && !exempt && !(e.layer === 3 && e.entry === null) && (NEEDS_ID[e.layer].includes(e.topic) || e.list)) warn("id", `an item under ${e.topic} has no number`, e.n);
+    if (e.topic && e.topicNo !== null && !exempt && !e.list && !(e.layer === 3 && e.entry === null) && NEEDS_ID[e.layer].includes(e.topic)) warn("id", `an item under ${e.topic} has no number`, e.n);
     continue;
   }
-  const { id, doc, topic } = e.own;
-  if (e.oldForm) warn("id", `write '${topic}.${e.own.item}.' at the start of the item; the document goes only in a citation`, e.n);
+  const { id, doc } = e.own;
+  const lead = !/^[-*+]$/.test(e.marker) && e.text.match(ID_START);
+  if (lead) warn("id", `the item starts with '${lead[1]}'; the list gives its number, so write the item without it`, e.n);
   if (e.layer === 3 && partSlugs.size && !partSlugs.has(doc.slice(7))) warn("id", `${id} names '${doc.slice(7)}', which is not a part in Layer 2 Parts`, e.n);
-  if (e.topicNo !== null && topic !== e.topicNo) warn("id", `${id} is numbered for topic ${topic}, but sits under ${e.topic}`, e.n);
   if (firstOf.has(id)) warn("id", `${id} repeats the one on ${target.where(firstOf.get(id).n)}`, e.n);
   else firstOf.set(id, e);
 }
@@ -252,7 +264,7 @@ for (const e of live) {
 
 // reasons: Assumptions need Basis and If wrong, Decisions need Reason; read from the id's topic number.
 for (const e of live) {
-  if (!e.own || e.body.includes("Not supplied:")) continue;
+  if (!e.own || e.depth !== 1 || e.body.includes("Not supplied:")) continue;
   const l = e.layer;
   const a = l === 2 ? 10 : 11, d = l === 2 ? 11 : 12;
   if (e.own.topic === a && !(e.body.includes("Basis:") && e.body.includes("If wrong:"))) warn("reasons", "assumption needs 'Basis:' and 'If wrong:'", e.n);
@@ -277,7 +289,7 @@ for (const e of live) {
   }
   const named = (id) => slugsListed.filter((p) => /^[A-Za-z0-9]+$/.test(p.name) && new RegExp(String.raw`(?<![A-Za-z0-9])${p.name}(?![A-Za-z0-9])`).test(pathText.get(id) || ""));
   for (const e of live) {
-    if (e.layer !== 1 || !e.own || e.own.topic !== 3) continue;
+    if (e.layer !== 1 || !e.own || e.depth !== 1 || e.own.topic !== 3) continue;
     if (seen.includes(2) && !traced[2].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no path in Layer 2`, e.n);
     if (seen.includes(3) && !traced[3].has(e.own.id)) {
       const parts = named(e.own.id);
@@ -297,8 +309,8 @@ for (const e of live) {
   const names = new Set();
   const plain = new Set();
   for (const e of live) {
-    if (e.layer !== 1 || e.topic !== "Qualities and constraints" || e.table) continue;
-    const t = e.text.replace(/^\**(?:[1-9]\d*\.[1-9]\d*[.:)]*\s+)?/, (m) => (m.startsWith("**") ? "**" : ""));
+    if (e.layer !== 1 || e.topic !== "Qualities and constraints" || e.table || e.depth > 1) continue;
+    const t = e.text;
     const b = t.match(/\*\*(.+?)\*\*/);
     if (b) names.add(norm(b[1].replace(/:\s*$/, "")));
     const p = t.match(/^([^*:]+):(?:\s|$)/);
@@ -308,11 +320,11 @@ for (const e of live) {
   if (names.size) {
     for (const t of TOPICS[1]) names.add(norm(t));
     for (const e of live) {
-      if (e.layer !== 3 || e.entry === null || e.topic !== "Limits" || e.table) continue;
+      if (e.layer !== 3 || e.entry === null || e.topic !== "Limits" || e.table || e.depth > 1) continue;
       const cites = [...e.body.matchAll(/\(Layer 1,\s*([^()]*?)\)/g)];
       if (!cites.length) continue;
       const x = cites.at(-1)[1].trim();
-      if (x.startsWith("Not supplied:") || /^vision-[1-9]\d*\.[1-9]\d*$/.test(x) || names.has(norm(x))) continue;
+      if (x.startsWith("Not supplied:") || /^vision-[1-9]\d*(?:\.[1-9]\d*)+$/.test(x) || names.has(norm(x))) continue;
       warn("limit-quality", `'${x}' is not named in Layer 1 Qualities and constraints`, e.n);
     }
   }
@@ -327,13 +339,13 @@ for (const e of live) {
   };
   const RZ = new RegExp(String.raw`(?<![\w.-])Realizes\s+(${IDCORE})(?!\w|-|\.\d)[.:)]*\s*`);
   for (const e of live) {
-    if (e.layer < 2 || e.table) continue;
+    if (e.layer < 2 || e.table || e.depth > 1) continue;
     const m = e.body.match(RZ);
     if (!m) continue;
     const v = defined.get(m[1]);
-    if (!v || v.layer !== 1 || !v.own || v.own.topic !== 3) continue;
-    const mine = gw(e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(RZ, ""));
-    const theirs = gw(v.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), ""));
+    if (!v || v.layer !== 1 || !v.own || v.depth !== 1 || v.own.topic !== 3) continue;
+    const mine = gw(e.text.replace(/^\**/, "").replace(RZ, ""));
+    const theirs = gw(v.text.replace(/^\**/, ""));
     if (mine === null || theirs === null || mine === theirs) continue;
     warn("realizes-text", `does not keep the Given and when text of ${m[1]} word for word`, e.n);
   }
@@ -347,18 +359,15 @@ const SHAPE = { Costs: { check: "cost-shape", no: { 1: 8, 2: 7, 3: 8 } }, Risks:
 
 for (const e of live) {
   const sh = e.topic && SHAPE[e.topic];
-  if (!sh || (e.layer === 3 && e.entry === null)) continue;
+  if (!sh || (e.layer === 3 && e.entry === null) || e.depth > 1) continue;
   const check = sh.check, label = e.topic, kind = e.topic;
   if (e.table) { warn(check, "a table line; write the topic as a list", e.n); continue; }
   if (e.body === "None." || /^Not supplied:\s*\S/.test(e.body)) continue;
-  const mine = e.own && e.own.topic === sh.no[e.layer];
-  const im = e.own && e.body.slice(e.ownEnd).match(/^\.\s+(.*)$/);
-  if (!mine || !im) {
-    warn(check, `a line under ${label} must be 'None.' or start '${sh.no[e.layer]}.<n>.'`, e.n);
+  if (!e.own) {
+    warn(check, `a line under ${label} must be 'None.' or a list item`, e.n);
     continue;
   }
-  const own = `${e.own.topic}.${e.own.item}`;
-  const rest = im[1].trim();
+  const rest = e.body.trim();
   if (kind === "Costs") {
     const pb = rest.indexOf(". Paid by ");
     const head = pb > 0 ? rest.slice(0, pb) : "";
@@ -370,19 +379,19 @@ for (const e of live) {
       ok = false;
       for (let k = head.indexOf(": "); k >= 0; k = head.indexOf(": ", k + 1)) if (validAmount(head.slice(k + 2).trim())) { ok = true; break; }
     }
-    if (!ok) warn(check, `a cost must read '${own}. Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '${own}. <What>: <amount>. Paid by <who>.' is also accepted)`, e.n);
+    if (!ok) warn(check, `a cost must read 'Given <condition or volume>, when <the subject is built, run or changed>, then it costs <amount>. Paid by <who>.' with a valid amount (the older form '<What>: <amount>. Paid by <who>.' is also accepted)`, e.n);
   } else if (kind === "Open Concerns") {
     const rb = rest.indexOf(". Raised by ");
     const who = rb > 0 ? rest.slice(rb + 12) : "";
     if (rb <= 0 || !/^Given .+, when .+, then .+/.test(rest.slice(0, rb)) || !/^\S.*\.$/.test(who)) {
-      warn(check, `an open concern must read '${own}. Given ..., when ..., then .... Raised by <who>.'`, e.n);
+      warn(check, `an open concern must read 'Given ..., when ..., then .... Raised by <who>.'`, e.n);
     }
   } else {
     const sv = rest.indexOf(". Severity: "), ab = rest.indexOf(". Answered by ");
     const sev = sv > 0 && ab > sv ? rest.slice(sv + 12, ab) : "";
     const ans = ab > 0 ? rest.slice(ab + 14) : "";
     if (sv <= 0 || ab <= sv || !/^Given .+, when .+, then .+/.test(rest.slice(0, sv)) || !SEVERITY.includes(sev) || !/^\S.*\.$/.test(ans)) {
-      warn(check, `a risk must read '${own}. Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'`, e.n);
+      warn(check, `a risk must read 'Given ..., when ..., then .... Severity: High, Medium, Low or Not rated. Answered by <answer>.'`, e.n);
       continue;
     }
     if (ans.startsWith("Not supplied:")) continue;
@@ -420,66 +429,93 @@ function openFenceRow(rows) {
   return fence ? at : 0;
 }
 
+// The elements of a text: a list item with its wrapped lines, a paragraph, or a table row. A list is the run of items at one depth under
+// one parent (core guide, How to fill it out, list rule): the items under a topic heading count 1, 2, 3 across the topic, and an item
+// nested in another restarts at 1. Each element carries its first and last line, its layer, topic and open entry, the heading it sits under,
+// and for a list item its marker, written number, place and depth.
 function readElements(rows) {
   const els = [];
-  let cur = null, layer = null, topic = null, entry = null, fence = null;
+  let cur = null, layer = null, topic = null, entry = null, fence = null, head = null, blank = false;
+  let stack = [];                       // open items, outermost first: { el, col (its text column), count (places given to its children) }
+  let root = 0;                         // places given at depth 1 under the open heading
   const close = () => { cur = null; };
-  const start = (n, text, indent, list, table = false) => { cur = { n, text, indent, list, table, layer, topic, entry }; els.push(cur); };
+  const ctx = () => ({ layer, topic, entry, headN: head ? head.n : null, headNo: head ? head.no : null });
+  const para = (n, text, indent, table = false) => { cur = { n, end: n, text, indent, list: false, table, depth: 0, marker: null, written: null, place: null, pos: null, ...ctx() }; els.push(cur); };
+  const append = (el, t, n) => { el.text += " " + t; el.end = n; for (const s of stack) s.el.end = Math.max(s.el.end, n); };
   for (let i = 0; i < rows.length; i++) {
-    const line = rows[i], t = line.trim(), n = i + 1;
+    const line = rows[i].replace(/\r$/, ""), t = line.trim(), n = i + 1;
     const f = fenceOpen(t);
     if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
     if (f) { fence = f; close(); continue; }
-    if (t === "") { close(); continue; }
+    if (t === "") { close(); blank = true; continue; }
+    const after = blank; blank = false;
     if (/^#{1,6}\s/.test(t)) {
-      close();
+      close(); stack = []; root = 0; head = null;
       if (/^## /.test(t)) {
         const m = t.match(/^## Layer ([123]): (.+)$/);
         layer = m && NAMES[m[1] - 1] === m[2].trim() ? +m[1] : null;
         topic = null; entry = null;
       } else if (/^### /.test(t)) {
         const pe = t.match(/^### (.+?) \(part\)\s*$/);
-        const tp = t.match(/^### \d+\. (.+?)\s*$/);
+        const tp = t.match(/^### (\d+)\. (.+?)\s*$/);
         if (layer === 3 && pe) { entry = pe[1]; topic = null; }
-        else if (tp) { topic = tp[1]; if (layer === 3) entry = null; }
+        else if (tp) { topic = tp[2]; head = { n, no: +tp[1] }; if (layer === 3) entry = null; }
         else { topic = null; if (layer === 3) entry = null; }
       } else if (/^#### /.test(t) && layer === 3 && entry !== null) {
-        const tp = t.match(/^#### \d+\. (.+?)\s*$/);
-        topic = tp ? tp[1] : null;
+        const tp = t.match(/^#### (\d+)\. (.+?)\s*$/);
+        topic = tp ? tp[2] : null;
+        if (tp) head = { n, no: +tp[1] };
       }
       continue;
     }
     if (t.startsWith("|")) {
       close();
-      if (!/^\|[\s:|-]+\|?$/.test(t)) { start(n, t, 0, false, true); close(); }
+      if (!/^\|[\s:|-]+\|?$/.test(t)) { para(n, t, 0, true); close(); }
       continue;
     }
+    if (THEMATIC.test(line)) { close(); stack = []; continue; }
     const indent = line.length - line.trimStart().length;
-    const mk = t.match(/^(?:[-*+]|\d+[.)])\s+(.*)$/);
-    if (mk && indent <= 1) { start(n, mk[1], indent, true); continue; }
-    if (cur && !(indent <= 1 && START(clean(t)))) { cur.text += " " + t; continue; }
-    if (mk) start(n, mk[1], indent, true); else start(n, t, indent, false);
+    const mk = line.match(/^( *)(?:([-*+])|(\d{1,9})([.)]))( +|$)(.*)$/);
+    // An indented code block (four spaces past the open item's text, or past the margin) is read as neither an item nor a paragraph.
+    const codeCol = (stack.length ? stack.at(-1).col : 0) + 4;
+    if (indent >= codeCol && (after || !cur)) { close(); continue; }
+    // An ordered marker interrupts a paragraph only when its number is 1.
+    const lazy = !!mk && !!cur && !cur.list && !after && !!mk[3] && +mk[3] !== 1;
+    if (mk && !lazy) {
+      while (stack.length && indent < stack.at(-1).col) stack.pop();
+      if (indent >= (stack.length ? stack.at(-1).col : 0) + 4) { if (cur) append(cur, t, n); else close(); continue; }
+      const parent = stack.at(-1) || null;
+      const place = parent ? ++parent.count : ++root;
+      const pos = parent ? [...parent.el.pos, place] : [place];
+      const w = (mk[2] ? 1 : mk[3].length + 1);
+      const sp = mk[5].length >= 1 && mk[5].length <= 4 ? mk[5].length : 1;
+      cur = { n, end: n, text: mk[6], indent, list: true, table: false, depth: stack.length + 1, marker: mk[2] || mk[3] + mk[4], written: mk[3] ? +mk[3] : null, place, pos, ...ctx() };
+      els.push(cur);
+      stack.push({ el: cur, col: indent + w + sp, count: 0 });
+      for (const s of stack.slice(0, -1)) s.el.end = Math.max(s.el.end, n);
+      continue;
+    }
+    if (cur) { append(cur, t, n); continue; }
+    // After a blank line, a line indented to an open item's text continues that item (a loose item); anything else ends the list.
+    while (stack.length && indent < stack.at(-1).col) stack.pop();
+    if (after && stack.length) { cur = stack.at(-1).el; append(cur, t, n); continue; }
+    stack = [];
+    para(n, t, indent);
   }
   for (const e of els) e.text = e.text.trim();
   return els;
 }
 
-// Each element that starts with its number gets its full id: the document it sits in plus the number. A full id at the start
-// (the old form) is read as that number and flagged by the id check. With no document (outside a layer, in a view, in Layer 3
-// with no open entry) the number is not an id.
+// Each list item under a topic gets its full id: the document it sits in, the topic's number (canonical, from the layer guide) and its place,
+// nested places joined by dots. With no document (outside a layer, in a view, in Layer 3 with no open entry) or no known topic an item has no id.
 function assignOwn(els) {
   for (const e of els) {
     e.body = clean(e.text).trim();
-    e.own = null; e.oldForm = false; e.oldTok = null; e.ownEnd = 0;
-    const nm = e.body.match(NUMBER), fm = nm ? null : e.body.match(OWNID);
-    if (fm) e.oldTok = fm[1];
+    e.own = null;
     const doc = docOf(e);
-    if (!doc) continue;
-    let topic, item;
-    if (nm) { topic = +nm[1]; item = +nm[2]; e.ownEnd = nm[0].length; }
-    else if (fm) { const p = parseId(fm[1]); topic = p.topic; item = p.item; e.oldForm = true; e.ownEnd = fm[0].length; }
-    else continue;
-    e.own = { id: `${doc}-${topic}.${item}`, doc, topic, item };
+    const tn = e.layer && e.topic ? topicNo(e.layer, e.topic) : null;
+    if (!doc || !e.list || tn === null) continue;
+    e.own = { id: `${doc}-${tn}.${e.pos.join(".")}`, doc, topic: tn, item: e.pos[0], pos: e.pos, depth: e.depth };
   }
 }
 
@@ -519,7 +555,7 @@ function readStructure(rows) {
     if (/^## /.test(t)) { topic = null; continue; }
     const h = t.match(/^### \d+\. (.+?)\s*$/);
     if (h) { topic = h[1]; continue; }
-    const body = stripNumber(t.replace(/^(?:[-*+]|\d+[.)])\s+/, "")).replace(/^\*+/, "");
+    const body = t.replace(/^(?:[-*+]|\d+[.)])\s+/, "").replace(/^\*+/, "");
     if (topic === "Parts") {
       const m = body.match(/^(.+?)\s*\(part\)/);
       if (m) parts.push({ name: m[1].replace(/\*+$/, "").trim(), n });
@@ -653,7 +689,7 @@ async function runImpact(args) {
   assignOwn(els);
   for (const e of els) {
     e.id = e.own ? e.own.id : null;
-    e.cites = [...new Set([...e.body.matchAll(TOKEN)].map((m) => m[1]).filter((x) => x !== e.id && x !== e.oldTok))];
+    e.cites = [...new Set([...e.body.matchAll(TOKEN)].map((m) => m[1]).filter((x) => x !== e.id))];
   }
   const defs = new Map(), dups = [];
   for (const e of els) if (e.id) { if (defs.has(e.id)) dups.push([e.id, defs.get(e.id), e]); else defs.set(e.id, e); }

@@ -24,7 +24,7 @@ Exit codes: 0 for success; 2 for a refusal or a usage error, with `strata-bluepr
 
 Condense leaves out a topic only when its whole body is the single line `None.`. All other cases keep the topic:
 - `None.` followed by another line
-- `- None.`, `**None.**`, or `None` without the period
+- `1. None.`, `**None.**`, or `None` without the period
 - A fenced code block inside the topic
 - Any line with `Not supplied:` anywhere
 
@@ -60,7 +60,9 @@ See [example-published.md](example-published.md), created with `node skills/stra
 
 ### The merge
 
-When the input is a folder, the files are merged in this order: `sbp-vision.md`, `sbp-structure.md`, then each `sbp-detail-*.md` in the order that parts are listed in the Parts topic (any detail file not named in Parts comes last, by file name). A part name may follow its number (`1.1. Ledger (part): ...`).
+When the input is a folder, the files are merged in this order: `sbp-vision.md`, `sbp-structure.md`, then each `sbp-detail-*.md` in the order that parts are listed in the Parts topic (any detail file not named in Parts comes last, by file name). A Parts line is an ordered list item (`1. Ledger (part): ...`).
+
+The table of contents is an ordered list: `1. [Layer 1: Vision](#layer-1-vision)`, with the topics of a layer nested under it and counting from 1 again, indented to the parent's text (three spaces under `1.` to `9.`, four under `10.` to `99.`). Its numbers count entries; they are not topic numbers.
 
 **First file:** The first file keeps its leading `# ` title heading, any `Version:`, `Status:`, `Blueprint status:` and `Parent:` metadata lines, and all text before its first layer heading. If the first file holds a `Blueprint status:` line in its top matter, that line is renamed to `Status:` in the published document and the file's own `Status:` line (if present) is dropped; otherwise the first file's `Status:` line is kept. The `Status:` lines of the later files are dropped either way. `Condense` preserves all lines as-is; `publish` applies this rule when merging. Note: `publish` copies an invalid `Blueprint status:` value unchecked; the lint must be run on source files to catch status errors before publishing.
 
@@ -72,15 +74,15 @@ When the input is a folder, the files are merged in this order: `sbp-vision.md`,
 
 ### What publish leaves out
 
-A topic is dropped when its whole body is `None.`, or when every non-blank line of its body is `Not supplied:` preceded by an optional leading list marker (`-`, `*`, or `+`). Examples:
-- `6.1. None.` — kept (numbered items are not dropped)
-- `- Not supplied: Pending owner decision.` — dropped if that is the only line
-- `- Not supplied: pending\n- Not supplied: owner decision` — dropped if those are the only lines
-- `6.1. Not supplied: part 1\nNot supplied: part 2` — kept, because it has a number
+A topic is dropped when its whole body is `None.`, or when every non-blank line of its body is `Not supplied:` preceded by an optional list marker (`1.`, `-`, `*` or `+`). Examples:
+- `1. None.` — kept (a list item is not dropped)
+- `1. Not supplied: Pending owner decision.` — dropped if that is the only line
+- `1. Not supplied: pending` and `2. Not supplied: owner decision` — dropped if those are the only lines
+- `1. Not supplied: part 1` followed by a line that is not a `Not supplied:` line (another item, or a wrapped line) — kept
 
-Topics with an item number, a wrapped continuation, a fenced block or a table are kept with `Not supplied:` lines included. Nothing is renumbered and no id or citation is rewritten.
+A topic with any line that is not a `Not supplied:` line (an item, a wrapped line, a fenced block or a table) is kept with its `Not supplied:` lines included. Nothing is renumbered and no id or citation is rewritten.
 
-A Standing line still names the original source file of its part, even in the published document (e.g., `2.1. Ledger: sbp-detail-ledger.md`).
+A Standing line still names the original source file of its part, even in the published document (e.g., `1. Ledger: sbp-detail-ledger.md`).
 
 When a topic body is entirely `None.` (alone) or entirely `Not supplied:` lines with no other text (after blank lines are removed), the topic is dropped and the reason reported. `None.` and `Not supplied:` are dropped only in that case, never when they appear with other content.
 

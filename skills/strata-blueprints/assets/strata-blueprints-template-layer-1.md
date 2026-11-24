@@ -16,13 +16,13 @@ Scope: the whole [subject], its [audiences], and what lies beyond it.
 
 ### 2. Target audience
 
-- 2.1. **[Audience] (actor):** [who they are, how many, what they want].
-- 2.2. **[Other party] (outsider):** [who they are and why they matter].
+1. **[Audience] (actor):** [who they are, how many, what they want].
+2. **[Other party] (outsider):** [who they are and why they matter].
 
 ### 3. Value
 
-- 3.1. Given [an audience in a situation], when [they act], then [what they get].
-- 3.2. Given [...], when [...], then [...].
+1. Given [an audience in a situation], when [they act], then [what they get].
+2. Given [...], when [...], then [...].
 
 ### 4. Focus
 
@@ -30,34 +30,34 @@ The [subject] covers [what is in]. It does not cover [what is out].
 
 ### 5. Success measures (optional)
 
-- 5.1. [A number or an observable result] (vision-3.1).
-- 5.2. [A number or an observable result] (vision-3.2).
+1. [A number or an observable result] (vision-3.1).
+2. [A number or an observable result] (vision-3.2).
 
 ### 6. Qualities and constraints (optional)
 
-- 6.1. **[Quality]:** [what must hold, in the audience's terms].
-- 6.2. **[Constraint]:** [the limit], set by [its source].
+1. **[Quality]:** [what must hold, in the audience's terms].
+2. **[Constraint]:** [the limit], set by [its source].
 
 ### 7. Vocabulary (optional)
 
-- 7.1. **[Term]:** [the owner's definition].
+1. **[Term]:** [the owner's definition].
 
 ### 8. Costs (optional)
 
-- 8.1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
+1. Given [the condition or volume], when [the subject is built, run or changed], then it costs [the amount, or Not supplied: the figure]. Paid by [who].
 
 ### 9. Risks (optional)
 
-- 9.1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
+1. Given [a situation], when [it goes wrong], then [the harm]. Severity: [High, Medium, Low or Not rated]. Answered by [the id of a decision, assumption or rule, or Not supplied: the answer].
 
 ### 10. Open Concerns (optional)
 
-- 10.1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
+1. Given [the unsettled situation], when [what would settle it happens], then [what follows, and what it feeds]. Raised by [who].
 
 ### 11. Assumptions
 
-- 11.1. [What is taken as true]. Basis: [why we think so]. If wrong: [what changes].
+1. [What is taken as true]. Basis: [why we think so]. If wrong: [what changes].
 
 ### 12. Decisions
 
-- 12.1. [What was chosen]. Reason: [why].
+1. [What was chosen]. Reason: [why].

@@ -28,7 +28,7 @@ const L1 = "## Layer 1: Vision\n\nScope: all.\n\n";
 const L2 = "## Layer 2: Structure\n\nScope: all.\n\n";
 const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
 // A canonical document: every topic block is heading, blank, body, blank; the last block has no trailing blank.
-const doc = (o1 = { Need: "N.", Decisions: "- 12.1. Keep it. Reason: simple." }, o2 = { Parts: "- 1.1. Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }) =>
+const doc = (o1 = { Need: "N.", Decisions: "1. Keep it. Reason: simple." }, o2 = { Parts: "1. Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }) =>
   "# Club\n\n" + L1 + fxT("###", T1, o1) + "\n" + L2 + fxT("###", T2, o2) + "\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, o3);
 const topicNames = (text) => [...text.matchAll(/^#{3,4} \d+\. (.+)$/gm)].map((m) => m[1]);
 
@@ -73,7 +73,7 @@ test("edge: None. plus other text", () => {
 });
 
 test("edge: Not supplied anywhere", () => {
-  const o = { Need: "Not supplied: who pays.", Focus: "None.\n\nNot supplied: scope.", Risks: "- 9.1. A risk.\n\nNot supplied: odds." };
+  const o = { Need: "Not supplied: who pays.", Focus: "None.\n\nNot supplied: scope.", Risks: "1. A risk.\n\nNot supplied: odds." };
   const c = condenseText(doc(o));
   assert.deepEqual(topicNames(c).slice(0, 3), ["Need", "Focus", "Risks"]);
   assert.equal((c.match(/Not supplied:/g) || []).length, 3);
@@ -85,7 +85,7 @@ test("edge: stack of several files", () => {
     const h = (n) => `# Club\n\n## Layer ${n}: ${NAMES[n - 1]}\n\nScope: all.\n\n`;
     const files = {
       "sbp-vision.md": h(1) + fxT("###", T1, { Need: "N." }),
-      "sbp-structure.md": h(2) + fxT("###", T2, { Parts: "- 1.1. Shed (part): tools." }),
+      "sbp-structure.md": h(2) + fxT("###", T2, { Parts: "1. Shed (part): tools." }),
       "sbp-detail-shed.md": h(3) + "### Shed (part)\n\n" + fxT("####", T3, { Responsibility: "R." }),
       "sbp-detail-full.md": h(3) + "### Full (part)\n\n" + fxT("####", T3, Object.fromEntries(T3.map((n) => [n, "Text."]))),
     };
@@ -120,13 +120,13 @@ test("edge: single file", () => {
 });
 
 test("edge: part sections", () => {
-  const some = "# C\n\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, { Responsibility: "R.", Rules: "- 4.1. A rule." }) + "\n### Rota (part)\n\n" + fxT("####", T3);
+  const some = "# C\n\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, { Responsibility: "R.", Rules: "1. A rule." }) + "\n### Rota (part)\n\n" + fxT("####", T3);
   const c = condenseText(some);
   assert.deepEqual(topicNames(c), ["Responsibility", "Rules"]);
   assert.ok(c.includes("### Rota (part)"), "an entry with every topic dropped stays");
   assert.ok(c.includes("#### 4. Rules"));
   // A Layer 3 with no entry but numbered topics is condensed.
-  const noEntry = L3 + fxT("###", T3, { Rules: "- 4.1. A rule." });
+  const noEntry = L3 + fxT("###", T3, { Rules: "1. A rule." });
   const nc = condenseText(noEntry);
   assert.deepEqual(topicNames(nc), ["Rules"]);
 });
@@ -213,7 +213,7 @@ test("edge: output safety", () => {
 });
 
 test("edge: condense is deterministic", () => {
-  const cases = [doc(), doc({}), doc({ Need: "N.", Costs: "- 8.1. Given a, when b, then c." }, { Parts: "P.", Decisions: "- 11.1. D." }, { Rules: "- 4.1. R.", Decisions: "- 12.1. D." }),
+  const cases = [doc(), doc({}), doc({ Need: "N.", Costs: "1. Given a, when b, then c." }, { Parts: "P.", Decisions: "1. D." }, { Rules: "1. R.", Decisions: "1. D." }),
     doc(Object.fromEntries(T1.map((n) => [n, "Text."])), Object.fromEntries(T2.map((n) => [n, "Text."])), Object.fromEntries(T3.map((n) => [n, "Text."])))];
   for (const x of cases) {
     const c = condenseText(x);
@@ -315,4 +315,18 @@ test("fence: an indented fence is read by the tool like the lint reads it", () =
   const t = "# C\n\n" + L1 + "### 1. Need\n\nN.\n\n- Item:\n\n    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```\n\n### 2. Target audience\n\nN.\n\n" + L2 + "### 1. Parts\n\nP.\n";
   const c = condenseText(t);
   assert.ok(c.includes("    ```\n### 5. Success measures\n\nNone.\n\n### 6. Qualities and constraints\n\nNone.\n    ```"), "the rows inside an indented fence stay unchanged");
+});
+
+test("ordered: condense keeps ordered lists and their numbers byte for byte, and the result lints strict", () => {
+  const src = doc({ Need: "N.", Value: "1. Given a, when b, then c.\n2. Given d, when e, then f.", Decisions: "1. Keep it. Reason: simple.\n   1. A nested note." });
+  const c = condenseText(src);
+  assert.ok(c.includes("### 3. Value\n\n1. Given a, when b, then c.\n2. Given d, when e, then f.\n"));
+  assert.ok(c.includes("1. Keep it. Reason: simple.\n   1. A nested note.\n"));
+  tmp((dir) => {
+    const f = put(dir, "club.md", src);
+    const out = path.join(dir, "out.md");
+    assert.equal(cli("condense", f, "--out", out).code, 0);
+    assert.equal(get(out), c);
+    assert.deepEqual(runLint(out).lines.filter((l) => /^WARN (list|id):/.test(l)), []);
+  });
 });

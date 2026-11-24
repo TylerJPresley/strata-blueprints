@@ -11,7 +11,7 @@ export const MARKER = "<!-- strata-blueprints: condensed (generated; omitted top
 export const PUBLISHED_MARKER = "<!-- strata-blueprints: condensed, published (generated; each omitted topic read None. or held only open questions) -->";
 const MARKER_PREFIX = "<!-- strata-blueprints: condensed";
 const PUBLISHED_PREFIX = "<!-- strata-blueprints: condensed, published";
-export const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
+export const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 export const NAMES = ["Vision", "Structure", "Detail"];
 // A code span: a run of N backticks to the next run of N, on one line. The same line as in the lint.
@@ -122,9 +122,11 @@ export const condenseText = (text) => condenseResult(text).text;
 
 // --- publish ------------------------------------------------------------------
 // Open-question lines only: every non-blank line, after one list marker, starts with "Not supplied:".
+const ITEM_MARK = /^(?:[-*+]|\d+\.) /;
+const olMark = (k) => `${k}. `;
 const bodyIsNotSupplied = (lines, t) => {
   const body = lines.slice(t.i + 1, t.end).map((l) => l.trim()).filter(Boolean);
-  return body.length > 0 && body.every((l) => l.replace(/^[-*+] /, "").startsWith("Not supplied:"));
+  return body.length > 0 && body.every((l) => l.replace(ITEM_MARK, "").startsWith("Not supplied:"));
 };
 const cut = (s) => (s.length > 80 ? s.slice(0, 80) + "..." : s);
 const base = (name) => path.basename(name);
@@ -145,7 +147,6 @@ function fenceMask(lines) {
     return false;
   });
 }
-const stripNumber = (s) => s.replace(/^\**[1-9]\d*\.[1-9]\d*(?!\w|-|\.\d)[.:)*]*\s+/, "");
 // The order of the parts named in the Parts topic of a structure file, as slugs.
 function partOrder(text) {
   const { lines } = split(text);
@@ -159,7 +160,7 @@ function partOrder(text) {
     const h = t.match(/^### \d+\. (.+?)\s*$/);
     if (h) { topic = h[1]; return; }
     if (topic !== "Parts") return;
-    const body = stripNumber(t.replace(/^(?:[-*+]|\d+[.)])\s+/, "")).replace(/^\*+/, "");
+    const body = t.replace(/^(?:[-*+]|\d+[.)])\s+/, "").replace(/^\*+/, "");
     const m = body.match(/^(.+?)\s*\(part\)/);
     if (m) order.push(slugOf(m[1].replace(/\*+$/, "").trim()));
   });
@@ -202,7 +203,7 @@ export function publishFiles(input, opts = {}) {
         if (!none && !bodyIsNotSupplied(lines, t)) continue;
         for (let i = t.i; i < t.end; i++) drop.add(i);
         const doc = layer.n === 1 ? "vision" : layer.n === 2 ? "structure" : u.name ? `detail.${u.name.toLowerCase()}` : "detail";
-        const text = none ? "None." : cut(lines.slice(t.i + 1, t.end).map((l) => l.trim()).filter(Boolean).map((l) => l.replace(/^[-*+] /, "")).join(" "));
+        const text = none ? "None." : cut(lines.slice(t.i + 1, t.end).map((l) => l.trim()).filter(Boolean).map((l) => l.replace(ITEM_MARK, "")).join(" "));
         dropped.push({ doc, no: t.no, name: t.name, kind: none ? "none" : "not-supplied", text });
       }
     }
@@ -273,6 +274,7 @@ export function publishFiles(input, opts = {}) {
   const mask = fenceMask(merged);
   const seen = new Map();
   const toc = [];
+  let tocTop = 0, tocSub = 0;
   merged.forEach((line, i) => {
     if (mask[i]) return;
     const m = line.trim().match(/^(#{1,6}) (.*)$/);
@@ -283,7 +285,9 @@ export function publishFiles(input, opts = {}) {
     seen.set(a, c + 1);
     const anchor = c ? `${a}-${c}` : a;
     if (m[1].length > 3 || m[1].length === 1 || line === "## Contents") return;
-    toc.push(`${m[1].length === 3 ? "  " : ""}- [${text.replace(/[\[\]]/g, "\\$&")}](#${anchor})`);
+    const label = `[${text.replace(/[\[\]]/g, "\\$&")}](#${anchor})`;
+    if (m[1].length === 2) { tocTop++; tocSub = 0; toc.push(`${olMark(tocTop)}${label}`); }
+    else { tocSub++; toc.push(`${" ".repeat(olMark(tocTop).length)}${olMark(tocSub)}${label}`); }
   });
   const at = merged.indexOf(TOC);
   const out = [PUBLISHED_MARKER, "", ...merged.slice(0, at), ...toc, ...merged.slice(at + 1)];

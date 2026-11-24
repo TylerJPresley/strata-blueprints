@@ -94,8 +94,8 @@ const ID = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`
 const NUM = String.raw`[1-9]\d*\.[1-9]\d*`;
 const OWN = String.raw`(?:${ID}|${NUM})`;
 const SCEN = new RegExp(String.raw`^\s*(?:[-*+]|\d+[.)])\s+(?:${OWN}\.\s+)?(?:Realizes ${ID}\.\s+)?Given (.+?), when (.+?), then (.+)$`);
-// A separate regex reads the scenario id off a line: the id after "Realizes " when there is one, else the written number.
-const SCEN_ID = new RegExp(String.raw`^\s*(?:[-*+]|\d+[.)])\s+(?:${OWN}\.\s+Realizes\s+)?(${OWN})\.\s+Given `);
+// A separate regex reads the scenario id off a line: the id after "Realizes " when there is one, else (for Layer 1 Value) the place in the list, which is the item's number under topic 3.
+const SCEN_ID = new RegExp(String.raw`^\s*(?:[-*+]|(\d+)[.)])\s+(?:Realizes\s+(${ID})\.\s+)?Given `);
 // A Layer 1 number read as the id it stands for.
 const fid = (id) => (id && /^\d/.test(id) ? `vision-${id}` : id);
 
@@ -138,13 +138,13 @@ function unfenced(lines) {
 }
 
 // Collect scenario (G, W) pairs from a set of lines, outside fences.
-function scenarioPairs(lines) {
+function scenarioPairs(lines, local = false) {
   const out = [];
   for (const l of unfenced(lines)) {
     const m = l.match(SCEN);
     if (m) {
       const idm = l.match(SCEN_ID);
-      out.push({ id: idm ? idm[1] : null, g: normWs(m[1]), w: normWs(m[2]), t: normWs(m[3]), raw: l });
+      out.push({ id: idm ? (idm[2] || (local && idm[1] ? `3.${idm[1]}` : null)) : null, g: normWs(m[1]), w: normWs(m[2]), t: normWs(m[3]), raw: l });
     }
   }
   return out;
@@ -172,7 +172,7 @@ function parseParts(layer2) {
   const body = topicBody(layer2.lines, "Parts");
   const parts = [];
   for (const l of unfenced(body)) {
-    const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?)\s+\(part\):\s*(.*)$`));
+    const m = l.match(new RegExp(String.raw`^\s*(?:[-*+]|\d+\.)\s+(?:${NUM}\.\s+)?(.+?)\s+\(part\):\s*(.*)$`));
     if (m) parts.push({ name: m[1].trim(), resp: m[2].trim() });
   }
   return parts;
@@ -183,7 +183,7 @@ function layer2SeamNames(layer2) {
   const names = [];
   for (const topic of ["Seams between parts", "Seams with the outside"]) {
     for (const l of unfenced(topicBody(layer2.lines, topic))) {
-      const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?):\s`));
+      const m = l.match(new RegExp(String.raw`^\s*(?:[-*+]|\d+\.)\s+(?:${NUM}\.\s+)?(.+?):\s`));
       if (m) names.push(m[1].trim());
     }
   }
@@ -404,7 +404,7 @@ function checkExample(file, spec) {
   for (const p of parts) if (p.resp === "") add("parts", `part '${p.name}' has no responsibility`);
 
   // value-count: Layer 1 Value scenarios equal spec.values.
-  const valuePairs = l1 ? scenarioPairs(topicBody(l1.lines, "Value")) : [];
+  const valuePairs = l1 ? scenarioPairs(topicBody(l1.lines, "Value"), true) : [];
   if (valuePairs.length !== spec.values) {
     add("value-count", `Layer 1 has ${valuePairs.length} Value scenarios, expected ${spec.values}`);
   }
@@ -499,9 +499,9 @@ function checkExample(file, spec) {
       const seamBody = unfenced(topicBody(e.lines, "Seams"));
       const seamNames = [];
       for (const l of seamBody) {
-        const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?),\s+(offers and needs|offers|needs)\b`));
+        const m = l.match(new RegExp(String.raw`^\s*(?:[-*+]|\d+\.)\s+(?:${NUM}\.\s+)?(.+?),\s+(offers and needs|offers|needs)\b`));
         if (m) seamNames.push(m[1].trim());
-        else if (/^\s*[-*+]\s+\S/.test(l)) add("seam-form", `Layer 3 seam bullet is malformed in '${e.name}': ${l.trim()}`);
+        else if (/^\s*(?:[-*+]|\d+\.)\s+\S/.test(l)) add("seam-form", `Layer 3 seam bullet is malformed in '${e.name}': ${l.trim()}`);
       }
       // seams-named: every listed seam name matches a Layer 2 seam name exactly.
       for (const sn of seamNames) {
@@ -520,7 +520,7 @@ function checkExample(file, spec) {
   if (l3) {
     for (const e of checkEntries) {
       for (const l of unfenced(topicBody(e.lines, "Limits"))) {
-        if (/^\s*[-*+]\s+\S/.test(l) && !/\(Layer 1,[^)]*\)/.test(l)) {
+        if (/^\s*(?:[-*+]|\d+\.)\s+\S/.test(l) && !/\(Layer 1,[^)]*\)/.test(l)) {
           add("limits-trace", `Limits bullet in '${e.name}' names no '(Layer 1, ...)' source: ${l.trim()}`);
         }
       }
@@ -559,21 +559,24 @@ function checkExample(file, spec) {
     if (scopeLine !== want) add("scope-form", `Layer 3 Scope line is '${scopeLine}', expected '${want}'`);
   }
 
-  // ids-unique: every number that opens an item is unique in its document (Layer 1, Layer 2, or one Layer 3 part).
+  // ids-unique: every item's id (topic number from its heading, then the number written at the start of the item) is unique in its document (Layer 1, Layer 2, or one Layer 3 part).
   {
     const ids = [];
-    let fence = false, doc = null;
+    let fence = false, doc = null, topicNo = null;
     for (const l of rows) {
       const t = l.trim();
       if (/^```/.test(t)) fence = !fence;
       if (fence) continue;
       const lh = t.match(/^## Layer (\d)/);
+      if (/^## /.test(t)) { topicNo = null; if (!lh) doc = null; }
       if (lh) doc = lh[1] === "1" ? "vision" : lh[1] === "2" ? "structure" : null;
       const pe = t.match(/^### (.+?) \(part\)\s*$/);
       if (pe && doc !== "vision" && doc !== "structure") doc = `detail.${pe[1].toLowerCase()}`;
       if (/^### /.test(t) && !pe && (doc || "").startsWith("detail.")) doc = null;
-      const m = t.match(new RegExp(String.raw`^(?:[-*+]|\d+[.)])\s+(${NUM})\.`));
-      if (m && doc) ids.push(`${doc}-${m[1]}`);
+      const hm = t.match(/^#{3,4} (\d+)\. /);
+      if (hm) topicNo = hm[1];
+      const m = l.match(/^(\d+)\.\s/);
+      if (m && doc && topicNo) ids.push(`${doc}-${topicNo}.${m[1]}`);
     }
     const seen = new Set();
     for (const id of ids) {
@@ -606,7 +609,7 @@ function checkExample(file, spec) {
     else {
       let end = rows.length;
       for (let i = nIdx + 1; i < rows.length; i++) if (/^## /.test(rows[i].trim())) { end = i; break; }
-      const bullets = rows.slice(nIdx + 1, end).filter((l) => /^\s*[-*+]\s+\S/.test(l));
+      const bullets = rows.slice(nIdx + 1, end).filter((l) => /^\s*(?:[-*+]|\d+\.)\s+\S/.test(l));
       if (bullets.length < 3) add("notice", `'## What to notice' has ${bullets.length} bullets, expected at least 3`);
     }
   }
@@ -657,7 +660,7 @@ const MUTATIONS = {
     const l1 = layers.find((l) => l.num === 1);
     const r = layerRange(rows, 3);
     if (!r || !l1) throw new Error("no Layer 1/3 for rule-for-path");
-    const firstValue = scenarioPairs(topicBody(l1.lines, "Value"))[0];
+    const firstValue = scenarioPairs(topicBody(l1.lines, "Value"), true)[0];
     if (!firstValue) throw new Error("no first value for rule-for-path");
     // Change every Layer 3 rule that matches the first value's (G, W) so the
     // value loses its trace.
@@ -678,7 +681,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for rule-delete");
     for (let i = r[0]; i < r[1]; i++) {
-      if (new RegExp(String.raw`^\s*[-*+]\s+${OWN}\.\s+Realizes ${ID}\.\s+Given `).test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
+      if (new RegExp(String.raw`^\s*(?:[-*+]|\d+\.)\s+Realizes ${ID}\.\s+Given `).test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
     }
     throw new Error("no Layer 3 rule that realizes a scenario for rule-delete");
   },
@@ -731,7 +734,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 2);
     if (!r) throw new Error("no Layer 2 for part-in-path");
     for (let i = r[0]; i < r[1]; i++) {
-      if (/^\s*[-*+]\s+.+\(part\):/.test(rows[i])) {
+      if (/^\s*(?:[-*+]|\d+\.)\s+.+\(part\):/.test(rows[i])) {
         rows.splice(i + 1, 0, "- 1.99. Ghost (part): a part nothing uses.");
         return rows.join("\n");
       }
@@ -743,7 +746,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 2);
     if (!r) throw new Error("no Layer 2 for parts");
     for (let i = r[0]; i < r[1]; i++) {
-      if (/^\s*[-*+]\s+.+\(part\):/.test(rows[i])) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
+      if (/^\s*(?:[-*+]|\d+\.)\s+.+\(part\):/.test(rows[i])) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
     }
     throw new Error("no Layer 2 part bullet to duplicate");
   },
@@ -752,7 +755,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for seam-form");
     for (let i = r[0]; i < r[1]; i++) {
-      const m = rows[i].match(/^(\s*[-*+]\s+.+?),(\s+(?:offers and needs|offers|needs)\b.*)$/);
+      const m = rows[i].match(/^(\s*(?:[-*+]|\d+\.)\s+.+?),(\s+(?:offers and needs|offers|needs)\b.*)$/);
       if (m) { rows[i] = m[1] + m[2]; return rows.join("\n"); }
     }
     throw new Error("no Layer 3 seam bullet for seam-form");
@@ -762,7 +765,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for seams-named");
     for (let i = r[0]; i < r[1]; i++) {
-      const m = rows[i].match(new RegExp(String.raw`^(\s*[-*+]\s+(?:${NUM}\.\s+)?)(.+?)(,\s+(?:offers and needs|offers|needs)\b.*)$`));
+      const m = rows[i].match(new RegExp(String.raw`^(\s*(?:[-*+]|\d+\.)\s+(?:${NUM}\.\s+)?)(.+?)(,\s+(?:offers and needs|offers|needs)\b.*)$`));
       if (m) { rows[i] = m[1] + "Ghost " + m[2] + m[3]; return rows.join("\n"); }
     }
     throw new Error("no Layer 3 seam bullet for seams-named");
@@ -772,7 +775,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for seam-missing");
     for (let i = r[0]; i < r[1]; i++) {
-      if (/^\s*[-*+]\s+.+,\s+(?:offers and needs|offers|needs)\b/.test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
+      if (/^\s*(?:[-*+]|\d+\.)\s+.+,\s+(?:offers and needs|offers|needs)\b/.test(rows[i])) { rows.splice(i, 1); return rows.join("\n"); }
     }
     throw new Error("no Layer 3 seam bullet to delete");
   },
@@ -897,7 +900,7 @@ const MUTATIONS = {
   "ids-unique"(text) {
     const rows = text.split("\n");
     for (let i = 0; i < rows.length; i++) {
-      if (new RegExp(String.raw`^(?:[-*+]|\d+[.)])\s+(?:12|11)\.\d+\.`).test(rows[i].trim())) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
+      if (/^\d+\.\s+.*Reason:/.test(rows[i])) { rows.splice(i, 0, rows[i]); return rows.join("\n"); }
     }
     throw new Error("no decision id line for ids-unique");
   },
@@ -926,7 +929,7 @@ const MUTATIONS = {
     return rows.join("\n");
   },
   "scenario-id"(text) {
-    // Remove the id from the first Layer 1 Value line.
+    // Give the first Layer 1 Value line the wrong place in its list.
     const rows = text.split("\n");
     const r = layerRange(rows, 1);
     if (!r) throw new Error("no Layer 1 for scenario-id");
@@ -935,7 +938,7 @@ const MUTATIONS = {
       if (/^###\s+3\.\s+Value\s*$/.test(rows[i].trim())) { inValue = true; continue; }
       if (inValue && /^###/.test(rows[i].trim())) break;
       if (inValue && SCEN_ID.test(rows[i])) {
-        rows[i] = rows[i].replace(new RegExp(String.raw`(\s*(?:[-*+]|\d+[.)])\s+)${OWN}\.\s+(Given )`), "$1$2");
+        rows[i] = rows[i].replace(/^(\s*)\d+\./, "$15.");
         return rows.join("\n");
       }
     }
@@ -964,13 +967,13 @@ const MUTATIONS = {
     const l1 = layers.find((l) => l.num === 1);
     const r = layerRange(rows, 3);
     if (!r || !l1) throw new Error("no Layer 1/3 for rule-id-wrong");
-    const firstValue = scenarioPairs(topicBody(l1.lines, "Value"))[0];
+    const firstValue = scenarioPairs(topicBody(l1.lines, "Value"), true)[0];
     if (!firstValue || !firstValue.id) throw new Error("no first value id for rule-id-wrong");
     const id = fid(firstValue.id);
     let changed = false;
     for (let i = r[0]; i < r[1]; i++) {
       const idm = rows[i].match(SCEN_ID);
-      if (idm && fid(idm[1]) === id) {
+      if (idm && idm[2] && fid(idm[2]) === id) {
         rows[i] = rows[i].replace(new RegExp(`(Realizes )${id.replace(".", "\\.")}(\\.\\s+Given )`), "$1vision-3.99$2");
         changed = true;
       }
@@ -1496,18 +1499,22 @@ test("every shipped example carries Version: 0.1.0 as the first metadata line un
   }
 });
 
-// --- ordered: every list item is numbered, so the four templates draw no 'has no number' warning once their (optional) marks are removed. ---
-test("ordered: the four templates draw no 'has no number' warning", () => {
+// --- ordered: every list is a Markdown ordered list, so the four templates and the three examples hold no bullet and draw no list or id warning.
+test("ordered: the four templates draw no list or id warning and hold no bullet", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-tpl-"));
   try {
     for (const name of ["template", "template-layer-1", "template-layer-2", "template-layer-3"]) {
-      const text = fs.readFileSync(path.join(SKILL, "assets", `strata-blueprints-${name}.md`), "utf8").replace(/ \(optional\)/g, "");
+      const raw = fs.readFileSync(path.join(SKILL, "assets", `strata-blueprints-${name}.md`), "utf8");
+      const text = raw.replace(/ \(optional\)/g, "");
       const f = path.join(dir, `${name}.md`);
       fs.writeFileSync(f, text);
       let out;
       try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
-      assert.deepEqual(out.split("\n").filter((l) => /has no number/.test(l)), [], name);
+      // A template's Parts line is a bracketed placeholder, so the one-word part-name rule is not asked of it.
+      assert.deepEqual(out.split("\n").filter((l) => /^WARN (list|id|count-ref):/.test(l) && !/part name '\[/.test(l)), [], name);
       assert.ok(/^strata-blueprints-lint: /m.test(out), `${name} lints`);
+      let fence = false;
+      for (const l of raw.split("\n")) { if (/^\s*(```|~~~)/.test(l)) fence = !fence; if (!fence) assert.ok(!/^\s*[-*+] /.test(l), `${name} holds a bullet: ${l}`); }
     }
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

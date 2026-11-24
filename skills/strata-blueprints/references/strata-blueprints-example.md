@@ -8,7 +8,7 @@ households wants to grow food together, and nothing has been built or agreed yet
 It has Vision and Structure only; it gains Detail for a part when a maker needs
 it. It is one way to fill the layers, not a template.
 
-An item is numbered by its topic's number in its layer guide and a count that starts at 1 under each topic, and it is written with that number under its own topic: `9.1` is the first item under topic 9 (Risks). A citation, and `--impact`, put the document in front, joined with a hyphen: `vision`, `structure` or `detail.<part>`. So the first risk of the Vision is written `9.1` and cited `vision-9.1`, and the first Construction item of the part Session is written `7.1` and cited `detail.session-7.1`. Which topics are required is stated in the guide, under Short stacks.
+Every list is a Markdown ordered list: `1.`, `2.`, `3.` with no gap, and no `-`, `*` or `+`. An item's id is its topic's number and its place in the list, with the document in front in a citation, joined with a hyphen (`vision`, `structure`, `detail.<part>` or `view.<name>`): `vision-9.1` is place 1 under topic 9 (Risks) of the Vision, and `detail.session-7.1` is place 1 under topic 7 (Construction) of the part Session. A list nested in an item extends its id (`vision-9.1.2`). An item's id follows its place in the list; adding or deleting an item shifts the ids after it, and that change is cascaded: impact first, then each following item and each citation is adjusted (core guide, bullet on ids). Cite an item by its id, never by its count or its place in words. Which topics are required is stated in the guide, under Short stacks.
 
 ## Layer 1: Vision
 
@@ -24,16 +24,16 @@ together over something they make.
 
 ### 2. Target audience
 
-- 2.1. The households on the street who want to grow food (the members).
-- 2.2. Neighbours on the street who do not join but live beside the ground.
-- 2.3. The owner of the ground the garden would sit on.
-- 2.4. The town body that rules on use of ground and on a water connection.
+1. The households on the street who want to grow food (the members).
+2. Neighbours on the street who do not join but live beside the ground.
+3. The owner of the ground the garden would sit on.
+4. The town body that rules on use of ground and on a water connection.
 
 ### 3. Value
 
-- 3.1. Given a household on the street that wants to grow food, when it joins for the season, then it holds a piece of ground it may tend and harvest from.
-- 3.2. Given a member who comes to tend their ground, when they arrive on any day of the growing season, then usable water is within easy reach without them carrying it from home.
-- 3.3. Given a season that has ended, when the members look back, then they can see which ground was tended and decide together who holds what next season.
+1. Given a household on the street that wants to grow food, when it joins for the season, then it holds a piece of ground it may tend and harvest from.
+2. Given a member who comes to tend their ground, when they arrive on any day of the growing season, then usable water is within easy reach without them carrying it from home.
+3. Given a season that has ended, when the members look back, then they can see which ground was tended and decide together who holds what next season.
 
 ### 4. Focus
 
@@ -43,27 +43,27 @@ selling the harvest, running a market, or teaching how to grow.
 
 ### 5. Success measures
 
-- 5.1. The share of joined households whose ground is tended through the season.
+1. The share of joined households whose ground is tended through the season.
 Not supplied: the number of households on the street, and the share that marks success.
-- 5.2. The longest a member goes, in the growing season, without usable water in reach.
+2. The longest a member goes, in the growing season, without usable water in reach.
 Not supplied: the agreed limit in days and the way it is measured.
-- 5.3. Whether the owner of the ground and the town body both agree to the use before any work begins.
+3. Whether the owner of the ground and the town body both agree to the use before any work begins.
 Not supplied: whether the ground owner consents, and on what terms.
 
 ### 6. Qualities and constraints
 
-- 6.1. Every joined household can reach usable water near its ground on any growing-season day.
-- 6.2. The turns and tools are shared so no one household carries the common work alone.
-- 6.3. The use of the ground and any water connection stays within what the owner and the town body allow.
-- 6.4. The idea runs on what the members themselves can raise and give; it depends on no outside grant.
+1. Every joined household can reach usable water near its ground on any growing-season day.
+2. The turns and tools are shared so no one household carries the common work alone.
+3. The use of the ground and any water connection stays within what the owner and the town body allow.
+4. The idea runs on what the members themselves can raise and give; it depends on no outside grant.
 
 ### 7. Vocabulary
 
-- 7.1. **Member:** a household that has joined the garden for the season.
-- 7.2. **Season:** the span from first planting to final harvest that the garden runs by.
-- 7.3. **Ground:** a marked piece of the site that one member tends.
-- 7.4. **Usable water:** water a member can draw and give to their ground without carrying it from home.
-- 7.5. **Turn:** a member's share of the common work for a span of the season.
+1. **Member:** a household that has joined the garden for the season.
+2. **Season:** the span from first planting to final harvest that the garden runs by.
+3. **Ground:** a marked piece of the site that one member tends.
+4. **Usable water:** water a member can draw and give to their ground without carrying it from home.
+5. **Turn:** a member's share of the common work for a span of the season.
 
 ### 8. Costs
 
@@ -79,13 +79,13 @@ None.
 
 ### 11. Assumptions
 
-- 11.1. The street holds enough households who want to grow food to make a shared garden worthwhile. Basis: the need was raised by several households on the street. If wrong: the idea stops at Vision and no ground is sought.
-- 11.2. A single site can hold ground for every joined household within one walk. Basis: the street backs onto one open piece of ground. If wrong: the garden splits across more than one site, which changes Structure.
+1. The street holds enough households who want to grow food to make a shared garden worthwhile. Basis: the need was raised by several households on the street. If wrong: the idea stops at Vision and no ground is sought.
+2. A single site can hold ground for every joined household within one walk. Basis: the street backs onto one open piece of ground. If wrong: the garden splits across more than one site, which changes Structure.
 
 ### 12. Decisions
 
-- 12.1. The garden is organised around a season, not a calendar year. Reason: growing runs by the season, so turns, ground and water are easiest to share and review against it.
-- 12.2. A member is a household, not a single person. Reason: ground and turns are easier to hold and hand on by household, and it matches how the street already thinks of itself.
+1. The garden is organised around a season, not a calendar year. Reason: growing runs by the season, so turns, ground and water are easiest to share and review against it.
+2. A member is a household, not a single person. Reason: ground and turns are easier to hold and hand on by household, and it matches how the street already thinks of itself.
 
 ## Layer 2: Structure
 
@@ -93,45 +93,45 @@ Scope: the whole garden idea, divided into parts, with the seams between them an
 
 ### 1. Parts
 
-- 1.1. Membership (part): decides who has joined for the season and what each member may use.
-- 1.2. Plots (part): marks the ground into pieces and records which member holds each one.
-- 1.3. Water (part): brings usable water within reach of every held piece of ground.
-- 1.4. Shed (part): holds the shared tools and gives members access to them.
-- 1.5. Rota (part): sets whose turn it is to do the common work across the season.
+1. Membership (part): decides who has joined for the season and what each member may use.
+2. Plots (part): marks the ground into pieces and records which member holds each one.
+3. Water (part): brings usable water within reach of every held piece of ground.
+4. Shed (part): holds the shared tools and gives members access to them.
+5. Rota (part): sets whose turn it is to do the common work across the season.
 
 ### 2. Standing
 
-- 2.1. Membership: described here.
-- 2.2. Plots: described here.
-- 2.3. Water: described here.
-- 2.4. Shed: described here.
-- 2.5. Rota: described here.
+1. Membership: described here.
+2. Plots: described here.
+3. Water: described here.
+4. Shed: described here.
+5. Rota: described here.
 
 ### 3. Seams between parts
 
-- 3.1. Membership to Plots: a joined member and the piece of ground they hold cross, so Plots records a holder for each piece. Membership initiates, because a member must have joined before ground is held.
-- 3.2. Water to Plots: usable water crosses to every held piece of ground, so a member can draw it where they tend. Water initiates, because it carries water out to the ground.
-- 3.3. Rota to Water: a member's turn to tend the common water crosses each week, so one member answers for the water that week. Rota initiates, because it assigns the turn.
-- 3.4. Rota to Shed: a member's turn to keep the shared tools crosses, so one member answers for the shed. Rota initiates, because it assigns the turn.
-- 3.5. Membership to Shed: a joined member crosses as someone allowed to take and return tools. Membership initiates, because only a member may use the shed.
+1. Membership to Plots: a joined member and the piece of ground they hold cross, so Plots records a holder for each piece. Membership initiates, because a member must have joined before ground is held.
+2. Water to Plots: usable water crosses to every held piece of ground, so a member can draw it where they tend. Water initiates, because it carries water out to the ground.
+3. Rota to Water: a member's turn to tend the common water crosses each week, so one member answers for the water that week. Rota initiates, because it assigns the turn.
+4. Rota to Shed: a member's turn to keep the shared tools crosses, so one member answers for the shed. Rota initiates, because it assigns the turn.
+5. Membership to Shed: a joined member crosses as someone allowed to take and return tools. Membership initiates, because only a member may use the shed.
 
 ### 4. Seams with the outside
 
-- 4.1. Member to Membership: a household crosses to ask to join for the season, and Membership answers whether it has joined. The household initiates.
-- 4.2. Ground owner to Water: the owner's permission for a water connection crosses, bounding how water may be brought. The ground owner initiates.
-- 4.3. Town body to Water: the town body's ruling on a water connection crosses, allowing or refusing it. The town body initiates.
-- 4.4. Ground owner to Plots: the owner's agreement to use the ground crosses, bounding where pieces may be marked. The ground owner initiates.
+1. Member to Membership: a household crosses to ask to join for the season, and Membership answers whether it has joined. The household initiates.
+2. Ground owner to Water: the owner's permission for a water connection crosses, bounding how water may be brought. The ground owner initiates.
+3. Town body to Water: the town body's ruling on a water connection crosses, allowing or refusing it. The town body initiates.
+4. Ground owner to Plots: the owner's agreement to use the ground crosses, bounding where pieces may be marked. The ground owner initiates.
 
 ### 5. Shared things
 
-- 5.1. The site: the one piece of ground the parts sit on, used by Plots, Water and the Shed in common.
-- 5.2. The season: the span every part runs by, so Membership, the Rota and the harvest line up.
+1. The site: the one piece of ground the parts sit on, used by Plots, Water and the Shed in common.
+2. The season: the span every part runs by, so Membership, the Rota and the harvest line up.
 
 ### 6. Scenario paths
 
-- 6.1. Realizes vision-3.1. Given a household on the street that wants to grow food, when it joins for the season, then Membership records it as a member and Plots assigns it a held piece of ground.
-- 6.2. Realizes vision-3.2. Given a member who comes to tend their ground, when they arrive on any day of the growing season, then Water keeps usable water within reach of the piece of ground that Plots records as theirs.
-- 6.3. Realizes vision-3.3. Given a season that has ended, when the members look back, then Plots shows which ground was tended and Membership reopens who joins and holds ground next season.
+1. Realizes vision-3.1. Given a household on the street that wants to grow food, when it joins for the season, then Membership records it as a member and Plots assigns it a held piece of ground.
+2. Realizes vision-3.2. Given a member who comes to tend their ground, when they arrive on any day of the growing season, then Water keeps usable water within reach of the piece of ground that Plots records as theirs.
+3. Realizes vision-3.3. Given a season that has ended, when the members look back, then Plots shows which ground was tended and Membership reopens who joins and holds ground next season.
 
 ### 7. Costs
 
@@ -147,13 +147,13 @@ None.
 
 ### 10. Assumptions
 
-- 10.1. The site can be divided into pieces that a single Water arrangement can keep in reach. Basis: the open ground behind the street is roughly level and compact. If wrong: Water splits by zone, which adds seams between Water and Plots.
-- 10.2. One Rota can cover both the common water work and the shared tools. Basis: the common work is light enough for one turn to hold. If wrong: the Rota splits into two, one per part it serves.
+1. The site can be divided into pieces that a single Water arrangement can keep in reach. Basis: the open ground behind the street is roughly level and compact. If wrong: Water splits by zone, which adds seams between Water and Plots.
+2. One Rota can cover both the common water work and the shared tools. Basis: the common work is light enough for one turn to hold. If wrong: the Rota splits into two, one per part it serves.
 
 ### 11. Decisions
 
-- 11.1. Water is a part of its own, not a duty folded into Plots. Reason: usable water in reach is a Layer 1 value on its own, and keeping it separate lets the Rota answer for it week by week.
-- 11.2. The Shed is a named part though it may be small. Reason: shared tools are a thing members reach for in common, and naming it now fixes its seams before any maker builds it.
+1. Water is a part of its own, not a duty folded into Plots. Reason: usable water in reach is a Layer 1 value on its own, and keeping it separate lets the Rota answer for it week by week.
+2. The Shed is a named part though it may be small. Reason: shared tools are a thing members reach for in common, and naming it now fixes its seams before any maker builds it.
 
 ### Diagrams
 
@@ -191,8 +191,8 @@ flowchart TD
 
 ## What to notice
 
-- This stack has no Layer 3, and that is on purpose. An idea states the need, the parts and the seams; it gains Layer 3 for a part only when a maker needs it. No one is building the Water or the Plots yet, so no part has Detail.
-- Every part reads `described here` in Standing. While the garden is an idea nothing stands on its own; the first part a maker picks up gets an entry here or its own stack, named in Standing, at that point.
-- What the garden does not yet know is marked `Not supplied:`, not guessed. The three unknowns are real: the ground owner's consent, the number of households, and the success numbers. Each is a fact or an intent that only the owner or the outside bodies can give, so the stack asks for it instead of inventing it.
-- The three value scenarios are numbered 3.1 to 3.3 and cited as `vision-3.1` to `vision-3.3`, and each one has a path through the parts in Layer 2 that says `Realizes` and the same id. When a maker later writes Layer 3 for a part, each rule will say the same, so a reader can trace one value from the need all the way to how a part meets it.
-- The seams name what crosses and point from the initiator, so the boundaries hold even before any part is built. A later Layer 3 entry names each seam the same way, `<From> to <To>`, and says only what its part offers or needs there.
+1. This stack has no Layer 3, and that is on purpose. An idea states the need, the parts and the seams; it gains Layer 3 for a part only when a maker needs it. No one is building the Water or the Plots yet, so no part has Detail.
+2. Every part reads `described here` in Standing. While the garden is an idea nothing stands on its own; the first part a maker picks up gets an entry here or its own stack, named in Standing, at that point.
+3. What the garden does not yet know is marked `Not supplied:`, not guessed. The three unknowns are real: the ground owner's consent, the number of households, and the success numbers. Each is a fact or an intent that only the owner or the outside bodies can give, so the stack asks for it instead of inventing it.
+4. The value scenarios are cited as `vision-3.1` to `vision-3.3`, and each one has a path through the parts in Layer 2 that says `Realizes` and the same id. When a maker later writes Layer 3 for a part, each rule will say the same, so a reader can trace one value from the need all the way to how a part meets it.
+5. The seams name what crosses and point from the initiator, so the boundaries hold even before any part is built. A later Layer 3 entry names each seam the same way, `<From> to <To>`, and says only what its part offers or needs there.
