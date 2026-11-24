@@ -28,7 +28,7 @@ const L1 = "## Layer 1: Vision\n\nScope: all.\n\n";
 const L2 = "## Layer 2: Structure\n\nScope: all.\n\n";
 const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
 // A canonical document: every topic block is heading, blank, body, blank; the last block has no trailing blank.
-const doc = (o1 = { Need: "N.", Decisions: "- 12.1. Keep it. Reason: simple." }, o2 = { Parts: "- Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }) =>
+const doc = (o1 = { Need: "N.", Decisions: "- 12.1. Keep it. Reason: simple." }, o2 = { Parts: "- 1.1. Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }) =>
   "# Club\n\n" + L1 + fxT("###", T1, o1) + "\n" + L2 + fxT("###", T2, o2) + "\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, o3);
 const topicNames = (text) => [...text.matchAll(/^#{3,4} \d+\. (.+)$/gm)].map((m) => m[1]);
 
@@ -85,7 +85,7 @@ test("edge: stack of several files", () => {
     const h = (n) => `# Club\n\n## Layer ${n}: ${NAMES[n - 1]}\n\nScope: all.\n\n`;
     const files = {
       "sbp-vision.md": h(1) + fxT("###", T1, { Need: "N." }),
-      "sbp-structure.md": h(2) + fxT("###", T2, { Parts: "- Shed (part): tools." }),
+      "sbp-structure.md": h(2) + fxT("###", T2, { Parts: "- 1.1. Shed (part): tools." }),
       "sbp-detail-shed.md": h(3) + "### Shed (part)\n\n" + fxT("####", T3, { Responsibility: "R." }),
       "sbp-detail-full.md": h(3) + "### Full (part)\n\n" + fxT("####", T3, Object.fromEntries(T3.map((n) => [n, "Text."]))),
     };

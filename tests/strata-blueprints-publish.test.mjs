@@ -36,7 +36,7 @@ const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
 const vision = (have = { Need: "- 1.1. Members need a shed.", Decisions: "- 12.1. Keep it. Reason: simple." }) =>
   "# Club\n\nVersion: 1.0\nStatus: Draft\n\n" + L1 + fxT("###", T1, have);
 const structure = (parts, have = {}, views = "") =>
-  "# Club\n\n" + L2 + fxT("###", T2, { Parts: parts.map((p) => `- ${p} (part): holds ${p}.`).join("\n"), ...have }) + views;
+  "# Club\n\n" + L2 + fxT("###", T2, { Parts: parts.map((p, i) => `- 1.${i + 1}. ${p} (part): holds ${p}.`).join("\n"), ...have }) + views;
 const detail = (part, have = {}) =>
   "# Club\n\n" + L3 + `### ${part} (part)\n\n` + fxT("####", T3, { Responsibility: `${part} holds things.`, ...have });
 const stack = (parts, views = "") => ({
@@ -46,7 +46,7 @@ const stack = (parts, views = "") => ({
 });
 const writeStack = (dir, o) => { for (const [n, t] of Object.entries(o)) put(dir, n, t); return dir; };
 // A one-document source in standard form.
-const doc = (o1 = { Need: "N." }, o2 = { Parts: "- Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }, tail = "") =>
+const doc = (o1 = { Need: "N." }, o2 = { Parts: "- 1.1. Shed (part): holds tools." }, o3 = { Responsibility: "Holds tools." }, tail = "") =>
   "# Club\n\n" + L1 + fxT("###", T1, o1) + "\n" + L2 + fxT("###", T2, o2) + "\n" + L3 + "### Shed (part)\n\n" + fxT("####", T3, o3) + tail;
 const headingsOf = (text, re) => lines(text).filter((l) => re.test(l));
 const partNames = (text) => headingsOf(text, /^### .+ \(part\)$/).map((l) => l.slice(4, -7));
@@ -160,7 +160,7 @@ test("publish: table of contents", () => {
     "## Layer 1: Vision", "", "Scope: all.", "",
     "### 1. Need", "", "- 1.1. Members need a shed.", "", "```", "### Hidden", "```", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Access (part): gate.", "",
+    "### 1. Parts", "", "- 1.1. Access (part): gate.", "",
     "## Layer 3: Detail", "", "Scope: one part.", "",
     "### Access (part)", "",
     "#### 1. Responsibility", "", "Opens the gate.", "",
@@ -267,7 +267,7 @@ test("publish: dropped and open lines", () => {
     "### 9. Risks", "", "- Not supplied: a risk.", "- Not supplied: another.", "",
     "### 12. Decisions", "", "- 12.1. Write `Not supplied:` for gaps. Reason: r.", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Shed (part): holds tools.", "",
+    "### 1. Parts", "", "- 1.1. Shed (part): holds tools.", "",
   ].join("\n");
   tmp((dir) => {
     const f = put(dir, "club.md", src);
@@ -370,7 +370,7 @@ test("publish: marker lines of merged files", () => {
 test("publish: numbers and ids kept", () => {
   const s = {
     "sbp-vision.md": vision({ Need: "- 1.1. Members need a shed.", Value: "- 3.1. A shed is held. Realizes vision-1.1.", Decisions: "- 12.1. Keep it. Reason: vision-1.1." }),
-    "sbp-structure.md": structure(["Shed"], { "Seams between parts": "- 3.1. Seam. See vision-3.1 and detail.shed-1.1.", "Scenario paths": "- 6.1. Path. Realizes vision-3.1." }),
+    "sbp-structure.md": structure(["Shed"], { Parts: "Shed (part): holds Shed.", "Seams between parts": "- 3.1. Seam. See vision-3.1 and detail.shed-1.1.", "Scenario paths": "- 6.1. Path. Realizes vision-3.1." }),
     "sbp-detail-shed.md": detail("Shed", { Responsibility: "- 1.1. Holds tools. Realizes vision-3.1.", Rules: "- 4.1. Lock it. See structure-3.1.", Decisions: "- 12.1. Keep. Reason: simple." }),
   };
   const r = pub(s);

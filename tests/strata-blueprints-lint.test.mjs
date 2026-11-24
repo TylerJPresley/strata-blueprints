@@ -722,13 +722,13 @@ Scope: the whole club.
 
 ### 1. Parts
 
-- Ledger (part): holds the records.
-- Rota (part): plans the shifts.
+- 1.1. Ledger (part): holds the records.
+- 1.2. Rota (part): plans the shifts.
 
 ### 2. Standing
 
-- Ledger: sbp-detail-ledger.md
-- Rota: sbp-detail-rota.md
+- 2.1. Ledger: sbp-detail-ledger.md
+- 2.2. Rota: sbp-detail-rota.md
 
 ### 6. Scenario paths
 
@@ -772,7 +772,7 @@ const fxFull = {
   "sbp-vision.md": "# Club\n\nVersion: 0.1.0\nStatus: Draft\n\n## Layer 1: Vision\n\nScope: the whole club.\n\n" +
     fxT("###", T1, { Value: "- 3.1. Given a member, when they join, then they are listed.", Decisions: "- 12.1. Keep lists. Reason: simple." }),
   "sbp-structure.md": "# Club\n\n## Layer 2: Structure\n\nScope: the whole club.\n\n" +
-    fxT("###", T2, { Parts: "- Ledger (part): holds the records.\n- Rota (part): plans the shifts.", Standing: "- Ledger: sbp-detail-ledger.md\n- Rota: sbp-detail-rota.md", "Scenario paths": "- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record." }) +
+    fxT("###", T2, { Parts: "- 1.1. Ledger (part): holds the records.\n- 1.2. Rota (part): plans the shifts.", Standing: "- 2.1. Ledger: sbp-detail-ledger.md\n- 2.2. Rota: sbp-detail-rota.md", "Scenario paths": "- 6.1. Realizes vision-3.1. Given a member, when they join, then Ledger adds a record." }) +
     "\n## View: Lifecycle\n\nA member joins, then rests.\n",
   "sbp-detail-ledger.md": "# Club\n\n## Layer 3: Detail\n\nScope: one part.\n\n### Ledger (part)\n\n" +
     fxT("####", T3, { Responsibility: "Holds the records.", Rules: "- 4.1. Realizes vision-3.1. Given a member, when they join, then a record is added." }),
@@ -846,7 +846,7 @@ test("folder standing: a named file that is absent warns once", () => {
 });
 
 test("folder standing: a detail file named by no line warns once", () => {
-  const w = fxWarns({ "sbp-structure.md": fxStructure.replace("- Rota: sbp-detail-rota.md\n", "") }, "standing");
+  const w = fxWarns({ "sbp-structure.md": fxStructure.replace("- 2.2. Rota: sbp-detail-rota.md\n", "") }, "standing");
   assert.equal(w.length, 1, w.join("\n"));
   assert.match(w[0], /sbp-detail-rota\.md/);
 });
@@ -858,7 +858,7 @@ test("folder standing: a file whose slug is no part's slug warns", () => {
 });
 
 test("folder standing: two parts that share a slug warn", () => {
-  const w = fxWarns({ "sbp-structure.md": fxStructure.replace("- Rota (part): plans the shifts.", "- Rota (part): plans the shifts.\n- ROTA (part): a twin.") }, "standing");
+  const w = fxWarns({ "sbp-structure.md": fxStructure.replace("- 1.2. Rota (part): plans the shifts.", "- 1.2. Rota (part): plans the shifts.\n- 1.3. ROTA (part): a twin.") }, "standing");
   assert.equal(w.length, 1, w.join("\n"));
   assert.match(w[0], /rota/);
 });
@@ -871,8 +871,8 @@ test("folder standing: an entry name that differs from the Parts name warns", ()
 });
 
 test("folder standing: 'own stack' is only checked that the folder exists", () => {
-  const structure = fxStructure.replace("- Rota (part): plans the shifts.", "- Rota (part): plans the shifts.\n- Presence (part): keeps devices level.")
-    .replace("- Rota: sbp-detail-rota.md", "- Rota: sbp-detail-rota.md\n- Presence: own stack, presence/");
+  const structure = fxStructure.replace("- 1.2. Rota (part): plans the shifts.", "- 1.2. Rota (part): plans the shifts.\n- 1.3. Presence (part): keeps devices level.")
+    .replace("- 2.2. Rota: sbp-detail-rota.md", "- 2.2. Rota: sbp-detail-rota.md\n- 2.3. Presence: own stack, presence/");
   assert.equal(fxWarns({ "sbp-structure.md": structure, "presence/": "" }, "standing").length, 0);
   const w = fxWarns({ "sbp-structure.md": structure }, "standing");
   assert.equal(w.length, 1, w.join("\n"));
@@ -880,7 +880,7 @@ test("folder standing: 'own stack' is only checked that the folder exists", () =
 });
 
 test("folder standing: 'described here' warns in folder mode", () => {
-  const w = fxWarns({ "sbp-detail-rota.md": null, "sbp-structure.md": fxStructure.replace("- Rota: sbp-detail-rota.md", "- Rota: described here.") }, "standing");
+  const w = fxWarns({ "sbp-detail-rota.md": null, "sbp-structure.md": fxStructure.replace("- 2.2. Rota: sbp-detail-rota.md", "- 2.2. Rota: described here.") }, "standing");
   assert.equal(w.length, 1, w.join("\n"));
   assert.match(w[0], /described here/);
 });
@@ -967,7 +967,7 @@ const IMP = [
   "### 2. Decisions", "",
   "- 12.11. Keep lists. Reason: vision-3.1.", "",
   "## Layer 2: Structure", "", "Scope: all.", "",
-  "### 1. Parts", "", "- Rota (part): plans.", "",
+  "### 1. Parts", "", "- 1.1. Rota (part): plans.", "",
   "### 6. Scenario paths", "",
   "- 6.1. Realizes vision-3.1. Given a member, when they join, then Rota plans it.", "",
   "### 7. Decisions", "",
@@ -1201,7 +1201,7 @@ test("id: parts are separate documents, so two parts may both number 4.1, and a 
   const two = L1 + L2 + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n\n` + ENTRY("Frame") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
   assert.deepEqual(iw(two), []);
   // When Parts lists a part, the slug must name one.
-  const parts = L1 + L2 + item("###", 1, "Parts") + "- Brakes (part): stops.\n- Frame (part): holds.\n\n" + L3;
+  const parts = L1 + L2 + item("###", 1, "Parts") + "- 1.1. Brakes (part): stops.\n- 1.2. Frame (part): holds.\n\n" + L3;
   const ok = parts + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
   assert.deepEqual(iw(ok), []);
   const bad = iw(ok.replace("### Brakes (part)", "### Pads (part)"));
@@ -1212,12 +1212,12 @@ test("id: parts are separate documents, so two parts may both number 4.1, and a 
 });
 
 test("id: a part name that is not one word warns", () => {
-  const md = L1 + L2 + item("###", 1, "Parts") + "- Tool shed (part): keeps tools.\n- Brakes (part): stops.\n- Pad2 (part): grips.\n- Fore-arm (part): holds.\n\n";
+  const md = L1 + L2 + item("###", 1, "Parts") + "- 1.1. Tool shed (part): keeps tools.\n- 1.2. Brakes (part): stops.\n- 1.3. Pad2 (part): grips.\n- 1.4. Fore-arm (part): holds.\n\n";
   const w = iw(md);
   assert.equal(w.length, 2);
   assert.match(w[0], /part name 'Tool shed' is not one word \(line 11\)$/);
   assert.match(w[1], /part name 'Fore-arm' is not one word/);
-  assert.deepEqual(iw(L1 + L2 + item("###", 1, "Parts") + "- Brakes (part): stops.\n- **Shed** (part): keeps tools.\n\n"), []);
+  assert.deepEqual(iw(L1 + L2 + item("###", 1, "Parts") + "- 1.1. Brakes (part): stops.\n- 1.2. **Shed** (part): keeps tools.\n\n"), []);
 });
 
 test("id: an item under a topic that needs ids warns when it has none", () => {
@@ -1241,10 +1241,7 @@ test("id: an item under a topic that needs ids warns when it has none", () => {
   // A wrapped item is one item, and a paragraph item needs an id too.
   assert.equal(iw(doc(1, 3, "Value", "Given a, when b,\nthen c.\n")).length, 1);
   assert.deepEqual(iw(doc(1, 3, "Value", `- 3.1. Given a, when b,\n  then c.\n`)), []);
-  // Other topics need none, and no open topic needs none.
-  assert.deepEqual(iw(doc(1, 1, "Need", "- An item with no id.\n")), []);
-  assert.deepEqual(iw(doc(2, 3, "Seams between parts", "- An item with no id.\n")), []);
-  assert.deepEqual(iw(doc(3, 5, "Inside", "- An item with no id.\n")), []);
+  // An open topic needs none (every topic's bullet is checked by the ordered: tests).
   assert.deepEqual(iw(L1 + "- An item with no topic open.\n" + L2), []);
 });
 
@@ -1578,7 +1575,7 @@ test("condensed: folder --impact reaches the same elements as the full folder", 
 });
 
 // scenario-trace follows Rule 4: a Layer 3 rule is asked for only where a scenario's path runs through a part that has an entry.
-const stParts = L2 + item("###", 5, "Parts") + "- Brakes (part): stops the bike.\n- Frame (part): carries the rider.\n\n";
+const stParts = L2 + item("###", 5, "Parts") + "- 1.1. Brakes (part): stops the bike.\n- 1.2. Frame (part): carries the rider.\n\n";
 const stL1 = L1 + item("###", 3, "Value") + `- 3.1. ${GWT}\n- 3.2. Given d, when e, then f.\n\n`;
 const stPaths = (p1, p2) => item("###", 6, "Scenario paths") + `- 6.1. Realizes vision-3.1. ${p1}\n- 6.2. Realizes vision-3.2. ${p2}\n\n`;
 const stBrakes = (rules) => L3 + ENTRY("Brakes") + item("####", 4, "Rules") + rules;
@@ -1626,7 +1623,7 @@ test("scenario-trace (entries): a folder follows the same rule", () => {
   const over = (path) => ({
     ...fxFull,
     "sbp-detail-rota.md": null,
-    "sbp-structure.md": fxFull["sbp-structure.md"].replace(/- Rota: sbp-detail-rota\.md\n?/, "").replace("then Ledger adds a record", path),
+    "sbp-structure.md": fxFull["sbp-structure.md"].replace(/- 2\.2\. Rota: sbp-detail-rota\.md\n?/, "").replace("then Ledger adds a record", path),
     "sbp-detail-ledger.md": fxFull["sbp-detail-ledger.md"].replace("Realizes vision-3.1. ", ""),
   });
   assert.deepEqual(fxWarns(over("then Rota adds a record"), "scenario-trace"), []);
@@ -1651,7 +1648,7 @@ test("folder: the error for a folder with no sbp- files says to pass the file", 
 
 test("scenario-trace: the missing-Layer-3-rule warning names the part and the path id", () => {
   const md = L1 + "### 3. Value\n\n- 3.1. Given a rider, when braking, then stops.\n\n" +
-    L2 + "### 1. Parts\n\n- Brakes (part): stops the bike.\n\n### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a rider, when braking, then Brakes stops the bike.\n\n" +
+    L2 + "### 1. Parts\n\n- 1.1. Brakes (part): stops the bike.\n\n### 6. Scenario paths\n\n- 6.1. Realizes vision-3.1. Given a rider, when braking, then Brakes stops the bike.\n\n" +
     L3 + "### Brakes (part)\n\n#### 4. Rules\n\n- A rule with no id.\n";
   const r = warns(lintText(md), "scenario-trace");
   assert.equal(r.length, 1);
@@ -2203,7 +2200,7 @@ test("shared things: a numbered item is cited from a Detail, and --impact reache
     "# T", "",
     "## Layer 1: Vision", "", "Scope: all.", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Rota (part): plans.", "- Pay (part): pays.", "",
+    "### 1. Parts", "", "- 1.1. Rota (part): plans.", "- 1.2. Pay (part): pays.", "",
     "### 5. Shared things", "", "- 5.1. The date format is ISO, kept by Rota and Pay.", "",
     "## Layer 3: Detail", "", "Scope: one part.", "",
     "### Rota (part)", "",
@@ -2246,7 +2243,7 @@ test("shared things: a numbered item among unnumbered bullets keeps its own coun
     "# T", "",
     "## Layer 1: Vision", "", "Scope: all.", "",
     "## Layer 2: Structure", "", "Scope: all.", "",
-    "### 1. Parts", "", "- Rota (part): plans.", "", 
+    "### 1. Parts", "", "- 1.1. Rota (part): plans.", "", 
     "### 5. Shared things", "", "- A plain first bullet.", "- A plain second bullet.", "- 5.1. A numbered fact the Detail cites.", "",
     "## Layer 3: Detail", "", "Scope: one part.", "",
     "### Rota (part)", "",
@@ -2262,7 +2259,7 @@ test("shared things: a numbered item among unnumbered bullets keeps its own coun
 // ordered: every list item is numbered under its topic (plan ordered-lists-only).
 const ordParts = "- 1.1. **Ledger** (part): holds the records.\n- 1.2. Rota (part): plans the shifts.";
 const ordStanding = "- 2.1. Ledger: sbp-detail-ledger.md\n- 2.2. Rota: sbp-detail-rota.md";
-const ordStructure = (parts, standing) => fxFull["sbp-structure.md"].replace(/- Ledger \(part\)[^\n]*\n- Rota \(part\)[^\n]*/, parts).replace(/- Ledger: sbp-detail-ledger\.md\n- Rota: sbp-detail-rota\.md/, standing);
+const ordStructure = (parts, standing) => fxFull["sbp-structure.md"].replace(/- 1\.1\. Ledger \(part\)[^\n]*\n- 1\.2\. Rota \(part\)[^\n]*/, parts).replace(/- 2\.1\. Ledger: sbp-detail-ledger\.md\n- 2\.2\. Rota: sbp-detail-rota\.md/, standing);
 
 test("ordered: numbered Parts and Standing read as unnumbered ones do, in a folder and in one document", () => {
   const num = { ...fxFull, "sbp-structure.md": ordStructure(ordParts, ordStanding) };
@@ -2283,4 +2280,102 @@ test("ordered: numbered Parts and Standing read as unnumbered ones do, in a fold
   const md = L1 + L2 + item("###", 1, "Parts") + "- 1.1. **Brakes** (part): stops.\n- 1.2. Pads (part): grip.\n\n" + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
   assert.deepEqual(iw(md), []);
   assert.equal(warns(lintText(md.replace("1.2. Pads", "1.2. Pad shoes")), "id").length, 1);
+});
+
+// A document with one topic of one layer written; Layer 3 puts it in an entry.
+const ordTopics = { 1: T1, 2: T2, 3: T3 };
+const ordDoc = (layer, topic, body, { all = false } = {}) => {
+  const h = layer === 3 ? "####" : "###";
+  const names = all ? ordTopics[layer] : [topic];
+  const sect = names.map((n) => `${h} ${ordTopics[layer].indexOf(n) + 1}. ${n}\n\n${n === topic ? body : "None."}\n`).join("\n");
+  const lay = layer === 1 ? L1 : layer === 2 ? L1 + L2 : "## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n";
+  return lay + sect;
+};
+// Every topic of every layer written (each None. but the one under test), so a strict run is clean apart from that topic.
+const ordAll = (layer, topic, body) => [1, 2, 3].map((l) => {
+  const head = l === 1 ? L1 : l === 2 ? L2 : "## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n";
+  const h = l === 3 ? "####" : "###";
+  return head + ordTopics[l].map((n, i) => `${h} ${i + 1}. ${n}\n\n${l === layer && n === topic ? body : "None."}\n`).join("\n");
+}).join("\n");
+
+test("ordered: every one of the 35 topics warns on an unnumbered bullet and is silent when it is numbered", () => {
+  let n = 0;
+  for (const layer of [1, 2, 3]) {
+    ordTopics[layer].forEach((topic, i) => {
+      n++;
+      const bare = iw(ordDoc(layer, topic, "- A thing.\n"));
+      assert.equal(bare.length, 1, `Layer ${layer} ${topic}: ${bare.join("\n")}`);
+      assert.match(bare[0], new RegExp(`^WARN id: an item under ${topic} has no number \\(line \\d+\\)$`));
+      assert.deepEqual(iw(ordDoc(layer, topic, `- ${i + 1}.1. A thing.\n`)), [], `Layer ${layer} ${topic} numbered`);
+    });
+  }
+  assert.equal(n, 35);
+});
+
+test("ordered: --strict exits 1 on an unnumbered bullet and 0 when it is numbered, in each layer", () => {
+  for (const [layer, topic, bare, num] of [[1, "Target audience", "- The keeper.", "- 2.1. The keeper."], [2, "Parts", "- Shed (part): holds tools.", "- 1.1. Shed (part): holds tools."], [3, "Inside", "- A store (piece).", "- 5.1. A store (piece)."]]) {
+    const a = lintText(ordAll(layer, topic, bare + "\n"), "--strict");
+    assert.equal(a.code, 1, `Layer ${layer} bare`);
+    assert.deepEqual(a.lines.filter((l) => l.startsWith("WARN")).map((l) => l.replace(/ \(line \d+\)$/, "")), [`WARN id: an item under ${topic} has no number`]);
+    const b = lintText(ordAll(layer, topic, num + "\n"), "--strict");
+    assert.equal(b.code, 0, `Layer ${layer} numbered: ${b.out}`);
+    assert.match(b.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
+  }
+  // The warning names the line.
+  assert.match(lintText(L1 + "### 2. Target audience\n\n- The keeper.\n").lines.find((l) => l.startsWith("WARN id")), /\(line 7\)$/);
+});
+
+test("ordered: a bold label follows the number, and a Limit cites a quality by its name or its id", () => {
+  const vis = (q) => L1 + "### 2. Target audience\n\n- 2.1. **The keeper (actor):** a person.\n\n### 6. Qualities and constraints\n\n- 6.1. **Durable:** survives a closed app.\n\n### 7. Vocabulary\n\n- 7.1. **Commitment:** one thing.\n\n";
+  const part = (cite) => "## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n#### 6. Limits\n\n- 6.1. A saved item survives a closed app (Layer 1, " + cite + ").\n";
+  assert.deepEqual(iw(vis()), []);
+  assert.deepEqual(warns(lintText(vis() + part("Durable")), "limit-quality"), []);
+  assert.deepEqual(warns(lintText(vis() + part("vision-6.1")), "limit-quality"), []);
+  assert.equal(warns(lintText(vis() + part("Fast")), "limit-quality").length, 1);
+  assert.deepEqual(iw(vis() + part("Durable")), []);
+});
+
+test("ordered: a paragraph under Need, Focus, Responsibility and the newly numbered topics draws no id warning", () => {
+  for (const [layer, topic] of [[1, "Need"], [1, "Target audience"], [1, "Focus"], [1, "Success measures"], [1, "Qualities and constraints"], [1, "Vocabulary"],
+    [2, "Parts"], [2, "Standing"], [2, "Seams between parts"], [2, "Seams with the outside"], [2, "Shared things"],
+    [3, "Responsibility"], [3, "Concepts and states"], [3, "Seams"], [3, "Inside"]]) {
+    assert.deepEqual(iw(ordDoc(layer, topic, "A paragraph about the subject.\nIt runs on two lines.\n")), [], `${topic}`);
+  }
+});
+
+test("ordered: nested lines, wrapped lines, None., Not supplied:, Title:, table rows and fenced blocks are exempt", () => {
+  const body = [
+    "- 2.1. The keeper.", "  - Basis: nested under it.", "  wrapped from it.", "",
+    "- None.", "- Not supplied: who else.", "- Title: a label.", "",
+    "| a | b |", "|---|---|", "| 1 | 2 |", "",
+    "```", "- inside a fence", "```", "",
+  ].join("\n");
+  assert.deepEqual(iw(ordDoc(1, "Target audience", body)), []);
+  // A nested bullet with no item above it is a list item.
+  const orphan = iw(ordDoc(1, "Target audience", "  - orphan\n"));
+  assert.equal(orphan.length, 1);
+  assert.match(orphan[0], /an item under Target audience has no number/);
+});
+
+test("ordered: text under no topic draws no warning", () => {
+  assert.deepEqual(iw(L1 + "- stray before the first topic\n\n### 2. Target audience\n\n- 2.1. The keeper.\n"), []);
+  assert.deepEqual(iw(L1 + L2 + "- stray\n\n## View: Lifecycle\n\n- Given a, when b, then c.\n- Given d, when e, then f.\n"), []);
+  // An unknown topic heading gives its lines no topic, so they draw no id warning (the topic-order warning names the heading).
+  assert.deepEqual(iw(L1 + "### 3. Valu\n\n- stray one\n\nstray two\n"), []);
+  assert.deepEqual(iw("## Layer 3: Detail\n\nScope: one part.\n\n- stray before the first entry\n\n### Shed (part)\n\n#### 4. Rules\n\n- 4.1. A rule.\n"), []);
+});
+
+test("ordered: a 1. marker is not a number", () => {
+  const w = iw(ordDoc(1, "Success measures", "1. A number.\n"));
+  assert.equal(w.length, 1);
+  assert.match(w[0], /^WARN id: an item under Success measures has no number \(line 7\)$/);
+});
+
+test("ordered: a duplicate number and another topic's number still warn", () => {
+  const dup = iw(ordDoc(1, "Target audience", "- 2.1. The keeper.\n- 2.1. The clock.\n"));
+  assert.equal(dup.length, 1);
+  assert.match(dup[0], /vision-2\.1 repeats the one on line 7/);
+  const other = iw(ordDoc(1, "Target audience", "- 3.1. The keeper.\n"));
+  assert.equal(other.length, 1);
+  assert.match(other[0], /vision-3\.1 is numbered for topic 3, but sits under Target audience/);
 });

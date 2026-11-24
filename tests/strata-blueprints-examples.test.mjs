@@ -1495,3 +1495,19 @@ test("every shipped example carries Version: 0.1.0 as the first metadata line un
     assert.equal(lines[1], "Version: 0.1.0", `${f} has Version: 0.1.0 right under the title`);
   }
 });
+
+// --- ordered: every list item is numbered, so the four templates draw no 'has no number' warning once their (optional) marks are removed. ---
+test("ordered: the four templates draw no 'has no number' warning", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-tpl-"));
+  try {
+    for (const name of ["template", "template-layer-1", "template-layer-2", "template-layer-3"]) {
+      const text = fs.readFileSync(path.join(SKILL, "assets", `strata-blueprints-${name}.md`), "utf8").replace(/ \(optional\)/g, "");
+      const f = path.join(dir, `${name}.md`);
+      fs.writeFileSync(f, text);
+      let out;
+      try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
+      assert.deepEqual(out.split("\n").filter((l) => /has no number/.test(l)), [], name);
+      assert.ok(/^strata-blueprints-lint: /m.test(out), `${name} lints`);
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

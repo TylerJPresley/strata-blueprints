@@ -222,18 +222,19 @@ Silent when:
 #### Check: `id`
 
 Fires when an item's number is wrong or taken:
-- A numbered topic item with no number, in topics that require one (in any layer or entry)
+- A list item with no number, under any topic (in any layer or entry), or a paragraph with no number under a topic that counts a paragraph as an item
 - A number under the wrong topic by name
 - The same id appears twice in the same document
 - A Layer 3 item in an entry whose slug does not match a part in Layer 2 Parts
 - A part name in Layer 2 Parts that is not one word (letters, digits, underscores)
 - The item starts with a full id form like `vision-3.1.` (the old style); only the number should be written
 
-Reports once per item. A prose paragraph (lines up to a blank) counts as one item, numbered or not. An item under a numbered topic needs a number; prose and items under unnumbered topics do not. Table rows, `None.`, `Not supplied:` and `Title:` lines are exempt. The lint checks that numbers are unique, not their order or gaps.
+Reports once per item. A list item (a line that starts with `-`, `*`, `+` or `1.`) under any topic of a written layer needs its number, `<topic>.<count>`. A prose paragraph (lines up to a blank) counts as one item, numbered or not, under Value, Costs, Risks, Open Concerns, Assumptions and Decisions (every layer) and under Scenario paths, Rules, Limits and Construction; under every other topic a paragraph is prose and needs no number. A line nested under an item, or wrapped from it, belongs to that item. A `1.` marker is a list marker and is not a number. The message is `an item under <Topic> has no number`. Table rows, `None.`, `Not supplied:` and `Title:` lines are exempt. The lint checks that numbers are unique, not their order or gaps.
 
 Silent when:
 - The layer is invalid (no topics to judge)
 - The item is in a Layer 3 with no entry
+- The line sits under no topic (a view, text before the first topic, the Layer 3 text before the first entry)
 
 #### Check: `id-ref`
 

@@ -13,7 +13,7 @@ const TOPICS = {
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   3: ["Responsibility", "Concepts and states", "Seams", "Rules", "Inside", "Limits", "Construction", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
 };
-// Topics whose items carry a number (each item, written <topic>.<count>, at the start of its line).
+// Topics where a prose paragraph counts as an item and needs its number (each item, written <topic>.<count>, at the start of its line). A list item needs one under any topic.
 const NEEDS_ID = {
   1: ["Value", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   2: ["Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
@@ -222,7 +222,7 @@ const firstOf = new Map();
 for (const e of live) {
   if (!e.own) {
     const exempt = e.table || /^(None\.|Not supplied:|Title:)/.test(e.body);
-    if (e.topic && !exempt && !(e.layer === 3 && e.entry === null) && NEEDS_ID[e.layer].includes(e.topic)) warn("id", `an item under ${e.topic} has no number`, e.n);
+    if (e.topic && e.topicNo !== null && !exempt && !(e.layer === 3 && e.entry === null) && (NEEDS_ID[e.layer].includes(e.topic) || e.list)) warn("id", `an item under ${e.topic} has no number`, e.n);
     continue;
   }
   const { id, doc, topic } = e.own;
