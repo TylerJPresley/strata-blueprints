@@ -2506,3 +2506,59 @@ test("count-ref: the examples, the templates and the published example draw none
   for (const n of fs.readdirSync(path.join(here, "..", "skills", "strata-blueprints", "assets"))) assert.deepEqual(warns(run(path.join(here, "..", "skills", "strata-blueprints", "assets", n)), "count-ref"), [], n);
   assert.deepEqual(warns(run(path.join(here, "..", "docs", "example-published.md")), "count-ref"), []);
 });
+
+// ids: --ids lists each defined id with its file and lines (docs/lint.md, Use --ids).
+const idsOf = (arg) => { const r = spawnSync(process.execPath, [script, "--ids", arg], { encoding: "utf8" }); return { out: r.stdout, err: r.stderr, code: r.status, rows: r.stdout.split("\n").filter(Boolean).map((l) => l.split("\t")) }; };
+const idsDoc = (md) => { const dir = fs.mkdtempSync(path.join(os.tmpdir(), "strata-blueprints-ids-")); const f = path.join(dir, "doc.md"); fs.writeFileSync(f, md); try { return { ...idsOf(f), f }; } finally { fs.rmSync(dir, { recursive: true, force: true }); } };
+test("ids: a single document prints id, path as given, first line and last line, in document order", () => {
+  const md = L1 + item("###", 6, "Qualities and constraints") + "1. **A:** a,\n   wrapped.\n2. **B:** b.\n   1. nested.\n   2. nested two.\n3. **C:** c.\n";
+  const r = idsDoc(md);
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.rows.map((x) => [x[0], x[2], x[3]]), [["vision-6.1", "7", "8"], ["vision-6.2", "9", "11"], ["vision-6.2.1", "10", "10"], ["vision-6.2.2", "11", "11"], ["vision-6.3", "12", "12"]]);
+  assert.ok(r.rows.every((x) => x[1] === r.f));
+});
+test("ids: a folder prints file names and file lines, not lines of the virtual document", () => {
+  const r = fxWith({}, (d) => idsOf(d));
+  assert.equal(r.code, 0);
+  const rota = r.rows.find((x) => x[0] === "detail.ledger-4.1");
+  assert.equal(rota[1], "sbp-detail-ledger.md");
+  const first = fxWith({}, (d) => fs.readFileSync(path.join(d, "sbp-detail-ledger.md"), "utf8").split("\n").findIndex((l) => l.startsWith("1. Realizes vision-3.1.")) + 1);
+  assert.equal(Number(rota[2]), first);
+  assert.ok(r.rows.some((x) => x[0] === "vision-3.1" && x[1] === "sbp-vision.md"));
+});
+test("ids: paragraphs print nothing, view items print as view ids, and a repeated id prints twice", () => {
+  const md = VW("1. Given a, when b, then c.\n2. Given d, when e, then f.\n");
+  const r = idsDoc(md + "\n" + item("###", 3, "Value") + "A paragraph.\n");
+  assert.deepEqual(r.rows.map((x) => x[0]), ["view.lifecycle-1", "view.lifecycle-2"]);
+  const twice = idsDoc(L1 + item("###", 3, "Value") + `1. ${GWT}\n\n` + item("###", 3, "Value") + `1. ${GWT}\n`);
+  assert.deepEqual(twice.rows.map((x) => x[0]), ["vision-3.1", "vision-3.1"]);
+});
+test("ids: the run prints no warning and exits 0 even when the document has warnings", () => {
+  const r = idsDoc(L1 + item("###", 3, "Value") + "- Given a cat it sleeps.\n");
+  assert.equal(r.code, 0);
+  assert.deepEqual(r.rows.map((x) => x[0]), ["vision-3.1"]);
+  assert.ok(!/WARN/.test(r.out));
+});
+test("ids: usage errors exit 2 with nothing on stdout", () => {
+  for (const args of [[], ["a", "b"], ["--strict", "x.md"], ["/no/such/file.md"]]) {
+    const r = spawnSync(process.execPath, [script, "--ids", ...args], { encoding: "utf8" });
+    assert.equal(r.status, 2, args.join(" "));
+    assert.equal(r.stdout, "", args.join(" "));
+    assert.match(r.stderr, /^strata-blueprints-lint: /);
+  }
+});
+
+// open: an item that starts Not supplied: is an open question; the form, trace, reason and shape checks skip it (docs/lint.md, Check: scenario-trace).
+test("open: a Not supplied: item draws no form, trace, reason or shape warning in any item topic", () => {
+  const skip = ["scenario-form", "scenario-trace", "reasons", "limit-quality", "realizes-text", "cost-shape", "risk-shape", "concern-shape"];
+  const bare = (check, name) => warns(lintText(mk({ c1: "1. Not supplied: what it costs.", r1: "1. Not supplied: the risk.", o1: "1. Not supplied: the concern." })), check);
+  for (const c of ["cost-shape", "risk-shape", "concern-shape"]) assert.deepEqual(bare(c), [], c);
+  const full = L1 + item("###", 3, "Value") + `1. ${GWT}\n2. Not supplied: another scenario.\n\n` + item("###", 11, "Assumptions") + "1. Not supplied: a fact.\n\n" + item("###", 12, "Decisions") + "1. Not supplied: a choice.\n\n" + L2 + item("###", 6, "Scenario paths") + `1. Realizes vision-3.1. ${GWT}\n2. Not supplied: a path.\n`;
+  const r = lintText(full);
+  for (const c of skip) assert.deepEqual(warns(r, c), [], c);
+  assert.deepEqual(warns(r, "list"), []);
+});
+test("open: the placeholder is still read by list, id and count-ref", () => {
+  assert.equal(lw(vocab("- Not supplied: a term.\n")).length, 1);
+  assert.equal(warns(lintText(vocab("1. Not supplied: the third quality.\n")), "count-ref").length, 1);
+});

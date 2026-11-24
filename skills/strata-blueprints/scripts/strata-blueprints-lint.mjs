@@ -4,6 +4,7 @@
 // usage: node strata-blueprints-lint.mjs <file.md> [--strict]
 //        node strata-blueprints-lint.mjs <folder> [--strict]
 //        node strata-blueprints-lint.mjs --impact <id>[,<id>...] <file.md or folder>
+//        node strata-blueprints-lint.mjs --ids <file.md or folder>
 import fs from "node:fs";
 import path from "node:path";
 
@@ -41,10 +42,11 @@ const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m &&
 const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
-const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id>[,<id>...] <file.md or folder>";
+const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id>[,<id>...] <file.md or folder> | --ids <file.md or folder>";
 // A reader that closes the pipe early ends the run quietly, with the exit code the run would have had.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); else throw e; });
 if (process.argv[2] === "--impact") await runImpact(process.argv.slice(3));
+if (process.argv[2] === "--ids") await runIds(process.argv.slice(3));
 
 const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
 const strict = process.argv.includes("--strict");
@@ -308,7 +310,7 @@ for (const e of live) {
   }
   const named = (id) => slugsListed.filter((p) => /^[A-Za-z0-9]+$/.test(p.name) && new RegExp(String.raw`(?<![A-Za-z0-9])${p.name}(?![A-Za-z0-9])`).test(pathText.get(id) || ""));
   for (const e of live) {
-    if (e.layer !== 1 || !e.own || e.depth !== 1 || e.own.topic !== 3) continue;
+    if (e.layer !== 1 || !e.own || e.depth !== 1 || e.own.topic !== 3 || e.body.startsWith("Not supplied:")) continue;
     if (seen.includes(2) && !traced[2].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no path in Layer 2`, e.n);
     if (seen.includes(3) && !traced[3].has(e.own.id)) {
       const parts = named(e.own.id);
@@ -691,6 +693,23 @@ function folderChecks(f, warnAt) {
     const e = f.files[d].entries[0];
     if (e && e.name !== part.name) warnAt("standing", `the entry '${e.name}' differs from the Parts name '${part.name}'`, `${d} line ${e.n}`);
   }
+}
+
+// --ids <file or folder>: one line per defined id, <id>\t<file>\t<line>\t<end>, in document order. Read-only; no warning is printed.
+async function runIds(args) {
+  const opts = args.filter((a) => a.startsWith("--"));
+  if (opts.length) die(`unknown option in --ids mode: ${opts[0]}`);
+  if (args.length < 1) die("--ids needs a file or folder");
+  if (args.length > 1) die(`unexpected extra argument: ${args[1]}`);
+  const target = loadTarget(args[0]);
+  const els = readElements(target.rows);
+  assignOwn(els);
+  const at = (n) => (target.map && target.map[n - 1] ? target.map[n - 1] : { file: args[0], line: n });
+  const out = [];
+  for (const e of els) if (e.own) out.push(`${e.own.id}\t${at(e.n).file}\t${at(e.n).line}\t${at(e.end).line}`);
+  process.exitCode = 0;
+  await new Promise((done) => process.stdout.write(out.length ? out.join("\n") + "\n" : "", done));
+  process.exit(0);
 }
 
 // --impact <id>[,<id>...] <file or folder>

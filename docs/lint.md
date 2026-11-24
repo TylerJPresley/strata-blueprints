@@ -164,6 +164,8 @@ Silent when:
 
 #### Check: `scenario-trace`
 
+An item whose text starts `Not supplied:` is an open question. `scenario-form`, `scenario-trace`, `reasons`, `limit-quality`, `realizes-text` and the shape checks skip it, so an open placeholder can be inserted into any topic with no new warning.
+
 Fires when a Layer 1 Value scenario (an item under Value) is not realized in Layer 2 or Layer 3:
 - Missing from Layer 2: no `Realizes <vision-N.M>.` sentence in any Layer 2 element
 - Missing from Layer 3: when the scenario's path runs through a part that has a Layer 3 entry, no `Realizes <vision-N.M>.` sentence appears in any Layer 3 element. A path is built from the Layer 2 text that realizes the scenario, a part is on the path when its Parts name appears as a whole word in that text, and an empty path (no valid Layer 2 heading) names no part. If the path names no part but any Layer 3 entry exists, Layer 3 must have the sentence anyway. The warning message ends with what the path names. The path ids are those of the Layer 2 elements that realize the scenario, joined with `, `; the parts are those found in the path text, joined with `, `. The lint prints exactly these forms, each shown here as the lint printed it:
@@ -428,6 +430,16 @@ node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs path/to/documen
 ```
 
 Use this in a gate to fail a build when warnings are present.
+
+## Use --ids
+
+To list every id a document defines, with the file and the lines of the item, run:
+
+```
+node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --ids path/to/document.md
+```
+
+One line per id, in document order, tab separated: `<id>`, `<file>`, `<line>`, `<end>`. `<file>` is the file name inside a folder and the path as given for one file. `<line>` is the item's first line and `<end>` its last line, counting its continuation lines and its nested items; both are lines of that file. Paragraphs have no id and print nothing, and the items of a view print as view ids. The run prints no warning. Exit codes: `0`, and `2` for a missing path, an unreadable file or an extra argument, with nothing on stdout. The `insert` and `delete` commands of `strata-blueprints.mjs` read this listing.
 
 ## Use --impact
 
