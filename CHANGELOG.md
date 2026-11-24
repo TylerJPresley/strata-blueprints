@@ -2,6 +2,16 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
+## 0.4.0
+
+Every list item in a blueprint is numbered, so every item can be cited by its full id.
+
+- Core guide and layer guides: every list item is written `- <topic>.<count>. text`, in every topic of every layer; Target audience, Success measures, Qualities and constraints, Vocabulary, Parts, Standing, Seams between parts, Seams with the outside, Shared things, Concepts and states, Seams and Inside are now numbered like the other topics; a paragraph stays a paragraph; a line nested under an item belongs to it; `None.` and `Not supplied:` lines carry no number.
+- Lint: the `id` check warns on an unnumbered list item under any topic of a written layer (exit 1 under `--strict`). A paragraph is checked only under the topics where it was checked before. Parts and Standing lines may start with their number; the lint and the tool read the part name after it.
+- Breaking for blueprints: a blueprint with an unnumbered list item now draws an `id` warning. Write each missing number once; an item's number never changes and no script renumbers.
+- Templates, the three examples and the published example number every list item; every number that existed is unchanged.
+- Existing test lines changed: see the plan's list; no assertion was weakened.
+
 ## 0.3.0
 
 Fixes from a test run in which the standard was used to write a blueprint of this project.
