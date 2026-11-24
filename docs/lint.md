@@ -36,7 +36,7 @@ The script produces three kinds of output:
 
 ### Warnings
 
-`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `list`, `id`, `id-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
+`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `list`, `id`, `id-ref`, `count-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
 
 #### Check: `layer-heading`
 
@@ -263,6 +263,16 @@ Silent when:
 - The id is defined in the layer or inward of it
 - The id is inside a code span or fence
 
+#### Check: `count-ref`
+
+Fires when blueprint text names an item by its count or its place in words, which no tool can keep true when a list changes. The message is `'<text>' names an item by its count or place; cite it by its id (for example vision-6.2)`. It reads four forms, case-insensitive:
+- an ordinal (`first`, `second`, ... `tenth`, `last`, `previous`, `next`), at most one more word, and a kind of item: `item`, `quality`, `constraint`, `cost`, `risk`, `concern`, `scenario`, `decision`, `assumption`, `rule`, `limit`, `term`, `path` or `seam` (`the third quality`, `the next open concern`)
+- `item` and a number (`item 2`), or a kind from the list, then `#` or `no.` and a number (`risk #3`)
+- a kind from the list with `above` or `below` on either side (`the rule above`, `below risks`)
+- `see` or `cf.` and a number with a dot (`see 6.2`)
+
+It reads all blueprint text outside code spans and fenced blocks, including a view and the text before the first layer heading, one line at a time. Silent when: the text cites an id (`vision-6.2`), uses the `settles open concern <number>` form, is a table row or a `Title:` line, or names a part by ordinal (`the first part`; a part is cited by its name). The check is advisory: rewrite the sentence as an id citation, or rephrase it when it is not a reference.
+
 #### Check: `risk-ref`
 
 Fires when a Risk's `Answered by` field is not `Not supplied:` and:
@@ -389,6 +399,7 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `list` | `'<N>)' is not the list marker; write it as '<N>.'` |
 | `list` | `item number <N> is not <n>, its place in the list; a list counts 1, 2, 3 with no gap` |
 | `id` | `view name '<Name>' is not one word` |
+| `count-ref` | `'<text>' names an item by its count or place; cite it by its id (for example vision-6.2)` |
 | `id` | `<id> repeats the one on <place>` |
 | `id` | `<id> names '<slug>', which is not a part in Layer 2 Parts` |
 | `id` | `part name '<name>' is not one word` |

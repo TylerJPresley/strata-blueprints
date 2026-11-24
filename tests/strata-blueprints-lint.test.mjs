@@ -2471,3 +2471,38 @@ test("ordered: view ids: a view may cite any layer, no layer may cite a view, an
   assert.equal(twice.length, 1);
   assert.match(twice[0], /view\.flow-1 repeats the one on line/);
 });
+
+// count-ref: an item named by its count or place in words draws a warning (core guide, How to fill it out, id rule).
+const cr = (text) => warns(lintText(L1 + item("###", 7, "Vocabulary") + text + "\n"), "count-ref");
+test("count-ref: each of the four forms warns once, with the matched text", () => {
+  const a = cr("1. The third quality is slow.\n");
+  assert.equal(a.length, 1);
+  assert.match(a[0], /^WARN count-ref: 'third quality' names an item by its count or place; cite it by its id \(for example vision-6\.2\) \(line 7\)$/);
+  assert.equal(cr("1. See item 2 for the term.\n").length, 1);
+  assert.equal(cr("1. As risk #3 says.\n").length, 1);
+  assert.equal(cr("1. The rule above holds.\n").length, 1);
+  assert.equal(cr("1. See 6.2 for details.\n").length, 1);
+  assert.equal(cr("1. The next open concern is open.\n").length, 1);
+});
+test("count-ref: an id citation, a code span, a fence and a table row are silent", () => {
+  assert.deepEqual(cr("1. See vision-6.3.\n"), []);
+  assert.deepEqual(cr("1. Write `the third quality` as an id.\n"), []);
+  assert.deepEqual(cr("Title: the third quality.\n"), []);
+  assert.deepEqual(cr("```\nthe third quality\n```\n"), []);
+  assert.deepEqual(cr("| the third quality | x |\n|---|---|\n"), []);
+});
+test("count-ref: settles open concern <number> and a part named by ordinal are silent", () => {
+  assert.deepEqual(cr("1. Chosen X. Reason: settles open concern 10.1.\n"), []);
+  assert.deepEqual(cr("1. The first part a maker picks up is Ledger.\n"), []);
+});
+test("count-ref: a match across two lines is not read, and a view and text before the first layer are read", () => {
+  assert.deepEqual(cr("1. The third\n   quality is slow.\n"), []);
+  assert.equal(lintText("# T\n\nThe last risk is high.\n\n" + L1 + L2).lines.filter((l) => l.startsWith("WARN count-ref:")).length, 1);
+  assert.equal(lintText(L1 + L2 + L3 + "## View: Flow\n\n1. The previous scenario ends here.\n").lines.filter((l) => l.startsWith("WARN count-ref:")).length, 1);
+});
+test("count-ref: the examples, the templates and the published example draw none", () => {
+  const refs = path.join(here, "..", "skills", "strata-blueprints", "references");
+  for (const n of ["strata-blueprints-example.md", "strata-blueprints-example-rfp.md", "strata-blueprints-example-todo-app"]) assert.deepEqual(warns(run(path.join(refs, n)), "count-ref"), [], n);
+  for (const n of fs.readdirSync(path.join(here, "..", "skills", "strata-blueprints", "assets"))) assert.deepEqual(warns(run(path.join(here, "..", "skills", "strata-blueprints", "assets", n)), "count-ref"), [], n);
+  assert.deepEqual(warns(run(path.join(here, "..", "docs", "example-published.md")), "count-ref"), []);
+});

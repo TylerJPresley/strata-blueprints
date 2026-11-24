@@ -271,6 +271,16 @@ for (const e of live) {
   }
 }
 
+// count-ref: an item named by its count or place in words cannot move with its list; cite it by its id (core guide, How to fill it out, id rule).
+const COUNT_ORD = "first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|previous|next";
+const COUNT_KIND = "items?|qualit(?:y|ies)|constraints?|costs?|risks?|concerns?|scenarios?|decisions?|assumptions?|rules?|limits?|terms?|paths?|seams?";
+const COUNT_REF = new RegExp(String.raw`\b(?:(?:${COUNT_ORD}) (?:[a-z-]+ )?(?:${COUNT_KIND})|items? \d+|(?:${COUNT_KIND}) (?:#|no\.? ?)\d+|(?:${COUNT_KIND}) (?:above|below)|(?:above|below) (?:${COUNT_KIND})|(?:see|cf\.?) \d+(?:\.\d+)+)\b`, "gi");
+for (const { n, t } of plainLines(rows)) {
+  if (t.startsWith("|") || t.startsWith("Title:")) continue;
+  const text = clean(t).replace(/settles open concern \d+(?:\.\d+)*/gi, (m) => " ".repeat(m.length));
+  for (const m of text.matchAll(COUNT_REF)) warn("count-ref", `'${m[0]}' names an item by its count or place; cite it by its id (for example vision-6.2)`, n);
+}
+
 // reasons: Assumptions need Basis and If wrong, Decisions need Reason; read from the id's topic number.
 for (const e of live) {
   if (!e.own || e.depth !== 1 || e.body.includes("Not supplied:")) continue;
