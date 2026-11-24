@@ -405,7 +405,7 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `id` | `<id> repeats the one on <place>` |
 | `id` | `<id> names '<slug>', which is not a part in Layer 2 Parts` |
 | `id` | `part name '<name>' is not one word` |
-| `id` | `write '<Topic>.<N>.' at the start of the item; the document goes only in a citation` (old form) |
+| `id` | `the item starts with '<text>'; the list gives its number, so write the item without it` |
 | `id-ref` | `<id> is not defined` |
 | `id-ref` | `<id> is defined in <doc>, which is outward of Layer <N>` |
 | `id-ref` | `<id> belongs to another part, and the entry '<Part>' may not cite it` |

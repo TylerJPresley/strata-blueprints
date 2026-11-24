@@ -24,7 +24,7 @@ Testing: run `npm test` to run every test. Exact commands in [AGENTS.md](AGENTS.
 
 A bug fix includes a regression test in the same commit. When adding or changing an example, run the examples test to confirm all checks pass.
 
-Documents: check documents with the lint script (exact commands: [AGENTS.md](AGENTS.md)). When you add or change an example, add or update its entry in the test's MANIFEST. A new example numbers every item in the cited topics under its own topic (`3.1`, `7.1`, `7.2`), cites items by their full id (`vision-3.1`, `detail.ledger-7.2`), and its Layer 2 paths and Layer 3 rules say which scenario they realize with `Realizes`, and only the idea example may omit Layer 3. Edit the full template first, then the matching cut; the gate's `templates` check compares them.
+Documents: check documents with the lint script (exact commands: [AGENTS.md](AGENTS.md)). When you add or change an example, add or update its entry in the test's MANIFEST. A new example writes every list as a Markdown ordered list (`1.`, `2.`, `3.`), cites items by their full id (`vision-3.1`, `detail.ledger-7.2`), and its Layer 2 paths and Layer 3 rules say which scenario they realize with `Realizes`, and only the idea example may omit Layer 3. Edit the full template first, then the matching cut; the gate's `templates` check compares them.
 
 Dependencies: none. The lint script runs on Node.js LTS only.
 

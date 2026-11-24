@@ -14,6 +14,9 @@ Overview for people: [README.md](README.md).
 - Impact: `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact <id> <file or folder>`
 - Condense: `node skills/strata-blueprints/scripts/strata-blueprints.mjs condense <file or folder> --out <path>`
 - Publish: `node skills/strata-blueprints/scripts/strata-blueprints.mjs publish <file or folder> --out <file>`
+- Ids: `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --ids <file or folder>`
+- Insert an item: `node skills/strata-blueprints/scripts/strata-blueprints.mjs insert <id> <file or folder> [--text <text> | --text-file <path> | --needs <text>] [--apply]`
+- Delete an item: `node skills/strata-blueprints/scripts/strata-blueprints.mjs delete <id> <file or folder> [--apply] [--ack <handle>]`
 - Lint reference: [docs/lint.md](docs/lint.md) (what each check does, exit codes, `--strict` and `--impact` usage)
 
 Pre-flight: run `npm test` and `node gate.mjs` before every commit.
