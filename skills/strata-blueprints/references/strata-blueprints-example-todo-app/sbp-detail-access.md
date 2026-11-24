@@ -14,14 +14,14 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 2. Concepts and states
 
-- A keeper account, which is either unverified, active or locked.
-- A session, which is either open (a device currently proven) or ended.
-- A credential, the secret only the keeper knows, held so that even the maker cannot read it.
+- 2.1. A keeper account, which is either unverified, active or locked.
+- 2.2. A session, which is either open (a device currently proven) or ended.
+- 2.3. A credential, the secret only the keeper knows, held so that even the maker cannot read it.
 
 #### 3. Seams
 
-- Access to Ledger, offers: a proven keeper identity that scopes every held item to that keeper.
-- The keeper's devices to Access, offers and needs: needs a proof of who the keeper is from the device, and offers an admission that opens a session.
+- 3.1. Access to Ledger, offers: a proven keeper identity that scopes every held item to that keeper.
+- 3.2. The keeper's devices to Access, offers and needs: needs a proof of who the keeper is from the device, and offers an admission that opens a session.
 
 #### 4. Rules
 
@@ -31,8 +31,8 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 5. Inside
 
-- A verifier (piece), which checks a presented proof against what is held.
-- A session keeper (piece), which marks a session open or ended and attaches identity to each request.
+- 5.1. A verifier (piece), which checks a presented proof against what is held.
+- 5.2. A session keeper (piece), which marks a session open or ended and attaches identity to each request.
 
 #### 6. Limits
 

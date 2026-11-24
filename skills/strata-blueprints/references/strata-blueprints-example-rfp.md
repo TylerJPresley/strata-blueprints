@@ -17,11 +17,11 @@ The town library has meeting rooms that residents want to use for study groups, 
 
 ### 2. Target audience
 
-- **Patrons (actor):** residents of the town who want a room for a set time.
-- **Library staff (actor):** the people who run the desk, keep the rooms ready and hold events of their own.
-- **Town council (outsider):** the body that pays for the service and asks how the rooms are used.
-- **A message channel (outsider):** the path by which a patron is told about a booking.
-- **The clock and calendar (outsider):** the passage of time, against which a booking is judged coming.
+- 2.1. **Patrons (actor):** residents of the town who want a room for a set time.
+- 2.2. **Library staff (actor):** the people who run the desk, keep the rooms ready and hold events of their own.
+- 2.3. **Town council (outsider):** the body that pays for the service and asks how the rooms are used.
+- 2.4. **A message channel (outsider):** the path by which a patron is told about a booking.
+- 2.5. **The clock and calendar (outsider):** the passage of time, against which a booking is judged coming.
 
 ### 3. Value
 
@@ -38,27 +38,27 @@ The service covers listing the rooms, booking and cancelling, telling patrons ab
 
 ### 5. Success measures
 
-- The share of room bookings made by patrons without help from staff.
+- 5.1. The share of room bookings made by patrons without help from staff.
 Not supplied: the share that marks success.
-- The number of bookings promised twice.
+- 5.2. The number of bookings promised twice.
 Not supplied: the count at the start, and the target.
-- The hours of staff desk time spent on booking questions.
+- 5.3. The hours of staff desk time spent on booking questions.
 Not supplied: the hours today, and the saving the town wants.
 
 ### 6. Qualities and constraints
 
-- **No double booking:** a room is never held by two patrons for overlapping times.
-- **Open to every patron:** a patron can search, book and cancel from a phone or a library computer without staff help.
-- **Private:** the service holds only what it needs to keep a booking and tell the patron, and shows it to library staff and no one else.
-- **Accessible:** the patron's side meets the accessibility standard the town follows. Not supplied: which standard.
-- **Constraint, budget:** the town pays from one budget line. Not supplied: the ceiling and the contract term.
-- **Constraint, evaluation:** each bid is judged first on whether it meets every limit the town fixes, then on price and on the fit of the means it proposes. Not supplied: the weights, the closing date and the contact for questions.
+- 6.1. **No double booking:** a room is never held by two patrons for overlapping times.
+- 6.2. **Open to every patron:** a patron can search, book and cancel from a phone or a library computer without staff help.
+- 6.3. **Private:** the service holds only what it needs to keep a booking and tell the patron, and shows it to library staff and no one else.
+- 6.4. **Accessible:** the patron's side meets the accessibility standard the town follows. Not supplied: which standard.
+- 6.5. **Constraint, budget:** the town pays from one budget line. Not supplied: the ceiling and the contract term.
+- 6.6. **Constraint, evaluation:** each bid is judged first on whether it meets every limit the town fixes, then on price and on the fit of the means it proposes. Not supplied: the weights, the closing date and the contact for questions.
 
 ### 7. Vocabulary
 
-- **Patron:** a resident who books a room.
-- **Block:** a span of time in which staff withdraw a room from booking.
-- **Hold:** a booking that has been accepted and keeps a room for a patron.
+- 7.1. **Patron:** a resident who books a room.
+- 7.2. **Block:** a span of time in which staff withdraw a room from booking.
+- 7.3. **Hold:** a booking that has been accepted and keeps a room for a patron.
 
 ### 8. Costs
 
@@ -88,39 +88,39 @@ Scope: the whole room booking service, divided into parts, with the seams betwee
 
 ### 1. Parts
 
-- Catalogue (part): holds the rooms, their size and opening hours, and shows which are free.
-- Booking (part): holds each booking and keeps any room from being held twice.
-- Notices (part): tells a patron about a booking and reminds them before it.
-- Desk (part): lets staff block rooms, change the rooms and ask for the use report.
+- 1.1. Catalogue (part): holds the rooms, their size and opening hours, and shows which are free.
+- 1.2. Booking (part): holds each booking and keeps any room from being held twice.
+- 1.3. Notices (part): tells a patron about a booking and reminds them before it.
+- 1.4. Desk (part): lets staff block rooms, change the rooms and ask for the use report.
 
 ### 2. Standing
 
-- Catalogue: described here.
-- Booking: described here.
-- Notices: described here.
-- Desk: described here.
+- 2.1. Catalogue: described here.
+- 2.2. Booking: described here.
+- 2.3. Notices: described here.
+- 2.4. Desk: described here.
 
 ### 3. Seams between parts
 
-- Desk to Catalogue: a change to a room, its size or its hours crosses. Desk initiates when staff edit a room.
-- Catalogue to Booking: a room's opening hours and size cross, so Booking accepts only times a room is open. Catalogue initiates when a room or its hours change.
-- Booking to Catalogue: the times held for each room cross, so Catalogue can show what is free. Booking initiates when a hold is made or freed.
-- Booking to Notices: a made, freed or displaced booking crosses, so the patron is told. Booking initiates when a booking changes.
-- Desk to Booking: a block on a room for a span crosses, so Booking frees any hold inside it. Desk initiates when staff set a block.
-- Desk to Booking, report: staff ask for the booked hours of each room for a month. Desk initiates when staff ask for the report.
+- 3.1. Desk to Catalogue: a change to a room, its size or its hours crosses. Desk initiates when staff edit a room.
+- 3.2. Catalogue to Booking: a room's opening hours and size cross, so Booking accepts only times a room is open. Catalogue initiates when a room or its hours change.
+- 3.3. Booking to Catalogue: the times held for each room cross, so Catalogue can show what is free. Booking initiates when a hold is made or freed.
+- 3.4. Booking to Notices: a made, freed or displaced booking crosses, so the patron is told. Booking initiates when a booking changes.
+- 3.5. Desk to Booking: a block on a room for a span crosses, so Booking frees any hold inside it. Desk initiates when staff set a block.
+- 3.6. Desk to Booking, report: staff ask for the booked hours of each room for a month. Desk initiates when staff ask for the report.
 
 ### 4. Seams with the outside
 
-- Patron to Catalogue: a patron's day, time and number of people cross, and the free rooms come back. The patron initiates.
-- Patron to Booking: a patron's choice of room and time crosses, to book or to cancel. The patron initiates.
-- Notices to a message channel: a message for a patron crosses out. Notices initiates when a booking changes or a booking draws near.
-- The clock and calendar to Notices: the current time crosses in, so Notices knows a booking is near. Notices initiates when it reads the time.
-- Library staff to Desk: a staff member's block, room change or report request crosses. Library staff initiate.
-- Desk to the town council: the use report crosses out. Desk initiates when staff send it.
+- 4.1. Patron to Catalogue: a patron's day, time and number of people cross, and the free rooms come back. The patron initiates.
+- 4.2. Patron to Booking: a patron's choice of room and time crosses, to book or to cancel. The patron initiates.
+- 4.3. Notices to a message channel: a message for a patron crosses out. Notices initiates when a booking changes or a booking draws near.
+- 4.4. The clock and calendar to Notices: the current time crosses in, so Notices knows a booking is near. Notices initiates when it reads the time.
+- 4.5. Library staff to Desk: a staff member's block, room change or report request crosses. Library staff initiate.
+- 4.6. Desk to the town council: the use report crosses out. Desk initiates when staff send it.
 
 ### 5. Shared things
 
-- The room and its time: the one pair that Catalogue, Booking and Desk all refer to, so a room and a time mean the same in each.
+- 5.1. The room and its time: the one pair that Catalogue, Booking and Desk all refer to, so a room and a time mean the same in each.
 
 ### 6. Scenario paths
 
@@ -163,14 +163,14 @@ Holds each room with its size and opening hours, and answers for showing a patro
 
 #### 2. Concepts and states
 
-- A room, with its size and its opening hours.
+- 2.1. A room, with its size and its opening hours.
 
 #### 3. Seams
 
-- Desk to Catalogue, needs: a change to a room, its size or its hours.
-- Catalogue to Booking, offers: a room's opening hours and size, whenever a room or its hours change.
-- Booking to Catalogue, needs: the times held for each room, so Catalogue can show what is free.
-- Patron to Catalogue, offers and needs: a patron's day, time and number of people come in, and the free rooms go back.
+- 3.1. Desk to Catalogue, needs: a change to a room, its size or its hours.
+- 3.2. Catalogue to Booking, offers: a room's opening hours and size, whenever a room or its hours change.
+- 3.3. Booking to Catalogue, needs: the times held for each room, so Catalogue can show what is free.
+- 3.4. Patron to Catalogue, offers and needs: a patron's day, time and number of people come in, and the free rooms go back.
 
 #### 4. Rules
 
@@ -218,16 +218,16 @@ Holds each booking and answers for keeping any room from being held twice, so th
 
 #### 2. Concepts and states
 
-- A hold, which is a booking that has been accepted and keeps one room for one patron for one span of time on one day.
+- 2.1. A hold, which is a booking that has been accepted and keeps one room for one patron for one span of time on one day.
 
 #### 3. Seams
 
-- Catalogue to Booking, needs: a room's opening hours and size, so Booking accepts only times a room is open.
-- Booking to Catalogue, offers: the times held for each room, whenever a hold is made or freed.
-- Booking to Notices, offers: a made, freed or displaced booking, whenever a booking changes.
-- Desk to Booking, needs: a block on a room for a span, so Booking frees any hold inside it.
-- Desk to Booking, report, offers and needs: the staff's request for the booked hours of each room for a month comes in, and the booked hours go back.
-- Patron to Booking, needs: a patron's choice of room and time, to book or to cancel.
+- 3.1. Catalogue to Booking, needs: a room's opening hours and size, so Booking accepts only times a room is open.
+- 3.2. Booking to Catalogue, offers: the times held for each room, whenever a hold is made or freed.
+- 3.3. Booking to Notices, offers: a made, freed or displaced booking, whenever a booking changes.
+- 3.4. Desk to Booking, needs: a block on a room for a span, so Booking frees any hold inside it.
+- 3.5. Desk to Booking, report, offers and needs: the staff's request for the booked hours of each room for a month comes in, and the booked hours go back.
+- 3.6. Patron to Booking, needs: a patron's choice of room and time, to book or to cancel.
 
 #### 4. Rules
 
@@ -279,13 +279,13 @@ Answers for telling the patron what became of their booking and reminding them b
 
 #### 2. Concepts and states
 
-- A message, which tells one patron what became of a booking or that a booking is coming.
+- 2.1. A message, which tells one patron what became of a booking or that a booking is coming.
 
 #### 3. Seams
 
-- Booking to Notices, needs: a made, freed or displaced booking, so the patron is told.
-- Notices to a message channel, offers: a message for a patron, whenever a booking changes or draws near.
-- The clock and calendar to Notices, needs: the current time, so Notices knows a booking is near.
+- 3.1. Booking to Notices, needs: a made, freed or displaced booking, so the patron is told.
+- 3.2. Notices to a message channel, offers: a message for a patron, whenever a booking changes or draws near.
+- 3.3. The clock and calendar to Notices, needs: the current time, so Notices knows a booking is near.
 
 #### 4. Rules
 
@@ -333,15 +333,15 @@ Answers for letting staff change the rooms, block a room for a span and ask for 
 
 #### 2. Concepts and states
 
-- A block, which withdraws one room from booking for a span of time.
+- 2.1. A block, which withdraws one room from booking for a span of time.
 
 #### 3. Seams
 
-- Desk to Catalogue, offers: a change to a room, its size or its hours, whenever staff edit a room.
-- Desk to Booking, offers: a block on a room for a span, whenever staff set a block.
-- Desk to Booking, report, offers and needs: the staff's request for the booked hours of each room for a month goes out, and the booked hours come back.
-- Library staff to Desk, needs: a staff member's block, room change or report request.
-- Desk to the town council, offers: the use report, whenever staff send it.
+- 3.1. Desk to Catalogue, offers: a change to a room, its size or its hours, whenever staff edit a room.
+- 3.2. Desk to Booking, offers: a block on a room for a span, whenever staff set a block.
+- 3.3. Desk to Booking, report, offers and needs: the staff's request for the booked hours of each room for a month goes out, and the booked hours come back.
+- 3.4. Library staff to Desk, needs: a staff member's block, room change or report request.
+- 3.5. Desk to the town council, offers: the use report, whenever staff send it.
 
 #### 4. Rules
 

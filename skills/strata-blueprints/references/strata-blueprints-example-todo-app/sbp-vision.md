@@ -16,11 +16,11 @@ A person carries many small commitments in their head: things to do today, thing
 
 ### 2. Target audience
 
-- **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand and wants to see what is due without hunting.
-- **A household or team member (actor):** a person who shares a grouping of commitments with the keeper and adds to or completes items in it.
-- **The keeper's devices (outsider):** the phone and the computer the keeper already owns, through which they reach the app.
-- **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
-- **A notification channel (outsider):** the path by which a reminder reaches the keeper when the app is not open.
+- 2.1. **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand and wants to see what is due without hunting.
+- 2.2. **A household or team member (actor):** a person who shares a grouping of commitments with the keeper and adds to or completes items in it.
+- 2.3. **The keeper's devices (outsider):** the phone and the computer the keeper already owns, through which they reach the app.
+- 2.4. **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
+- 2.5. **A notification channel (outsider):** the path by which a reminder reaches the keeper when the app is not open.
 
 ### 3. Value
 
@@ -38,30 +38,30 @@ The app covers capturing commitments quickly, grouping them, judging what is due
 
 ### 5. Success measures
 
-- A commitment is captured in under five seconds from the moment the keeper decides to add it.
-- When the keeper opens the app, what is due today and what is overdue are visible without any search or filter step.
-- A change made on one device is visible on another device within a few seconds, without the keeper doing anything.
-- When a commitment's due time arrives and the app is closed, the keeper is alerted within a minute.
-- No commitment the keeper saved is ever lost or shown to a person it was not shared with.
+- 5.1. A commitment is captured in under five seconds from the moment the keeper decides to add it.
+- 5.2. When the keeper opens the app, what is due today and what is overdue are visible without any search or filter step.
+- 5.3. A change made on one device is visible on another device within a few seconds, without the keeper doing anything.
+- 5.4. When a commitment's due time arrives and the app is closed, the keeper is alerted within a minute.
+- 5.5. No commitment the keeper saved is ever lost or shown to a person it was not shared with.
 
 ### 6. Qualities and constraints
 
-- **Durable:** once the app tells the keeper a commitment is saved, it survives a closed app, a dead battery and a lost connection.
-- **Prompt:** opening the app and seeing today's commitments feels immediate; a change reaches the keeper's other devices within seconds.
-- **Reachable offline:** the keeper can read and add commitments with no connection, and the app reconciles when the connection returns.
-- **Private by default:** a keeper's commitments are visible only to that keeper and to anyone they deliberately share a grouping with; no one else, inside the product or out, can read them.
-- **Trustworthy with identity:** only the rightful keeper reaches their commitments, and proving who they are is quick and does not expose their secret.
-- **Within reach of one maintainer:** the app is built and run by a very small team, so its moving parts are few and its running cost is low.
+- 6.1. **Durable:** once the app tells the keeper a commitment is saved, it survives a closed app, a dead battery and a lost connection.
+- 6.2. **Prompt:** opening the app and seeing today's commitments feels immediate; a change reaches the keeper's other devices within seconds.
+- 6.3. **Reachable offline:** the keeper can read and add commitments with no connection, and the app reconciles when the connection returns.
+- 6.4. **Private by default:** a keeper's commitments are visible only to that keeper and to anyone they deliberately share a grouping with; no one else, inside the product or out, can read them.
+- 6.5. **Trustworthy with identity:** only the rightful keeper reaches their commitments, and proving who they are is quick and does not expose their secret.
+- 6.6. **Within reach of one maintainer:** the app is built and run by a very small team, so its moving parts are few and its running cost is low.
 
 ### 7. Vocabulary
 
-- **Commitment:** one thing the keeper means to do, the smallest unit the app holds. (Shown to the keeper as a task.)
-- **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
-- **Due:** having a day, or a day and time, by which a commitment is meant to be done.
-- **Done:** marked by the keeper as finished; it leaves the active view but is kept.
-- **Alert:** a message sent to the keeper about a due commitment when the app is not open.
-- **Device:** one phone or computer through which the keeper reaches the app.
-- **Shared grouping:** a grouping two or more people can both read and change.
+- 7.1. **Commitment:** one thing the keeper means to do, the smallest unit the app holds. (Shown to the keeper as a task.)
+- 7.2. **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
+- 7.3. **Due:** having a day, or a day and time, by which a commitment is meant to be done.
+- 7.4. **Done:** marked by the keeper as finished; it leaves the active view but is kept.
+- 7.5. **Alert:** a message sent to the keeper about a due commitment when the app is not open.
+- 7.6. **Device:** one phone or computer through which the keeper reaches the app.
+- 7.7. **Shared grouping:** a grouping two or more people can both read and change.
 
 ### 8. Costs
 

@@ -14,14 +14,14 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 2. Concepts and states
 
-- A grouping, with its name, its position in the keeper's order, and its membership.
-- A grouping's sharing state: private to the keeper, or shared with named people.
-- A membership, the set of people who may read and change a shared grouping.
+- 2.1. A grouping, with its name, its position in the keeper's order, and its membership.
+- 2.2. A grouping's sharing state: private to the keeper, or shared with named people.
+- 2.3. A membership, the set of people who may read and change a shared grouping.
 
 #### 3. Seams
 
-- Folders to Ledger, offers: a grouping's identity and membership, so each commitment is filed under one grouping and reached through it.
-- Folders to Presence, offers: every change to a grouping or its sharing, for Presence to carry.
+- 3.1. Folders to Ledger, offers: a grouping's identity and membership, so each commitment is filed under one grouping and reached through it.
+- 3.2. Folders to Presence, offers: every change to a grouping or its sharing, for Presence to carry.
 
 #### 4. Rules
 
@@ -31,7 +31,7 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 5. Inside
 
-- A grouping store (piece), which holds each grouping, its order and its membership.
+- 5.1. A grouping store (piece), which holds each grouping, its order and its membership.
 
 #### 6. Limits
 

@@ -8,42 +8,42 @@ Scope: the whole app, divided into its parts, with the seams between them and wi
 
 ### 1. Parts
 
-- Access (part): establishes who the keeper is and admits only them to their own commitments.
-- Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
-- Folders (part): holds the named groupings, their order, and who may see each one.
-- Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
-- Notifier (part): sends the keeper a message about a due commitment when the app is not open.
-- Presence (part): keeps every device and shared person showing the same commitments, and reconciles changes made apart.
+- 1.1. Access (part): establishes who the keeper is and admits only them to their own commitments.
+- 1.2. Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
+- 1.3. Folders (part): holds the named groupings, their order, and who may see each one.
+- 1.4. Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
+- 1.5. Notifier (part): sends the keeper a message about a due commitment when the app is not open.
+- 1.6. Presence (part): keeps every device and shared person showing the same commitments, and reconciles changes made apart.
 
 ### 2. Standing
 
-- Access: sbp-detail-access.md
-- Ledger: sbp-detail-ledger.md
-- Folders: sbp-detail-folders.md
-- Timing: sbp-detail-timing.md
-- Notifier: sbp-detail-notifier.md
-- Presence: sbp-detail-presence.md
+- 2.1. Access: sbp-detail-access.md
+- 2.2. Ledger: sbp-detail-ledger.md
+- 2.3. Folders: sbp-detail-folders.md
+- 2.4. Timing: sbp-detail-timing.md
+- 2.5. Notifier: sbp-detail-notifier.md
+- 2.6. Presence: sbp-detail-presence.md
 
 ### 3. Seams between parts
 
-- Access to Ledger: a proven keeper identity crosses, so Ledger serves only that keeper's own items. Access initiates on each session.
-- Folders to Ledger: a grouping's identity and its membership cross, so each commitment is held under one grouping and reached through it. Folders initiates when a commitment is filed or moved.
-- Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
-- Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
-- Ledger to Presence: every change to a commitment crosses, so Presence can carry it to the keeper's other devices and to shared people. Ledger initiates on each change.
-- Folders to Presence: a change to a grouping or its sharing crosses, so Presence carries it the same way. Folders initiates on each change.
+- 3.1. Access to Ledger: a proven keeper identity crosses, so Ledger serves only that keeper's own items. Access initiates on each session.
+- 3.2. Folders to Ledger: a grouping's identity and its membership cross, so each commitment is held under one grouping and reached through it. Folders initiates when a commitment is filed or moved.
+- 3.3. Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
+- 3.4. Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
+- 3.5. Ledger to Presence: every change to a commitment crosses, so Presence can carry it to the keeper's other devices and to shared people. Ledger initiates on each change.
+- 3.6. Folders to Presence: a change to a grouping or its sharing crosses, so Presence carries it the same way. Folders initiates on each change.
 
 ### 4. Seams with the outside
 
-- The keeper's devices to Access: a proof of who the keeper is crosses from the device, and an admission crosses back. The device initiates when the keeper signs in.
-- The keeper's devices to Presence: up-to-date commitments and groupings cross to each device, and the device's own new changes cross back. The device initiates when it connects.
-- Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
-- Notifier to a notification channel: a message for the keeper crosses out to the channel. Notifier initiates when a commitment is due and the app is closed.
+- 4.1. The keeper's devices to Access: a proof of who the keeper is crosses from the device, and an admission crosses back. The device initiates when the keeper signs in.
+- 4.2. The keeper's devices to Presence: up-to-date commitments and groupings cross to each device, and the device's own new changes cross back. The device initiates when it connects.
+- 4.3. Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
+- 4.4. Notifier to a notification channel: a message for the keeper crosses out to the channel. Notifier initiates when a commitment is due and the app is closed.
 
 ### 5. Shared things
 
-- The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds and shows to that one keeper.
-- A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same thing everywhere.
+- 5.1. The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds and shows to that one keeper.
+- 5.2. A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same thing everywhere.
 
 ### 6. Scenario paths
 

@@ -14,15 +14,15 @@ Judges each commitment's due value against the current time and says which commi
 
 #### 2. Concepts and states
 
-- A due value on a commitment: a day, or a day and time.
-- A judgement: today, overdue or upcoming, computed against "now".
-- The passing of a due moment, the instant a commitment's due time arrives.
+- 2.1. A due value on a commitment: a day, or a day and time.
+- 2.2. A judgement: today, overdue or upcoming, computed against "now".
+- 2.3. The passing of a due moment, the instant a commitment's due time arrives.
 
 #### 3. Seams
 
-- Ledger to Timing, needs: each commitment's due day or time.
-- Timing to Notifier, offers: the fact that a commitment has become due, and when.
-- Timing to the clock and calendar, needs: the current time, to judge against.
+- 3.1. Ledger to Timing, needs: each commitment's due day or time.
+- 3.2. Timing to Notifier, offers: the fact that a commitment has become due, and when.
+- 3.3. Timing to the clock and calendar, needs: the current time, to judge against.
 
 #### 4. Rules
 

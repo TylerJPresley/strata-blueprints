@@ -14,16 +14,16 @@ Holds each commitment and everything true about it, and answers for saving a new
 
 #### 2. Concepts and states
 
-- A commitment, with its text, an optional due value, and the grouping it belongs to.
-- A commitment's state: active (to do), done (finished but kept) or removed.
-- A change, one recorded edit to a commitment, carrying when and by whom.
+- 2.1. A commitment, with its text, an optional due value, and the grouping it belongs to.
+- 2.2. A commitment's state: active (to do), done (finished but kept) or removed.
+- 2.3. A change, one recorded edit to a commitment, carrying when and by whom.
 
 #### 3. Seams
 
-- Access to Ledger, needs: a proven keeper identity, so every item is held and shown under the right keeper.
-- Folders to Ledger, needs: the grouping a commitment belongs to and who may see it.
-- Ledger to Timing, offers: each commitment's due day or time, for Timing to judge.
-- Ledger to Presence, offers: every change to a commitment, for Presence to carry.
+- 3.1. Access to Ledger, needs: a proven keeper identity, so every item is held and shown under the right keeper.
+- 3.2. Folders to Ledger, needs: the grouping a commitment belongs to and who may see it.
+- 3.3. Ledger to Timing, offers: each commitment's due day or time, for Timing to judge.
+- 3.4. Ledger to Presence, offers: every change to a commitment, for Presence to carry.
 
 #### 4. Rules
 
@@ -33,8 +33,8 @@ Holds each commitment and everything true about it, and answers for saving a new
 
 #### 5. Inside
 
-- A store of commitments (piece), which holds each item and its current state.
-- A change log (piece), which records each edit in order so a change made apart can be reconciled.
+- 5.1. A store of commitments (piece), which holds each item and its current state.
+- 5.2. A change log (piece), which records each edit in order so a change made apart can be reconciled.
 
 #### 6. Limits
 

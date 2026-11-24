@@ -14,14 +14,14 @@ Sends the keeper a message about a commitment that has come due when the app is 
 
 #### 2. Concepts and states
 
-- An alert, pending or sent, for one due commitment.
-- A chosen channel, the path the keeper picked to be reached by.
-- A quiet setting, hours in which the keeper has asked not to be alerted.
+- 2.1. An alert, pending or sent, for one due commitment.
+- 2.2. A chosen channel, the path the keeper picked to be reached by.
+- 2.3. A quiet setting, hours in which the keeper has asked not to be alerted.
 
 #### 3. Seams
 
-- Timing to Notifier, needs: the fact that a commitment has become due, and when.
-- Notifier to a notification channel, offers: a message for the keeper about the due commitment.
+- 3.1. Timing to Notifier, needs: the fact that a commitment has become due, and when.
+- 3.2. Notifier to a notification channel, offers: a message for the keeper about the due commitment.
 
 #### 4. Rules
 
@@ -31,8 +31,8 @@ Sends the keeper a message about a commitment that has come due when the app is 
 
 #### 5. Inside
 
-- A sender (piece), which hands a message to the chosen channel.
-- A schedule of pending alerts (piece), which holds what is to be sent and when.
+- 5.1. A sender (piece), which hands a message to the chosen channel.
+- 5.2. A schedule of pending alerts (piece), which holds what is to be sent and when.
 
 #### 6. Limits
 

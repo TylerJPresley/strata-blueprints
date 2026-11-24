@@ -24,10 +24,10 @@ together over something they make.
 
 ### 2. Target audience
 
-- The households on the street who want to grow food (the members).
-- Neighbours on the street who do not join but live beside the ground.
-- The owner of the ground the garden would sit on.
-- The town body that rules on use of ground and on a water connection.
+- 2.1. The households on the street who want to grow food (the members).
+- 2.2. Neighbours on the street who do not join but live beside the ground.
+- 2.3. The owner of the ground the garden would sit on.
+- 2.4. The town body that rules on use of ground and on a water connection.
 
 ### 3. Value
 
@@ -43,27 +43,27 @@ selling the harvest, running a market, or teaching how to grow.
 
 ### 5. Success measures
 
-- The share of joined households whose ground is tended through the season.
+- 5.1. The share of joined households whose ground is tended through the season.
 Not supplied: the number of households on the street, and the share that marks success.
-- The longest a member goes, in the growing season, without usable water in reach.
+- 5.2. The longest a member goes, in the growing season, without usable water in reach.
 Not supplied: the agreed limit in days and the way it is measured.
-- Whether the owner of the ground and the town body both agree to the use before any work begins.
+- 5.3. Whether the owner of the ground and the town body both agree to the use before any work begins.
 Not supplied: whether the ground owner consents, and on what terms.
 
 ### 6. Qualities and constraints
 
-- Every joined household can reach usable water near its ground on any growing-season day.
-- The turns and tools are shared so no one household carries the common work alone.
-- The use of the ground and any water connection stays within what the owner and the town body allow.
-- The idea runs on what the members themselves can raise and give; it depends on no outside grant.
+- 6.1. Every joined household can reach usable water near its ground on any growing-season day.
+- 6.2. The turns and tools are shared so no one household carries the common work alone.
+- 6.3. The use of the ground and any water connection stays within what the owner and the town body allow.
+- 6.4. The idea runs on what the members themselves can raise and give; it depends on no outside grant.
 
 ### 7. Vocabulary
 
-- **Member:** a household that has joined the garden for the season.
-- **Season:** the span from first planting to final harvest that the garden runs by.
-- **Ground:** a marked piece of the site that one member tends.
-- **Usable water:** water a member can draw and give to their ground without carrying it from home.
-- **Turn:** a member's share of the common work for a span of the season.
+- 7.1. **Member:** a household that has joined the garden for the season.
+- 7.2. **Season:** the span from first planting to final harvest that the garden runs by.
+- 7.3. **Ground:** a marked piece of the site that one member tends.
+- 7.4. **Usable water:** water a member can draw and give to their ground without carrying it from home.
+- 7.5. **Turn:** a member's share of the common work for a span of the season.
 
 ### 8. Costs
 
@@ -93,39 +93,39 @@ Scope: the whole garden idea, divided into parts, with the seams between them an
 
 ### 1. Parts
 
-- Membership (part): decides who has joined for the season and what each member may use.
-- Plots (part): marks the ground into pieces and records which member holds each one.
-- Water (part): brings usable water within reach of every held piece of ground.
-- Shed (part): holds the shared tools and gives members access to them.
-- Rota (part): sets whose turn it is to do the common work across the season.
+- 1.1. Membership (part): decides who has joined for the season and what each member may use.
+- 1.2. Plots (part): marks the ground into pieces and records which member holds each one.
+- 1.3. Water (part): brings usable water within reach of every held piece of ground.
+- 1.4. Shed (part): holds the shared tools and gives members access to them.
+- 1.5. Rota (part): sets whose turn it is to do the common work across the season.
 
 ### 2. Standing
 
-- Membership: described here.
-- Plots: described here.
-- Water: described here.
-- Shed: described here.
-- Rota: described here.
+- 2.1. Membership: described here.
+- 2.2. Plots: described here.
+- 2.3. Water: described here.
+- 2.4. Shed: described here.
+- 2.5. Rota: described here.
 
 ### 3. Seams between parts
 
-- Membership to Plots: a joined member and the piece of ground they hold cross, so Plots records a holder for each piece. Membership initiates, because a member must have joined before ground is held.
-- Water to Plots: usable water crosses to every held piece of ground, so a member can draw it where they tend. Water initiates, because it carries water out to the ground.
-- Rota to Water: a member's turn to tend the common water crosses each week, so one member answers for the water that week. Rota initiates, because it assigns the turn.
-- Rota to Shed: a member's turn to keep the shared tools crosses, so one member answers for the shed. Rota initiates, because it assigns the turn.
-- Membership to Shed: a joined member crosses as someone allowed to take and return tools. Membership initiates, because only a member may use the shed.
+- 3.1. Membership to Plots: a joined member and the piece of ground they hold cross, so Plots records a holder for each piece. Membership initiates, because a member must have joined before ground is held.
+- 3.2. Water to Plots: usable water crosses to every held piece of ground, so a member can draw it where they tend. Water initiates, because it carries water out to the ground.
+- 3.3. Rota to Water: a member's turn to tend the common water crosses each week, so one member answers for the water that week. Rota initiates, because it assigns the turn.
+- 3.4. Rota to Shed: a member's turn to keep the shared tools crosses, so one member answers for the shed. Rota initiates, because it assigns the turn.
+- 3.5. Membership to Shed: a joined member crosses as someone allowed to take and return tools. Membership initiates, because only a member may use the shed.
 
 ### 4. Seams with the outside
 
-- Member to Membership: a household crosses to ask to join for the season, and Membership answers whether it has joined. The household initiates.
-- Ground owner to Water: the owner's permission for a water connection crosses, bounding how water may be brought. The ground owner initiates.
-- Town body to Water: the town body's ruling on a water connection crosses, allowing or refusing it. The town body initiates.
-- Ground owner to Plots: the owner's agreement to use the ground crosses, bounding where pieces may be marked. The ground owner initiates.
+- 4.1. Member to Membership: a household crosses to ask to join for the season, and Membership answers whether it has joined. The household initiates.
+- 4.2. Ground owner to Water: the owner's permission for a water connection crosses, bounding how water may be brought. The ground owner initiates.
+- 4.3. Town body to Water: the town body's ruling on a water connection crosses, allowing or refusing it. The town body initiates.
+- 4.4. Ground owner to Plots: the owner's agreement to use the ground crosses, bounding where pieces may be marked. The ground owner initiates.
 
 ### 5. Shared things
 
-- The site: the one piece of ground the parts sit on, used by Plots, Water and the Shed in common.
-- The season: the span every part runs by, so Membership, the Rota and the harvest line up.
+- 5.1. The site: the one piece of ground the parts sit on, used by Plots, Water and the Shed in common.
+- 5.2. The season: the span every part runs by, so Membership, the Rota and the harvest line up.
 
 ### 6. Scenario paths
 

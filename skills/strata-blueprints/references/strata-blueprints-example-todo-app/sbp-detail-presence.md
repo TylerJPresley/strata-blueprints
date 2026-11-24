@@ -14,15 +14,15 @@ Keeps every one of the keeper's devices, and every member of a shared grouping, 
 
 #### 2. Concepts and states
 
-- A device's view, either up to date or behind.
-- A pending change, recorded on one device and not yet carried to the others.
-- A conflict, two changes to the same commitment made apart, and its resolution.
+- 2.1. A device's view, either up to date or behind.
+- 2.2. A pending change, recorded on one device and not yet carried to the others.
+- 2.3. A conflict, two changes to the same commitment made apart, and its resolution.
 
 #### 3. Seams
 
-- Ledger to Presence, needs: every change to a commitment, to carry.
-- Folders to Presence, needs: every change to a grouping or its sharing, to carry.
-- The keeper's devices to Presence, offers and needs: offers each device the up-to-date commitments and groupings, and needs the device's own new changes in return.
+- 3.1. Ledger to Presence, needs: every change to a commitment, to carry.
+- 3.2. Folders to Presence, needs: every change to a grouping or its sharing, to carry.
+- 3.3. The keeper's devices to Presence, offers and needs: offers each device the up-to-date commitments and groupings, and needs the device's own new changes in return.
 
 #### 4. Rules
 
@@ -32,8 +32,8 @@ Keeps every one of the keeper's devices, and every member of a shared grouping, 
 
 #### 5. Inside
 
-- A reconciler (piece), which orders changes made apart and settles conflicts.
-- A per-device tracker (piece), which remembers how far each device has caught up.
+- 5.1. A reconciler (piece), which orders changes made apart and settles conflicts.
+- 5.2. A per-device tracker (piece), which remembers how far each device has caught up.
 
 #### 6. Limits
 

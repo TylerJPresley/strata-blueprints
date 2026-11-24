@@ -53,11 +53,11 @@ A person carries many small commitments in their head: things to do today, thing
 
 ### 2. Target audience
 
-- **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand and wants to see what is due without hunting.
-- **A household or team member (actor):** a person who shares a grouping of commitments with the keeper and adds to or completes items in it.
-- **The keeper's devices (outsider):** the phone and the computer the keeper already owns, through which they reach the app.
-- **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
-- **A notification channel (outsider):** the path by which a reminder reaches the keeper when the app is not open.
+- 2.1. **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand and wants to see what is due without hunting.
+- 2.2. **A household or team member (actor):** a person who shares a grouping of commitments with the keeper and adds to or completes items in it.
+- 2.3. **The keeper's devices (outsider):** the phone and the computer the keeper already owns, through which they reach the app.
+- 2.4. **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
+- 2.5. **A notification channel (outsider):** the path by which a reminder reaches the keeper when the app is not open.
 
 ### 3. Value
 
@@ -75,30 +75,30 @@ The app covers capturing commitments quickly, grouping them, judging what is due
 
 ### 5. Success measures
 
-- A commitment is captured in under five seconds from the moment the keeper decides to add it.
-- When the keeper opens the app, what is due today and what is overdue are visible without any search or filter step.
-- A change made on one device is visible on another device within a few seconds, without the keeper doing anything.
-- When a commitment's due time arrives and the app is closed, the keeper is alerted within a minute.
-- No commitment the keeper saved is ever lost or shown to a person it was not shared with.
+- 5.1. A commitment is captured in under five seconds from the moment the keeper decides to add it.
+- 5.2. When the keeper opens the app, what is due today and what is overdue are visible without any search or filter step.
+- 5.3. A change made on one device is visible on another device within a few seconds, without the keeper doing anything.
+- 5.4. When a commitment's due time arrives and the app is closed, the keeper is alerted within a minute.
+- 5.5. No commitment the keeper saved is ever lost or shown to a person it was not shared with.
 
 ### 6. Qualities and constraints
 
-- **Durable:** once the app tells the keeper a commitment is saved, it survives a closed app, a dead battery and a lost connection.
-- **Prompt:** opening the app and seeing today's commitments feels immediate; a change reaches the keeper's other devices within seconds.
-- **Reachable offline:** the keeper can read and add commitments with no connection, and the app reconciles when the connection returns.
-- **Private by default:** a keeper's commitments are visible only to that keeper and to anyone they deliberately share a grouping with; no one else, inside the product or out, can read them.
-- **Trustworthy with identity:** only the rightful keeper reaches their commitments, and proving who they are is quick and does not expose their secret.
-- **Within reach of one maintainer:** the app is built and run by a very small team, so its moving parts are few and its running cost is low.
+- 6.1. **Durable:** once the app tells the keeper a commitment is saved, it survives a closed app, a dead battery and a lost connection.
+- 6.2. **Prompt:** opening the app and seeing today's commitments feels immediate; a change reaches the keeper's other devices within seconds.
+- 6.3. **Reachable offline:** the keeper can read and add commitments with no connection, and the app reconciles when the connection returns.
+- 6.4. **Private by default:** a keeper's commitments are visible only to that keeper and to anyone they deliberately share a grouping with; no one else, inside the product or out, can read them.
+- 6.5. **Trustworthy with identity:** only the rightful keeper reaches their commitments, and proving who they are is quick and does not expose their secret.
+- 6.6. **Within reach of one maintainer:** the app is built and run by a very small team, so its moving parts are few and its running cost is low.
 
 ### 7. Vocabulary
 
-- **Commitment:** one thing the keeper means to do, the smallest unit the app holds. (Shown to the keeper as a task.)
-- **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
-- **Due:** having a day, or a day and time, by which a commitment is meant to be done.
-- **Done:** marked by the keeper as finished; it leaves the active view but is kept.
-- **Alert:** a message sent to the keeper about a due commitment when the app is not open.
-- **Device:** one phone or computer through which the keeper reaches the app.
-- **Shared grouping:** a grouping two or more people can both read and change.
+- 7.1. **Commitment:** one thing the keeper means to do, the smallest unit the app holds. (Shown to the keeper as a task.)
+- 7.2. **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
+- 7.3. **Due:** having a day, or a day and time, by which a commitment is meant to be done.
+- 7.4. **Done:** marked by the keeper as finished; it leaves the active view but is kept.
+- 7.5. **Alert:** a message sent to the keeper about a due commitment when the app is not open.
+- 7.6. **Device:** one phone or computer through which the keeper reaches the app.
+- 7.7. **Shared grouping:** a grouping two or more people can both read and change.
 
 ### 8. Costs
 
@@ -129,42 +129,42 @@ Scope: the whole app, divided into its parts, with the seams between them and wi
 
 ### 1. Parts
 
-- Access (part): establishes who the keeper is and admits only them to their own commitments.
-- Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
-- Folders (part): holds the named groupings, their order, and who may see each one.
-- Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
-- Notifier (part): sends the keeper a message about a due commitment when the app is not open.
-- Presence (part): keeps every device and shared person showing the same commitments, and reconciles changes made apart.
+- 1.1. Access (part): establishes who the keeper is and admits only them to their own commitments.
+- 1.2. Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
+- 1.3. Folders (part): holds the named groupings, their order, and who may see each one.
+- 1.4. Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
+- 1.5. Notifier (part): sends the keeper a message about a due commitment when the app is not open.
+- 1.6. Presence (part): keeps every device and shared person showing the same commitments, and reconciles changes made apart.
 
 ### 2. Standing
 
-- Access: sbp-detail-access.md
-- Ledger: sbp-detail-ledger.md
-- Folders: sbp-detail-folders.md
-- Timing: sbp-detail-timing.md
-- Notifier: sbp-detail-notifier.md
-- Presence: sbp-detail-presence.md
+- 2.1. Access: sbp-detail-access.md
+- 2.2. Ledger: sbp-detail-ledger.md
+- 2.3. Folders: sbp-detail-folders.md
+- 2.4. Timing: sbp-detail-timing.md
+- 2.5. Notifier: sbp-detail-notifier.md
+- 2.6. Presence: sbp-detail-presence.md
 
 ### 3. Seams between parts
 
-- Access to Ledger: a proven keeper identity crosses, so Ledger serves only that keeper's own items. Access initiates on each session.
-- Folders to Ledger: a grouping's identity and its membership cross, so each commitment is held under one grouping and reached through it. Folders initiates when a commitment is filed or moved.
-- Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
-- Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
-- Ledger to Presence: every change to a commitment crosses, so Presence can carry it to the keeper's other devices and to shared people. Ledger initiates on each change.
-- Folders to Presence: a change to a grouping or its sharing crosses, so Presence carries it the same way. Folders initiates on each change.
+- 3.1. Access to Ledger: a proven keeper identity crosses, so Ledger serves only that keeper's own items. Access initiates on each session.
+- 3.2. Folders to Ledger: a grouping's identity and its membership cross, so each commitment is held under one grouping and reached through it. Folders initiates when a commitment is filed or moved.
+- 3.3. Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
+- 3.4. Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
+- 3.5. Ledger to Presence: every change to a commitment crosses, so Presence can carry it to the keeper's other devices and to shared people. Ledger initiates on each change.
+- 3.6. Folders to Presence: a change to a grouping or its sharing crosses, so Presence carries it the same way. Folders initiates on each change.
 
 ### 4. Seams with the outside
 
-- The keeper's devices to Access: a proof of who the keeper is crosses from the device, and an admission crosses back. The device initiates when the keeper signs in.
-- The keeper's devices to Presence: up-to-date commitments and groupings cross to each device, and the device's own new changes cross back. The device initiates when it connects.
-- Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
-- Notifier to a notification channel: a message for the keeper crosses out to the channel. Notifier initiates when a commitment is due and the app is closed.
+- 4.1. The keeper's devices to Access: a proof of who the keeper is crosses from the device, and an admission crosses back. The device initiates when the keeper signs in.
+- 4.2. The keeper's devices to Presence: up-to-date commitments and groupings cross to each device, and the device's own new changes cross back. The device initiates when it connects.
+- 4.3. Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
+- 4.4. Notifier to a notification channel: a message for the keeper crosses out to the channel. Notifier initiates when a commitment is due and the app is closed.
 
 ### 5. Shared things
 
-- The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds and shows to that one keeper.
-- A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same thing everywhere.
+- 5.1. The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds and shows to that one keeper.
+- 5.2. A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same thing everywhere.
 
 ### 6. Scenario paths
 
@@ -211,14 +211,14 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 2. Concepts and states
 
-- A keeper account, which is either unverified, active or locked.
-- A session, which is either open (a device currently proven) or ended.
-- A credential, the secret only the keeper knows, held so that even the maker cannot read it.
+- 2.1. A keeper account, which is either unverified, active or locked.
+- 2.2. A session, which is either open (a device currently proven) or ended.
+- 2.3. A credential, the secret only the keeper knows, held so that even the maker cannot read it.
 
 #### 3. Seams
 
-- Access to Ledger, offers: a proven keeper identity that scopes every held item to that keeper.
-- The keeper's devices to Access, offers and needs: needs a proof of who the keeper is from the device, and offers an admission that opens a session.
+- 3.1. Access to Ledger, offers: a proven keeper identity that scopes every held item to that keeper.
+- 3.2. The keeper's devices to Access, offers and needs: needs a proof of who the keeper is from the device, and offers an admission that opens a session.
 
 #### 4. Rules
 
@@ -228,8 +228,8 @@ Establishes that a keeper is who they claim to be, and hands every other part a 
 
 #### 5. Inside
 
-- A verifier (piece), which checks a presented proof against what is held.
-- A session keeper (piece), which marks a session open or ended and attaches identity to each request.
+- 5.1. A verifier (piece), which checks a presented proof against what is held.
+- 5.2. A session keeper (piece), which marks a session open or ended and attaches identity to each request.
 
 #### 6. Limits
 
@@ -259,16 +259,16 @@ Holds each commitment and everything true about it, and answers for saving a new
 
 #### 2. Concepts and states
 
-- A commitment, with its text, an optional due value, and the grouping it belongs to.
-- A commitment's state: active (to do), done (finished but kept) or removed.
-- A change, one recorded edit to a commitment, carrying when and by whom.
+- 2.1. A commitment, with its text, an optional due value, and the grouping it belongs to.
+- 2.2. A commitment's state: active (to do), done (finished but kept) or removed.
+- 2.3. A change, one recorded edit to a commitment, carrying when and by whom.
 
 #### 3. Seams
 
-- Access to Ledger, needs: a proven keeper identity, so every item is held and shown under the right keeper.
-- Folders to Ledger, needs: the grouping a commitment belongs to and who may see it.
-- Ledger to Timing, offers: each commitment's due day or time, for Timing to judge.
-- Ledger to Presence, offers: every change to a commitment, for Presence to carry.
+- 3.1. Access to Ledger, needs: a proven keeper identity, so every item is held and shown under the right keeper.
+- 3.2. Folders to Ledger, needs: the grouping a commitment belongs to and who may see it.
+- 3.3. Ledger to Timing, offers: each commitment's due day or time, for Timing to judge.
+- 3.4. Ledger to Presence, offers: every change to a commitment, for Presence to carry.
 
 #### 4. Rules
 
@@ -278,8 +278,8 @@ Holds each commitment and everything true about it, and answers for saving a new
 
 #### 5. Inside
 
-- A store of commitments (piece), which holds each item and its current state.
-- A change log (piece), which records each edit in order so a change made apart can be reconciled.
+- 5.1. A store of commitments (piece), which holds each item and its current state.
+- 5.2. A change log (piece), which records each edit in order so a change made apart can be reconciled.
 
 #### 6. Limits
 
@@ -313,14 +313,14 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 2. Concepts and states
 
-- A grouping, with its name, its position in the keeper's order, and its membership.
-- A grouping's sharing state: private to the keeper, or shared with named people.
-- A membership, the set of people who may read and change a shared grouping.
+- 2.1. A grouping, with its name, its position in the keeper's order, and its membership.
+- 2.2. A grouping's sharing state: private to the keeper, or shared with named people.
+- 2.3. A membership, the set of people who may read and change a shared grouping.
 
 #### 3. Seams
 
-- Folders to Ledger, offers: a grouping's identity and membership, so each commitment is filed under one grouping and reached through it.
-- Folders to Presence, offers: every change to a grouping or its sharing, for Presence to carry.
+- 3.1. Folders to Ledger, offers: a grouping's identity and membership, so each commitment is filed under one grouping and reached through it.
+- 3.2. Folders to Presence, offers: every change to a grouping or its sharing, for Presence to carry.
 
 #### 4. Rules
 
@@ -330,7 +330,7 @@ Holds the keeper's named groupings, the order the keeper put them in, and who ma
 
 #### 5. Inside
 
-- A grouping store (piece), which holds each grouping, its order and its membership.
+- 5.1. A grouping store (piece), which holds each grouping, its order and its membership.
 
 #### 6. Limits
 
@@ -358,15 +358,15 @@ Judges each commitment's due value against the current time and says which commi
 
 #### 2. Concepts and states
 
-- A due value on a commitment: a day, or a day and time.
-- A judgement: today, overdue or upcoming, computed against "now".
-- The passing of a due moment, the instant a commitment's due time arrives.
+- 2.1. A due value on a commitment: a day, or a day and time.
+- 2.2. A judgement: today, overdue or upcoming, computed against "now".
+- 2.3. The passing of a due moment, the instant a commitment's due time arrives.
 
 #### 3. Seams
 
-- Ledger to Timing, needs: each commitment's due day or time.
-- Timing to Notifier, offers: the fact that a commitment has become due, and when.
-- Timing to the clock and calendar, needs: the current time, to judge against.
+- 3.1. Ledger to Timing, needs: each commitment's due day or time.
+- 3.2. Timing to Notifier, offers: the fact that a commitment has become due, and when.
+- 3.3. Timing to the clock and calendar, needs: the current time, to judge against.
 
 #### 4. Rules
 
@@ -400,14 +400,14 @@ Sends the keeper a message about a commitment that has come due when the app is 
 
 #### 2. Concepts and states
 
-- An alert, pending or sent, for one due commitment.
-- A chosen channel, the path the keeper picked to be reached by.
-- A quiet setting, hours in which the keeper has asked not to be alerted.
+- 2.1. An alert, pending or sent, for one due commitment.
+- 2.2. A chosen channel, the path the keeper picked to be reached by.
+- 2.3. A quiet setting, hours in which the keeper has asked not to be alerted.
 
 #### 3. Seams
 
-- Timing to Notifier, needs: the fact that a commitment has become due, and when.
-- Notifier to a notification channel, offers: a message for the keeper about the due commitment.
+- 3.1. Timing to Notifier, needs: the fact that a commitment has become due, and when.
+- 3.2. Notifier to a notification channel, offers: a message for the keeper about the due commitment.
 
 #### 4. Rules
 
@@ -417,8 +417,8 @@ Sends the keeper a message about a commitment that has come due when the app is 
 
 #### 5. Inside
 
-- A sender (piece), which hands a message to the chosen channel.
-- A schedule of pending alerts (piece), which holds what is to be sent and when.
+- 5.1. A sender (piece), which hands a message to the chosen channel.
+- 5.2. A schedule of pending alerts (piece), which holds what is to be sent and when.
 
 #### 6. Limits
 
@@ -446,15 +446,15 @@ Keeps every one of the keeper's devices, and every member of a shared grouping, 
 
 #### 2. Concepts and states
 
-- A device's view, either up to date or behind.
-- A pending change, recorded on one device and not yet carried to the others.
-- A conflict, two changes to the same commitment made apart, and its resolution.
+- 2.1. A device's view, either up to date or behind.
+- 2.2. A pending change, recorded on one device and not yet carried to the others.
+- 2.3. A conflict, two changes to the same commitment made apart, and its resolution.
 
 #### 3. Seams
 
-- Ledger to Presence, needs: every change to a commitment, to carry.
-- Folders to Presence, needs: every change to a grouping or its sharing, to carry.
-- The keeper's devices to Presence, offers and needs: offers each device the up-to-date commitments and groupings, and needs the device's own new changes in return.
+- 3.1. Ledger to Presence, needs: every change to a commitment, to carry.
+- 3.2. Folders to Presence, needs: every change to a grouping or its sharing, to carry.
+- 3.3. The keeper's devices to Presence, offers and needs: offers each device the up-to-date commitments and groupings, and needs the device's own new changes in return.
 
 #### 4. Rules
 
@@ -464,8 +464,8 @@ Keeps every one of the keeper's devices, and every member of a shared grouping, 
 
 #### 5. Inside
 
-- A reconciler (piece), which orders changes made apart and settles conflicts.
-- A per-device tracker (piece), which remembers how far each device has caught up.
+- 5.1. A reconciler (piece), which orders changes made apart and settles conflicts.
+- 5.2. A per-device tracker (piece), which remembers how far each device has caught up.
 
 #### 6. Limits
 
