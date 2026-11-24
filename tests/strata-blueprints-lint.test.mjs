@@ -2412,28 +2412,28 @@ test("ordered: a Limit cites a quality by its bold name or by its id", () => {
 // spec's example numbers, so each row names its rule. The expectation comes from the spec, not from the lint's own output.
 const CM = [
   // [rule, body, ids that exist, ids that do not, list warnings]
-  ["tight list", "1. a\n2. b\n3. c\n", ["vision-7.1", "vision-7.2", "vision-7.3"], ["vision-7.4"], 0],
-  ["loose list, blank line between items", "1. a\n\n2. b\n\n3. c\n", ["vision-7.1", "vision-7.2", "vision-7.3"], [], 0],
-  ["start number other than 1 renders from that number; the id is the place", "2. a\n3. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 2],
-  ["a list interrupts a paragraph only with 1", "Intro\n1. a\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["14. does not interrupt a paragraph", "Intro\n14. not a list\n", [], ["vision-7.1"], 0],
-  ["nesting by text column", "1. a\n   1. b\n   2. c\n2. d\n", ["vision-7.1", "vision-7.1.1", "vision-7.1.2", "vision-7.2"], ["vision-7.3"], 0],
-  ["a ten-digit number is text", "1234567890. text\n", [], ["vision-7.1"], 0],
-  ["a nine-digit number is a marker", "123456789. text\n", ["vision-7.1"], [], 1],
-  ["the ) delimiter is an item and a list warning", "1) a\n", ["vision-7.1"], [], 1],
-  ["lazy continuation line", "1. a\nwrapped\n2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 0],
-  ["indented continuation line", "1. a\n   wrapped\n2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 0],
-  ["a line past the text column plus four is text", "1. a\n       1. deep\n", ["vision-7.1"], ["vision-7.1.1"], 0],
-  ["an indented code block after a blank line is no item", "Text\n\n    1. code\n", [], ["vision-7.1"], 0],
-  ["a thematic break between items", "1. a\n\n---\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["a fenced block between items", "1. a\n\n```\ncode\n```\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["a bullet is an item and a list warning", "- a\n", ["vision-7.1"], [], 1],
-  ["an empty item", "1.\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["two spaces after the marker move the text column", "1.  a\n    1. b\n", ["vision-7.1", "vision-7.1.1"], [], 0],
-  ["a second list after a paragraph keeps its own first number", "1. a\n\npara\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["one space of indent is still a sibling", "1. a\n 2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.1.1"], 0],
-  ["a blank line then an indented line continues the item", "1. a\n\n   see vision-7.2.\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0],
-  ["a sibling at a shallower indent ends the nested list", "1. a\n   1. b\n2. c\n   1. d\n", ["vision-7.1.1", "vision-7.2", "vision-7.2.1"], ["vision-7.1.2"], 0],
+  ["tight list", "1. a\n2. b\n3. c\n", ["vision-7.1", "vision-7.2", "vision-7.3"], ["vision-7.4"], 0], // cm-example
+  ["loose list, blank line between items", "1. a\n\n2. b\n\n3. c\n", ["vision-7.1", "vision-7.2", "vision-7.3"], [], 0], // cm-example
+  ["start number other than 1 renders from that number; the id is the place", "2. a\n3. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 2], // cm-example
+  ["a list interrupts a paragraph only with 1", "Intro\n1. a\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["14. does not interrupt a paragraph", "Intro\n14. not a list\n", [], ["vision-7.1"], 0], // cm-example
+  ["nesting by text column", "1. a\n   1. b\n   2. c\n2. d\n", ["vision-7.1", "vision-7.1.1", "vision-7.1.2", "vision-7.2"], ["vision-7.3"], 0], // cm-example
+  ["a ten-digit number is text", "1234567890. text\n", [], ["vision-7.1"], 0], // cm-example
+  ["a nine-digit number is a marker", "123456789. text\n", ["vision-7.1"], [], 1], // cm-example
+  ["the ) delimiter is an item and a list warning", "1) a\n", ["vision-7.1"], [], 1], // cm-example
+  ["lazy continuation line", "1. a\nwrapped\n2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 0], // cm-example
+  ["indented continuation line", "1. a\n   wrapped\n2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.3"], 0], // cm-example
+  ["a line past the text column plus four is text", "1. a\n       1. deep\n", ["vision-7.1"], ["vision-7.1.1"], 0], // cm-example
+  ["an indented code block after a blank line is no item", "Text\n\n    1. code\n", [], ["vision-7.1"], 0], // cm-example
+  ["a thematic break between items", "1. a\n\n---\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["a fenced block between items", "1. a\n\n```\ncode\n```\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["a bullet is an item and a list warning", "- a\n", ["vision-7.1"], [], 1], // cm-example
+  ["an empty item", "1.\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["two spaces after the marker move the text column", "1.  a\n    1. b\n", ["vision-7.1", "vision-7.1.1"], [], 0], // cm-example
+  ["a second list after a paragraph keeps its own first number", "1. a\n\npara\n\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["one space of indent is still a sibling", "1. a\n 2. b\n", ["vision-7.1", "vision-7.2"], ["vision-7.1.1"], 0], // cm-example
+  ["a blank line then an indented line continues the item", "1. a\n\n   see vision-7.2.\n2. b\n", ["vision-7.1", "vision-7.2"], [], 0], // cm-example
+  ["a sibling at a shallower indent ends the nested list", "1. a\n   1. b\n2. c\n   1. d\n", ["vision-7.1.1", "vision-7.2", "vision-7.2.1"], ["vision-7.1.2"], 0], // cm-example
 ];
 test("ordered: the lint reads the CommonMark list rules it models (cm-example table)", () => {
   assert.ok(CM.length >= 20);
@@ -2443,7 +2443,7 @@ test("ordered: the lint reads the CommonMark list rules it models (cm-example ta
     for (const id of no) assert.equal(defined(md, id), false, `${rule}: ${id} should not exist`);
     assert.equal(lw(md).length, listWarns, `${rule}: ${lw(md).join(" | ")}`);
   }
-  // The loose continuation belongs to item 1: it is the citer of vision-7.2.
+  // The loose continuation belongs to the first item: that item is the citer of the second.
   const loose = fxImp(vocab("1. a\n\n   see vision-7.2.\n2. b\n"), "vision-7.2");
   assert.equal(loose.lines.filter((l) => /^ {2}d1 .*vision-7\.1 /.test(l)).length, 1, loose.out);
 });
@@ -2561,4 +2561,46 @@ test("open: a Not supplied: item draws no form, trace, reason or shape warning i
 test("open: the placeholder is still read by list, id and count-ref", () => {
   assert.equal(lw(vocab("- Not supplied: a term.\n")).length, 1);
   assert.equal(warns(lintText(vocab("1. Not supplied: the third quality.\n")), "count-ref").length, 1);
+});
+
+test("ordered: view ids: a heading inside a view does not restart the count, and an item shifted out of a view is cited by its view id", () => {
+  const md = L1 + L2 + L3 + "## View: Flow\n\n1. Given a, when b, then c.\n\n### Later\n\n2. Given d, when e, then f.\n";
+  assert.deepEqual(lw(md), []);
+  assert.equal(defined(md, "view.flow-2"), true);
+  const cite = md + "\n## View: Other\n\n1. Given x, when y, then z, as in view.flow-2.\n";
+  assert.deepEqual(warns(lintText(cite), "id-ref"), []);
+});
+test("ordered: view ids: --impact reaches the citer of a view item, and a view is labelled with its name", () => {
+  const md = L1 + L2 + L3 + "## View: Flow\n\n1. Given a, when b, then c.\n\n## View: Other\n\n1. Given x, when y, then z, as in view.flow-1.\n";
+  const r = fxImp(md, "view.flow-1");
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line \d+ {2}View Other {2}view\.other-1 /.test(l)), r.out);
+});
+test("ordered: a bracketed Parts name in a template is a placeholder, not a part name", () => {
+  assert.deepEqual(iw(L1 + L2 + item("###", 1, "Parts") + "1. [Part A] (part): [what it does].\n"), []);
+  assert.equal(iw(L1 + L2 + item("###", 1, "Parts") + "1. Part A (part): what.\n").length, 1);
+});
+test("count-ref: a plural kind and a hyphenated extra word are read, and an id in the same line does not hide the warning", () => {
+  assert.equal(cr("1. The second open concerns list, see vision-6.1.\n").length, 1);
+  assert.equal(cr("1. The last decision made, see vision-6.1.\n").length, 1);
+  assert.equal(cr("1. THE FIRST RISK is high.\n").length, 1);
+});
+test("count-ref: one warning per match and a quantity is not a reference", () => {
+  assert.equal(cr("1. The first risk and the next decision.\n").length, 2);
+  assert.deepEqual(cr("1. Item prices rise 3 per cent.\n"), []);
+  assert.deepEqual(cr("1. The second wave of members joins.\n"), []);
+});
+test("count-ref: a View and the text before a layer are read, and a Title line is not", () => {
+  assert.equal(lintText(L1 + L2 + L3 + "## View: Flow\n\n1. The first rule above applies.\n").lines.filter((l) => l.startsWith("WARN count-ref:")).length, 1);
+  assert.deepEqual(lintText(L1 + L2 + "Title: the first risk above.\n").lines.filter((l) => l.startsWith("WARN count-ref:")), []);
+});
+test("open: --ids lists the placeholder like any item, and it counts as an open question", () => {
+  const r = idsDoc(vocab("1. Not supplied: a term.\n"));
+  assert.deepEqual(r.rows.map((x) => x[0]), ["vision-7.1"]);
+  assert.match(lintText(vocab("1. Not supplied: a term.\n")).out, /^INFO not-supplied: 1$/m);
+});
+test("open: a Not supplied: item under Value needs no path, and the next scenario is still traced", () => {
+  const md = L1 + item("###", 3, "Value") + `1. Not supplied: a scenario.\n2. ${GWT}\n\n` + L2 + item("###", 6, "Scenario paths") + `1. Realizes vision-3.2. ${GWT}\n`;
+  assert.deepEqual(warns(lintText(md), "scenario-trace"), []);
+  const traced = L1 + item("###", 3, "Value") + `1. Not supplied: a scenario.\n2. ${GWT}\n\n` + L2 + item("###", 6, "Scenario paths") + "1. Not supplied: a path.\n";
+  assert.equal(warns(lintText(traced), "scenario-trace").length, 1);
 });

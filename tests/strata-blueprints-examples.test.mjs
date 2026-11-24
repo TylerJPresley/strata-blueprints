@@ -1510,8 +1510,7 @@ test("ordered: the four templates draw no list or id warning and hold no bullet"
       fs.writeFileSync(f, text);
       let out;
       try { out = execFileSync(process.execPath, [LINT, f], { encoding: "utf8" }); } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
-      // A template's Parts line is a bracketed placeholder, so the one-word part-name rule is not asked of it.
-      assert.deepEqual(out.split("\n").filter((l) => /^WARN (list|id|count-ref):/.test(l) && !/part name '\[/.test(l)), [], name);
+      assert.deepEqual(out.split("\n").filter((l) => /^WARN (list|id|count-ref):/.test(l) && !/^WARN id-ref:/.test(l)), [], name);
       assert.ok(/^strata-blueprints-lint: /m.test(out), `${name} lints`);
       let fence = false;
       for (const l of raw.split("\n")) { if (/^\s*(```|~~~)/.test(l)) fence = !fence; if (!fence) assert.ok(!/^\s*[-*+] /.test(l), `${name} holds a bullet: ${l}`); }

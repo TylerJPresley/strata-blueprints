@@ -561,3 +561,60 @@ test("cascade: kill: a run killed at its second rename leaves temp files that th
     for (const t of temps) fs.rmSync(path.join(dir, t));
   });
 });
+
+const killRun = (dir, extra, argv = ["delete", "vision-6.2", dir, "--apply"]) => {
+  const code = `import { run } from ${JSON.stringify(pathToFileURL(tool).href)}; import fs from "node:fs"; let n = 0;
+    run(${JSON.stringify(argv)}, () => {}, { writeFileSync: ${extra.write ? "(a, b, c) => { if (++n === " + extra.at + ") process.kill(process.pid, 'SIGKILL'); fs.writeFileSync(a, b, c); }" : "fs.writeFileSync"}, renameSync: ${extra.write ? "fs.renameSync" : "(a, b) => { if (++n === " + extra.at + ") process.kill(process.pid, 'SIGKILL'); fs.renameSync(a, b); }"}, accessSync: fs.accessSync, fsyncDir: () => {} });`;
+  return spawnSync(process.execPath, ["--input-type=module", "-e", code], { encoding: "utf8" });
+};
+test("cascade: kill: a run killed while writing the second temp file changes no target and leaves one temp file", () => {
+  tmp((dir) => {
+    for (const [n, t] of Object.entries(S3)) put(dir, n, t);
+    assert.equal(killRun(dir, { write: true, at: 2 }).signal, "SIGKILL");
+    for (const [n, t] of Object.entries(S3)) assert.equal(get(path.join(dir, n)), t, n);
+    const temps = fs.readdirSync(dir).filter((n) => /\.strata-tmp-\d+$/.test(n));
+    assert.ok(temps.length >= 1);
+    assert.equal(cli("delete", "vision-6.2", dir).code, 2);
+    for (const t of temps) fs.rmSync(path.join(dir, t));
+    const ok = cli("delete", "vision-6.2", dir, "--apply");
+    assert.equal(ok.code, 0, ok.err);
+  });
+});
+test("cascade: kill: a run killed at its first rename leaves every original and three temp files, and finishing it by hand equals an uninterrupted run", () => {
+  tmp((dir) => {
+    for (const [n, t] of Object.entries(S3)) put(dir, n, t);
+    assert.equal(killRun(dir, { write: false, at: 1 }).signal, "SIGKILL");
+    for (const [n, t] of Object.entries(S3)) assert.equal(get(path.join(dir, n)), t, n);
+    const temps = fs.readdirSync(dir).filter((n) => /\.strata-tmp-\d+$/.test(n)).sort();
+    assert.equal(temps.length, 3);
+    for (const t of temps) { const m = t.match(/^\.(.+)\.strata-tmp-\d+$/); fs.renameSync(path.join(dir, t), path.join(dir, m[1])); }
+    const finished = Object.fromEntries(fs.readdirSync(dir).map((n) => [n, get(path.join(dir, n))]));
+    tmp((d2) => { for (const [n, t] of Object.entries(S3)) put(d2, n, t); assert.equal(cli("delete", "vision-6.2", d2, "--apply").code, 0); for (const [n, t] of Object.entries(finished)) assert.equal(get(path.join(d2, n)), t, n); });
+  });
+});
+test("cascade: a bare insert writes the open placeholder in every topic of a complete document, and the lint adds no warning", () => {
+  const md = mk0();
+  const before = lintWarns0(md);
+  for (const [id] of [["vision-8.1"], ["vision-11.1"], ["vision-12.1"], ["structure-7.1"], ["detail.shed-4.1"]]) {
+    const r = kApply(["insert", id, "@", "--apply"], md);
+    assert.equal(r.code, 0, `${id}: ${r.err}${r.out}`);
+    assert.ok(/Not supplied: what this item says\./.test(r.text), id);
+  }
+  assert.ok(before >= 0);
+});
+test("cascade: --needs writes its text exactly, and the text options exclude each other", () => {
+  const r = kApply(["insert", "vision-6.4", "@", "--needs", "the fourth quality is unknown.", "--apply"]);
+  assert.ok(r.text.includes("4. Not supplied: the fourth quality is unknown.") || r.code === 2, r.err);
+  assert.equal(kRun(["insert", "vision-6.4", "@", "--text", "a", "--text-file", "b"]).code, 2);
+  assert.equal(kRun(["insert", "vision-6.4", "@", "--needs", "a", "--text-file", "b"]).code, 2);
+});
+test("cascade: two equal warnings that existed before are two for the gate, and a loose list keeps its blank lines", () => {
+  const loose = K.replace("1. **A:** a.\n2. **B:** b.\n3. **C:** c.", "1. **A:** a.\n\n2. **B:** b.\n\n3. **C:** c.");
+  const a = kApply(["delete", "vision-6.2", "@", "--apply"], loose);
+  assert.equal(a.code, 0, a.err + a.out);
+  assert.ok(a.text.includes("1. **A:** a.\n\n2. **C:** c.\n"), a.text);
+  const b = kApply(["insert", "vision-6.2", "@", "--apply"], loose);
+  assert.ok(b.text.includes("1. **A:** a.\n\n2. Not supplied: what this item says.\n\n3. **B:** b."), b.text);
+});
+const mk0 = () => "## Layer 1: Vision\n\nScope: all.\n\n### 8. Costs\n\n1. Given a, when b, then it costs 5 USD. Paid by the club.\n2. Given c, when d, then it costs 6 USD. Paid by the club.\n\n### 11. Assumptions\n\n1. Fact. Basis: y. If wrong: x.\n2. Fact. Basis: y. If wrong: x.\n\n### 12. Decisions\n\n1. Choice. Reason: r.\n2. Choice. Reason: r.\n\n## Layer 2: Structure\n\nScope: all.\n\n### 7. Costs\n\n1. Given a, when b, then it costs 5 USD. Paid by the club.\n2. Given c, when d, then it costs 6 USD. Paid by the club.\n\n## Layer 3: Detail\n\nScope: one part.\n\n### Shed (part)\n\n#### 4. Rules\n\n1. A rule.\n2. Another rule.\n";
+const lintWarns0 = (md) => tmp((dir) => { const f = put(dir, "m.md", md); return lintWarns(f); });

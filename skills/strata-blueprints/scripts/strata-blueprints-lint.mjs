@@ -27,7 +27,7 @@ const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : doc
 const topicNo = (layer, name) => (TOPICS[layer] ? TOPICS[layer].indexOf(name) + 1 || null : null);
 
 // Every list is a Markdown ordered list. An item's id is its document, the topic's number from its heading and its place in the list,
-// nested places joined by dots: vision-9.1, structure-6.2, detail.ledger-7.1, vision-6.1.2. A citation writes the id in full.
+// nested places joined by dots (core guide, How to fill it out, id rule). A citation writes the id in full.
 const IDCORE = String.raw`(?:(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+|view\.[a-z0-9]+-[1-9]\d*(?:\.[1-9]\d*)*)`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 const viewId = (name, pos) => "view." + name.toLowerCase() + "-" + pos.join(".");
@@ -232,7 +232,8 @@ for (const e of live) {
   const pm = e.text.replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
   if (pm) slugsListed.push({ name: pm[1].replace(/\*+$/, "").trim(), n: e.n });
 }
-for (const p of slugsListed) if (!/^[A-Za-z0-9]+$/.test(p.name)) warn("id", `part name '${p.name}' is not one word`, p.n);
+// A bracketed name is a template placeholder, not a part name.
+for (const p of slugsListed) if (!/^[A-Za-z0-9]+$/.test(p.name) && !/^\[.*\]$/.test(p.name)) warn("id", `part name '${p.name}' is not one word`, p.n);
 const partSlugs = new Set(slugsListed.map((p) => p.name.toLowerCase()));
 
 const firstOf = new Map();

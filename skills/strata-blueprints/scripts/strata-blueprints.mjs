@@ -745,7 +745,7 @@ export function main(argv) {
   if (!argv.length) { console.log(USAGE); return 0; }
   try { run(argv); return 0; } catch (e) {
     if (!(e instanceof Refuse)) throw e;
-    for (const l of e.message.split("\n")) console.error(`strata-blueprints: ${l}`);
+    for (const l of e.message.split("\n")) console.error(l.startsWith("hint: ") ? l : `strata-blueprints: ${l}`);
     return 2;
   }
 }
