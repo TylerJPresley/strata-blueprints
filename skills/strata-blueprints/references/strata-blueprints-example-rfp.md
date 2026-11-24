@@ -384,6 +384,6 @@ None.
 ## What to notice
 
 1. The issuer writes for someone else to answer. Layers 1 and 2 are in full: the need, the value, the parts and their seams. Layer 3 writes all twelve topics for each part: the limits and rules a bid must meet are its content, a topic the town has nothing to say about reads `None.`, and a topic left to the bidder, such as Inside and Construction, reads `Not supplied:`.
-2. Evaluation is a rule of the document, not an afterthought. `vision-12.2` makes each Limit pass or fail, and the Limits trace to named qualities in Layer 1.
-3. Each value is an item under Value in Layer 1, cited by its id (`vision-3.1` to `vision-3.6`); its path in Layer 2 and its rule in Layer 3 say `Realizes` and that id, so a bidder can follow one need to the part that must meet it.
+2. Evaluation is a rule of the document, not an afterthought. vision-12.2 makes each Limit pass or fail, and the Limits trace to named qualities in Layer 1.
+3. Each value is an item under Value in Layer 1, cited by its id (vision-3.1 to vision-3.6); its path in Layer 2 and its rule in Layer 3 say `Realizes` and that id, so a bidder can follow one need to the part that must meet it.
 4. What the town does not know, such as the budget, the standard and the numbers, is marked `Not supplied:` and left for the issuer to fill before the RFP goes out.
