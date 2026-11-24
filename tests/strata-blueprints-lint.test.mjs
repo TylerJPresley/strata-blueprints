@@ -2258,3 +2258,29 @@ test("shared things: a numbered item among unnumbered bullets keeps its own coun
   assert.equal(bad.length, 1);
   assert.match(bad[0], /structure-5\.2/);
 });
+
+// ordered: every list item is numbered under its topic (plan ordered-lists-only).
+const ordParts = "- 1.1. **Ledger** (part): holds the records.\n- 1.2. Rota (part): plans the shifts.";
+const ordStanding = "- 2.1. Ledger: sbp-detail-ledger.md\n- 2.2. Rota: sbp-detail-rota.md";
+const ordStructure = (parts, standing) => fxFull["sbp-structure.md"].replace(/- Ledger \(part\)[^\n]*\n- Rota \(part\)[^\n]*/, parts).replace(/- Ledger: sbp-detail-ledger\.md\n- Rota: sbp-detail-rota\.md/, standing);
+
+test("ordered: numbered Parts and Standing read as unnumbered ones do, in a folder and in one document", () => {
+  const num = { ...fxFull, "sbp-structure.md": ordStructure(ordParts, ordStanding) };
+  const r = fxWith(num, (d) => run(d, "--strict"));
+  assert.deepEqual(r.lines.filter((l) => l.startsWith("WARN")), []);
+  assert.equal(r.code, 0);
+  // A numbered Standing line names its part without the number.
+  const absent = fxWarns({ ...num, "sbp-detail-rota.md": null }, "standing");
+  assert.equal(absent.length, 1, absent.join("\n"));
+  assert.match(absent[0], /^WARN standing: Rota names sbp-detail-rota\.md, which is not in the folder/);
+  // Own stack and described here, numbered.
+  const own = fxWarns({ ...num, "sbp-structure.md": ordStructure(ordParts, "- 2.1. Ledger: sbp-detail-ledger.md\n- 2.2. Rota: own stack, presence/"), "sbp-detail-rota.md": null, "presence/": "" }, "standing");
+  assert.deepEqual(own, []);
+  const here = fxWarns({ ...num, "sbp-structure.md": ordStructure(ordParts, "- 2.1. Ledger: sbp-detail-ledger.md\n- 2.2. Rota: described here."), "sbp-detail-rota.md": null }, "standing");
+  assert.equal(here.length, 1, here.join("\n"));
+  assert.match(here[0], /^WARN standing: Rota says 'described here'/);
+  // One document: a numbered part name, bold or plain, is one word and matches its entry.
+  const md = L1 + L2 + item("###", 1, "Parts") + "- 1.1. **Brakes** (part): stops.\n- 1.2. Pads (part): grip.\n\n" + L3 + ENTRY("Brakes") + item("####", 4, "Rules") + `- 4.1. ${GWT}\n`;
+  assert.deepEqual(iw(md), []);
+  assert.equal(warns(lintText(md.replace("1.2. Pads", "1.2. Pad shoes")), "id").length, 1);
+});

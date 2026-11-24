@@ -31,6 +31,7 @@ const NUMBER = /^\**([1-9]\d*)\.([1-9]\d*)(?!\w|-|\.\d)(?=[.:)*\s]|$)/;
 const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`);
+const stripNumber = (s) => s.replace(/^\**[1-9]\d*\.[1-9]\d*(?!\w|-|\.\d)[.:)*]*\s+/, "");
 const START = (s) => NUMBER.test(s) || OWNID.test(s);
 const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
 const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
@@ -211,7 +212,7 @@ const slugsListed = [];                // part names from Layer 2 Parts
 for (const e of live) if (e.own && !defined.has(e.own.id)) defined.set(e.own.id, e);
 for (const e of live) {
   if (e.layer !== 2 || e.topic !== "Parts" || e.table) continue;
-  const pm = e.text.replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
+  const pm = stripNumber(e.text).replace(/^\**/, "").match(/^(.+?)\s*\(part\)/);
   if (pm) slugsListed.push({ name: pm[1].replace(/\*+$/, "").trim(), n: e.n });
 }
 for (const p of slugsListed) if (!/^[A-Za-z0-9]+$/.test(p.name)) warn("id", `part name '${p.name}' is not one word`, p.n);
@@ -518,7 +519,7 @@ function readStructure(rows) {
     if (/^## /.test(t)) { topic = null; continue; }
     const h = t.match(/^### \d+\. (.+?)\s*$/);
     if (h) { topic = h[1]; continue; }
-    const body = t.replace(/^(?:[-*+]|\d+[.)])\s+/, "").replace(/^\*+/, "");
+    const body = stripNumber(t.replace(/^(?:[-*+]|\d+[.)])\s+/, "")).replace(/^\*+/, "");
     if (topic === "Parts") {
       const m = body.match(/^(.+?)\s*\(part\)/);
       if (m) parts.push({ name: m[1].replace(/\*+$/, "").trim(), n });

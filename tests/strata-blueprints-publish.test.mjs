@@ -630,3 +630,17 @@ test("publish: an id after an inner three-backtick row in a four-backtick fence 
   assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nvision-5.1\n````") }));
   assert.throws(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nx\n````\n\nSee vision-5.1.") }), /cites vision-5\.1, which is in topic 5/);
 });
+
+test("ordered: detail files follow numbered Parts", () => {
+  // Parts names Zulu before Mike before Bravo (bold, numbered); an identity number strip cannot match the part names, so the order falls back to file names.
+  const numbered = (names) => names.map((p, i) => `- 1.${i + 1}. ${i === 2 ? `**${p}**` : p} (part): holds ${p}.`).join("\n");
+  const files = {
+    "sbp-detail-alpha.md": detail("Alpha"),
+    "sbp-detail-bravo.md": detail("Bravo"),
+    "sbp-detail-mike.md": detail("Mike"),
+    "sbp-detail-zulu.md": detail("Zulu"),
+    "sbp-structure.md": "# Club\n\n" + L2 + fxT("###", T2, { Parts: numbered(["Zulu", "Mike", "Bravo"]) }),
+    "sbp-vision.md": vision(),
+  };
+  assert.deepEqual(partNames(pub(files).text), ["Zulu", "Mike", "Bravo", "Alpha"]);
+});

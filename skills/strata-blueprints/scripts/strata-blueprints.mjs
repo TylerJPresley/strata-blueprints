@@ -145,6 +145,7 @@ function fenceMask(lines) {
     return false;
   });
 }
+const stripNumber = (s) => s.replace(/^\**[1-9]\d*\.[1-9]\d*(?!\w|-|\.\d)[.:)*]*\s+/, "");
 // The order of the parts named in the Parts topic of a structure file, as slugs.
 function partOrder(text) {
   const { lines } = split(text);
@@ -158,7 +159,7 @@ function partOrder(text) {
     const h = t.match(/^### \d+\. (.+?)\s*$/);
     if (h) { topic = h[1]; return; }
     if (topic !== "Parts") return;
-    const body = t.replace(/^(?:[-*+]|\d+[.)])\s+/, "").replace(/^\*+/, "");
+    const body = stripNumber(t.replace(/^(?:[-*+]|\d+[.)])\s+/, "")).replace(/^\*+/, "");
     const m = body.match(/^(.+?)\s*\(part\)/);
     if (m) order.push(slugOf(m[1].replace(/\*+$/, "").trim()));
   });

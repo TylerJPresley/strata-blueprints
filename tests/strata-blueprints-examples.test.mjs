@@ -172,7 +172,7 @@ function parseParts(layer2) {
   const body = topicBody(layer2.lines, "Parts");
   const parts = [];
   for (const l of unfenced(body)) {
-    const m = l.match(/^\s*[-*+]\s+(.+?)\s+\(part\):\s*(.*)$/);
+    const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?)\s+\(part\):\s*(.*)$`));
     if (m) parts.push({ name: m[1].trim(), resp: m[2].trim() });
   }
   return parts;
@@ -183,7 +183,7 @@ function layer2SeamNames(layer2) {
   const names = [];
   for (const topic of ["Seams between parts", "Seams with the outside"]) {
     for (const l of unfenced(topicBody(layer2.lines, topic))) {
-      const m = l.match(/^\s*[-*+]\s+(.+?):\s/);
+      const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?):\s`));
       if (m) names.push(m[1].trim());
     }
   }
@@ -499,7 +499,7 @@ function checkExample(file, spec) {
       const seamBody = unfenced(topicBody(e.lines, "Seams"));
       const seamNames = [];
       for (const l of seamBody) {
-        const m = l.match(/^\s*[-*+]\s+(.+?),\s+(offers and needs|offers|needs)\b/);
+        const m = l.match(new RegExp(String.raw`^\s*[-*+]\s+(?:${NUM}\.\s+)?(.+?),\s+(offers and needs|offers|needs)\b`));
         if (m) seamNames.push(m[1].trim());
         else if (/^\s*[-*+]\s+\S/.test(l)) add("seam-form", `Layer 3 seam bullet is malformed in '${e.name}': ${l.trim()}`);
       }
@@ -732,7 +732,7 @@ const MUTATIONS = {
     if (!r) throw new Error("no Layer 2 for part-in-path");
     for (let i = r[0]; i < r[1]; i++) {
       if (/^\s*[-*+]\s+.+\(part\):/.test(rows[i])) {
-        rows.splice(i + 1, 0, "- Ghost (part): a part nothing uses.");
+        rows.splice(i + 1, 0, "- 1.99. Ghost (part): a part nothing uses.");
         return rows.join("\n");
       }
     }
@@ -762,7 +762,7 @@ const MUTATIONS = {
     const r = layerRange(rows, 3);
     if (!r) throw new Error("no Layer 3 for seams-named");
     for (let i = r[0]; i < r[1]; i++) {
-      const m = rows[i].match(/^(\s*[-*+]\s+)(.+?)(,\s+(?:offers and needs|offers|needs)\b.*)$/);
+      const m = rows[i].match(new RegExp(String.raw`^(\s*[-*+]\s+(?:${NUM}\.\s+)?)(.+?)(,\s+(?:offers and needs|offers|needs)\b.*)$`));
       if (m) { rows[i] = m[1] + "Ghost " + m[2] + m[3]; return rows.join("\n"); }
     }
     throw new Error("no Layer 3 seam bullet for seams-named");
