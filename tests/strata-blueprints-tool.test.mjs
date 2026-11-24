@@ -4,12 +4,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs"; import os from "node:os"; import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { MARKER, TOPICS, NAMES, condenseText } from "../skills/strata-blueprints/scripts/strata-blueprints.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const scripts = path.join(here, "..", "skills", "strata-blueprints", "scripts");
-const tool = path.join(scripts, "strata-blueprints.mjs");
+const tool = process.env.STRATA_TOOL || path.join(scripts, "strata-blueprints.mjs");
 const lint = path.join(scripts, "strata-blueprints-lint.mjs");
 const refs = path.join(here, "..", "skills", "strata-blueprints", "references");
 
@@ -328,5 +328,236 @@ test("ordered: condense keeps ordered lists and their numbers byte for byte, and
     assert.equal(cli("condense", f, "--out", out).code, 0);
     assert.equal(get(out), c);
     assert.deepEqual(runLint(out).lines.filter((l) => /^WARN (list|id):/.test(l)), []);
+  });
+});
+
+// cascade: insert and delete one list item and cascade the new ids (docs/tool.md, Insert and delete an item).
+const loadTool = () => import(pathToFileURL(tool).href);
+const K = "## Layer 1: Vision\n\nScope: all.\n\n### 6. Qualities and constraints\n\n1. **A:** a.\n2. **B:** b.\n3. **C:** c.\n\n### 7. Vocabulary\n\n1. **T:** see vision-6.3.\n";
+const kRun = (args, text = K, name = "k.md") => tmp((dir) => { const f = put(dir, name, text); const r = cli(...args.map((a) => (a === "@" ? f : a))); return { ...r, text: get(f), dir, listing: fs.readdirSync(dir) }; });
+const kApply = (args, text = K) => kRun(args, text);
+const lintWarns = (f) => runLint(f).lines.filter((l) => l.startsWith("WARN")).length;
+// A stack: Vision, Structure and one detail file, each citing items of the Vision.
+const S3 = {
+  "sbp-vision.md": "# S\n\n## Layer 1: Vision\n\nScope: all.\n\n### 6. Qualities and constraints\n\n1. **A:** a.\n2. **B:** b.\n3. **C:** c.\n4. **D:** d.\n",
+  "sbp-structure.md": "# S\n\n## Layer 2: Structure\n\nScope: all.\n\n### 1. Parts\n\n1. X (part): holds.\n\n### 11. Decisions\n\n1. Keep C. Reason: vision-6.3 and vision-6.4.\n",
+  "sbp-detail-x.md": "# S\n\n## Layer 3: Detail\n\nScope: one part.\n\n### X (part)\n\n#### 6. Limits\n\n1. A stop takes time (Layer 1, vision-6.4).\n\n#### 12. Decisions\n\n1. Keep it. Reason: vision-6.3.\n",
+};
+const stackRun = (args, over = {}) => tmp((dir) => { for (const [n, t] of Object.entries({ ...S3, ...over })) put(dir, n, t); const r = cli(...args.map((a) => (a === "@" ? dir : a))); return { ...r, dir, files: Object.fromEntries(fs.readdirSync(dir).filter((n) => n.endsWith(".md")).map((n) => [n, get(path.join(dir, n))])), listing: fs.readdirSync(dir) }; });
+
+test("cascade: delete a middle item shifts the later ids and rewrites their citations, and the lint adds no warning", () => {
+  const p = kRun(["delete", "vision-6.2", "@"]);
+  assert.equal(p.code, 0, p.err);
+  assert.equal(p.text, K);
+  assert.equal(p.lines.at(-1), "preview: no file written");
+  assert.ok(p.lines.some((l) => /^vision-6\.3 -> vision-6\.2 /.test(l)));
+  assert.ok(p.lines.some((l) => /^rewrite {2}\S+ line 13 {2}vision-7\.1 {2}id {2}vision-6\.3 -> vision-6\.2$/.test(l)));
+  const a = kApply(["delete", "vision-6.2", "@", "--apply"]);
+  assert.equal(a.code, 0, a.err);
+  assert.equal(a.text, K.replace("2. **B:** b.\n", "").replace("3. **C:**", "2. **C:**").replace("vision-6.3", "vision-6.2"));
+  assert.match(a.lines.at(-1), /^applied: 1 file\(s\) written$/);
+  assert.match(a.out, /lint before: (\d+) warning\(s\)\nlint after: \1 warning\(s\), 0 new/);
+});
+
+test("cascade: the report prints the lint's --impact text verbatim after the report line, then the stages in order", () => {
+  const r = kRun(["delete", "vision-6.2", "@"]);
+  assert.match(r.lines[0], /^cascade delete vision-6\.2 in /);
+  assert.equal(r.lines[1], "== impact ==");
+  const stages = r.lines.filter((l) => /^== \w+ ==$/.test(l));
+  assert.deepEqual(stages, ["== impact ==", "== shift ==", "== citations ==", "== lint ==", "== result =="]);
+  const im = tmp((dir) => { const f = put(dir, "k.md", K); return spawnSync(process.execPath, [lint, "--impact", "vision-6.2", f], { encoding: "utf8" }).stdout.split("\n").filter(Boolean); });
+  assert.deepEqual(r.lines.slice(2, 2 + im.length).map((l) => l.replace(/\S+k\.md/, "F")), im.map((l) => l.replace(/\S+k\.md/, "F")));
+});
+
+test("cascade: in a stack folder every file's citations of a later id are rewritten and nothing else changes", () => {
+  const a = stackRun(["delete", "vision-6.2", "@", "--apply"]);
+  assert.equal(a.code, 0, a.err + a.out);
+  assert.equal(a.files["sbp-vision.md"], S3["sbp-vision.md"].replace("2. **B:** b.\n", "").replace("3. **C:**", "2. **C:**").replace("4. **D:**", "3. **D:**"));
+  assert.equal(a.files["sbp-structure.md"], S3["sbp-structure.md"].replace("vision-6.3 and vision-6.4", "vision-6.2 and vision-6.3"));
+  assert.equal(a.files["sbp-detail-x.md"], S3["sbp-detail-x.md"].replace("vision-6.4", "vision-6.3").replace("Reason: vision-6.3.", "Reason: vision-6.2."));
+  assert.ok(!a.listing.some((n) => /strata-tmp/.test(n)));
+});
+
+test("cascade: insert in the middle, at the first place and one past the end; an append rewrites nothing", () => {
+  const mid = kApply(["insert", "vision-6.2", "@", "--text", "**N:** n.", "--apply"]);
+  assert.equal(mid.text, K.replace("2. **B:** b.\n3. **C:** c.", "2. **N:** n.\n3. **B:** b.\n4. **C:** c.").replace("vision-6.3", "vision-6.4"));
+  const first = kApply(["insert", "vision-6.1", "@", "--text", "**N:** n.", "--apply"]);
+  assert.ok(first.text.includes("1. **N:** n.\n2. **A:** a.\n3. **B:** b.\n4. **C:** c.") && first.text.includes("see vision-6.4."));
+  const end = kApply(["insert", "vision-6.4", "@", "--text", "**N:** n.", "--apply"]);
+  assert.equal(end.text, K.replace("3. **C:** c.\n", "3. **C:** c.\n4. **N:** n.\n"));
+  assert.ok(end.lines.some((l) => /^none: vision-6\.4 is a new place at the end of its list; nothing cites it$/.test(l)));
+});
+
+test("cascade: a nested list: the shifted item's nested ids take the new prefix, nested marker lines keep their numbers", () => {
+  const text = K.replace("2. **B:** b.\n3. **C:** c.\n", "2. **B:** b.\n3. **C:** c.\n   1. one.\n   2. two.\n").replace("see vision-6.3.", "see vision-6.3.2.");
+  const a = kApply(["delete", "vision-6.2", "@", "--apply"], text);
+  assert.equal(a.code, 0, a.err + a.out);
+  assert.ok(a.text.includes("2. **C:** c.\n   1. one.\n   2. two.\n"));
+  assert.ok(a.text.includes("see vision-6.2.2."));
+});
+
+test("cascade: an item that becomes 10 or 9 has its nested and continuation lines re-indented", () => {
+  const nine = Array.from({ length: 9 }, (_, i) => `${i + 1}. **Q${i + 1}:** q.`).join("\n");
+  const text = `## Layer 1: Vision\n\nScope: all.\n\n### 6. Qualities and constraints\n\n${nine}\n10. **Q10:** q.\n    wrapped.\n    1. nested.\n`;
+  const a = kApply(["delete", "vision-6.1", "@", "--apply"], text);
+  assert.equal(a.code, 0, a.err + a.out);
+  assert.ok(a.text.includes("9. **Q10:** q.\n   wrapped.\n   1. nested.\n"), a.text);
+  const eight = Array.from({ length: 8 }, (_, i) => `${i + 1}. **Q${i + 1}:** q.`).join("\n");
+  const nineText = `## Layer 1: Vision\n\nScope: all.\n\n### 6. Qualities and constraints\n\n${eight}\n9. **Q9:** q.\n   wrapped.\n   1. nested.\n`;
+  const b = kApply(["insert", "vision-6.1", "@", "--text", "**N:** n.", "--apply"], nineText);
+  assert.equal(b.code, 0, b.err + b.out);
+  assert.ok(b.text.includes("10. **Q9:** q.\n    wrapped.\n    1. nested.\n"), b.text);
+});
+
+test("cascade: a citation of the deleted item is UNRESOLVED, blocks the apply, and --ack releases it", () => {
+  const p = kRun(["delete", "vision-6.3", "@"]);
+  assert.equal(p.code, 0);
+  assert.ok(p.lines.some((l) => /^UNRESOLVED {2}\S+ line 13 {2}vision-7\.1 {2}id {2}vision-6\.3 \(deleted\)$/.test(l)));
+  const b = kApply(["delete", "vision-6.3", "@", "--apply"]);
+  assert.equal(b.code, 2);
+  assert.match(b.err, /apply blocked: 1 unresolved reference\(s\)/);
+  assert.equal(b.text, K);
+  const a = kApply(["delete", "vision-6.3", "@", "--apply", "--ack", "vision-7.1"]);
+  assert.equal(a.code, 0, a.err);
+  assert.ok(a.text.includes("see vision-6.3."));
+  assert.equal(kApply(["delete", "vision-6.3", "@", "--apply", "--ack", "nope"]).code, 2);
+  const f = tmp((dir) => { const q = put(dir, "k.md", K.replace("3. **C:** c.\n", "")); return lintWarns(q); });
+  assert.ok(f >= 0);
+});
+
+test("cascade: a bare settles open concern number of the deleted concern cannot be acknowledged, and a moved one is rewritten", () => {
+  const base = "## Layer 1: Vision\n\nScope: all.\n\n### 10. Open Concerns\n\n1. Given a, when b, then c. Raised by the club.\n2. Given d, when e, then f. Raised by the club.\n\n### 12. Decisions\n\n1. Chosen X. Reason: settles open concern 10.2.\n";
+  const moved = kApply(["delete", "vision-10.1", "@", "--apply"], base);
+  assert.equal(moved.code, 0, moved.err + moved.out);
+  assert.ok(moved.text.includes("settles open concern 10.1."));
+  const gone = kApply(["delete", "vision-10.2", "@", "--apply", "--ack", "vision-12.1"], base);
+  assert.equal(gone.code, 2);
+  assert.match(gone.err, /cannot acknowledge vision-12\.1: it settles an open concern this change deletes/);
+  assert.equal(gone.text, base);
+});
+
+test("cascade: a preview changes no file and leaves no temporary file", () => {
+  const p = stackRun(["delete", "vision-6.2", "@"]);
+  assert.equal(p.code, 0);
+  for (const [n, t] of Object.entries(S3)) assert.equal(p.files[n], t, n);
+  assert.deepEqual(p.listing.sort(), Object.keys(S3).sort());
+});
+
+test("cascade: an injected rename failure on the second file restores the first, leaves no temporary file and exits 2", async () => {
+  const mod = await loadTool();
+  tmp((dir) => {
+    for (const [n, t] of Object.entries(S3)) put(dir, n, t);
+    let renames = 0;
+    const io = { writeFileSync: fs.writeFileSync, renameSync: (a, b) => { if (++renames === 2) throw new Error("injected"); fs.renameSync(a, b); }, accessSync: fs.accessSync, fsyncDir: () => {} };
+    assert.throws(() => mod.run(["delete", "vision-6.2", dir, "--apply"], () => {}, io), /write failed on .*; every file restored/);
+    for (const [n, t] of Object.entries(S3)) assert.equal(get(path.join(dir, n)), t, n);
+    assert.deepEqual(fs.readdirSync(dir).sort(), Object.keys(S3).sort());
+    const io2 = { ...io, accessSync: (p) => { if (/structure/.test(p)) throw new Error("denied"); } };
+    assert.throws(() => mod.run(["delete", "vision-6.2", dir, "--apply"], () => {}, io2), /cannot write sbp-structure\.md; nothing was written/);
+    for (const [n, t] of Object.entries(S3)) assert.equal(get(path.join(dir, n)), t, n);
+  });
+});
+
+test("cascade: an insert whose text breaks a form check is refused with the hint and nothing written", () => {
+  const md = "## Layer 1: Vision\n\nScope: all.\n\n### 3. Value\n\n1. Given a, when b, then c.\n\n## Layer 2: Structure\n\nScope: all.\n\n### 6. Scenario paths\n\n1. Realizes vision-3.1. Given a, when b, then c.\n";
+  const r = kApply(["insert", "vision-3.2", "@", "--text", "Given a, when b, then c.", "--apply"], md);
+  assert.equal(r.code, 2);
+  assert.match(r.err, /would add \d+ lint warning/);
+  assert.match(r.err, /hint: an item that needs a path, a rule or a reason is added bare/);
+  assert.equal(r.text, md);
+  const bare = kApply(["insert", "vision-3.2", "@", "--apply"], md);
+  assert.equal(bare.code, 0, bare.err + bare.out);
+  assert.ok(bare.text.includes("2. Not supplied: what this item says."));
+  const needs = kApply(["insert", "vision-3.2", "@", "--needs", "a scenario nobody has given.", "--apply"], md);
+  assert.ok(needs.text.includes("2. Not supplied: a scenario nobody has given."));
+  assert.equal(kApply(["insert", "vision-3.2", "@", "--needs", "x", "--text", "y"], md).code, 2);
+});
+
+test("cascade: a citation in a code span or a fenced block is not read, and a chain of shifts does not double-shift", () => {
+  const text = K.replace("1. **T:** see vision-6.3.", "1. **T:** see vision-6.3, vision-6.2 and `vision-6.3`.\n\n```\nvision-6.3\n```");
+  const a = kApply(["delete", "vision-6.1", "@", "--apply"], text);
+  assert.equal(a.code, 0, a.err + a.out);
+  assert.ok(a.text.includes("see vision-6.2, vision-6.1 and `vision-6.3`.\n\n```\nvision-6.3\n```"), a.text);
+});
+
+test("cascade: refusals: unknown id, sole item, condensed input, one past the end plus one, a topic with no list, a symlink, misplaced options", () => {
+  const nonexist = kRun(["delete", "vision-6.9", "@"]);
+  assert.equal(nonexist.code, 2); assert.match(nonexist.err, /vision-6\.9 is not defined/);
+  const sole = kRun(["delete", "vision-7.1", "@"]);
+  assert.equal(sole.code, 2); assert.match(sole.err, /vision-7\.1 is the only item under Vocabulary/);
+  assert.equal(kRun(["insert", "vision-6.5", "@"]).code, 2);
+  assert.equal(kRun(["insert", "vision-8.1", "@"]).code, 2);
+  assert.equal(kRun(["delete", "vision-6.2", "@"], MARKER + "\n\n" + K).code, 2);
+  assert.equal(kRun(["delete", "vision-6.2", "@", "--out", "x"]).code, 2);
+  assert.equal(kRun(["insert", "vision-6.2", "@", "--ack", "x"]).code, 2);
+  assert.equal(kRun(["condense", "@", "--apply", "--out", "o.md"]).code, 2);
+  assert.equal(kRun(["publish", "@", "--text", "t", "--out", "o.md"]).code, 2);
+  assert.equal(kRun(["delete", "vision-6.2", "@"], K.replace("2. **B:**", "5. **B:**")).code, 2);
+  tmp((dir) => { put(dir, "real.md", K); fs.symlinkSync(path.join(dir, "real.md"), path.join(dir, "link.md")); assert.equal(cli("delete", "vision-6.2", path.join(dir, "link.md")).code, 2); });
+});
+
+test("cascade: CRLF files and a file with no final newline keep their line endings", () => {
+  const crlf = kApply(["delete", "vision-6.2", "@", "--apply"], K.replace(/\n/g, "\r\n"));
+  assert.equal(crlf.code, 0, crlf.err);
+  assert.equal(crlf.text, K.replace(/\n/g, "\r\n").replace("2. **B:** b.\r\n", "").replace("3. **C:**", "2. **C:**").replace("vision-6.3", "vision-6.2"));
+  const noeol = kApply(["delete", "vision-6.2", "@", "--apply"], K.replace(/\n$/, ""));
+  assert.equal(noeol.code, 0, noeol.err);
+  assert.ok(!noeol.text.endsWith("\n"));
+  const app = kApply(["insert", "vision-6.4", "@", "--text", "x", "--apply"], K.replace("### 7. Vocabulary\n\n1. **T:** see vision-6.3.\n", "").replace(/\n+$/, ""));
+  assert.equal(app.code, 0, app.err + app.out);
+  assert.ok(app.text.includes("3. **C:** c.\n4. x"), app.text);
+});
+
+test("cascade: insert then delete of the same place restores the original bytes, on a document and on the to-do folder", () => {
+  const a = kApply(["insert", "vision-6.2", "@", "--apply"]);
+  assert.notEqual(a.text, K);
+  tmp((dir) => {
+    const f = put(dir, "k.md", K);
+    assert.equal(cli("insert", "vision-6.2", f, "--apply").code, 0);
+    assert.equal(cli("delete", "vision-6.2", f, "--apply").code, 0);
+    assert.equal(get(f), K);
+    const todo = path.join(dir, "todo"); fs.cpSync(path.join(refs, "strata-blueprints-example-todo-app"), todo, { recursive: true });
+    const snap = Object.fromEntries(fs.readdirSync(todo).map((n) => [n, get(path.join(todo, n))]));
+    for (const id of ["vision-3.3", "vision-6.1", "structure-6.2", "detail.ledger-4.1"]) {
+      const i = cli("insert", id, todo, "--apply"); assert.equal(i.code, 0, `${id}: ${i.err}${i.out}`);
+      const d = cli("delete", id, todo, "--apply"); assert.equal(d.code, 0, `${id}: ${d.err}${d.out}`);
+    }
+    for (const [n, t] of Object.entries(snap)) assert.equal(get(path.join(todo, n)), t, n);
+  });
+});
+
+test("cascade: on the to-do example the citation sites the tool rewrites equal the citers --impact lists for the moved ids", () => {
+  tmp((dir) => {
+    const todo = path.join(dir, "todo"); fs.cpSync(path.join(refs, "strata-blueprints-example-todo-app"), todo, { recursive: true });
+    const r = cli("delete", "vision-3.1", todo);
+    assert.equal(r.code, 0, r.err);
+    const moved = [...r.out.matchAll(/^(vision-3\.\d+) -> /gm)].map((m) => m[1]);
+    assert.ok(moved.length >= 5);
+    const sites = new Set(r.lines.filter((l) => /^rewrite /.test(l)).map((l) => { const p = l.split("  "); return `${p[1].replace(/ line (\d+)$/, ":$1")}|${p[4].split(" -> ")[0]}`; }));
+    const want = new Set();
+    for (const id of moved) {
+      const im = spawnSync(process.execPath, [lint, "--impact", id, todo], { encoding: "utf8" }).stdout.split("\n").filter((l) => /^ {2}d1 /.test(l));
+      for (const l of im) { const m = l.match(/^ {2}d1 {2}(\S+) line (\d+) /); want.add(`${m[1]}:${m[2]}|${id}`); }
+    }
+    assert.deepEqual([...sites].sort(), [...want].sort());
+  });
+});
+
+test("cascade: kill: a run killed at its second rename leaves temp files that the next run reports and never deletes", () => {
+  tmp((dir) => {
+    for (const [n, t] of Object.entries(S3)) put(dir, n, t);
+    const code = `import { run } from ${JSON.stringify(pathToFileURL(tool).href)}; import fs from "node:fs"; let n = 0;
+      run(["delete", "vision-6.2", ${JSON.stringify(dir)}, "--apply"], () => {}, { writeFileSync: fs.writeFileSync, renameSync: (a, b) => { if (++n === 2) process.kill(process.pid, "SIGKILL"); fs.renameSync(a, b); }, accessSync: fs.accessSync, fsyncDir: () => {} });`;
+    const k = spawnSync(process.execPath, ["--input-type=module", "-e", code], { encoding: "utf8" });
+    assert.equal(k.signal, "SIGKILL");
+    const temps = fs.readdirSync(dir).filter((n) => /\.strata-tmp-\d+$/.test(n));
+    assert.equal(temps.length, 2);
+    const again = cli("delete", "vision-6.2", dir, "--apply");
+    assert.equal(again.code, 2);
+    assert.match(again.err, /interrupted run: 2 temp file\(s\) left by an earlier insert or delete/);
+    const preview = cli("delete", "vision-6.2", dir);
+    assert.equal(preview.code, 2);
+    assert.equal(fs.readdirSync(dir).filter((n) => /\.strata-tmp-\d+$/.test(n)).length, 2);
+    for (const t of temps) fs.rmSync(path.join(dir, t));
   });
 });
