@@ -1086,10 +1086,10 @@ test("impact: id token boundaries", () => {
 });
 
 test("impact: labels for a part rule and for text outside any layer", () => {
-  const md = "# T\n\nVersion: vision-3.1 is the seed.\n\n## Layer 1: Vision\n\nScope: all.\n\n### 1. Need\n\n1. Given a, when b, then c.\n\n## View: Flow\n\nThe flow honours vision-3.1.\n\n## Layer 3: Detail\n\nScope: x.\n\n### Rota (part)\n\n#### 4. Rules\n\n1. Realizes vision-3.1. Given a, when b, then c.\n";
+  const md = "# T\n\nVersion: vision-3.1 is the seed.\n\n## Layer 1: Vision\n\nScope: all.\n\n### 3. Value\n\n1. Given a, when b, then c.\n\n## View: Flow\n\nThe flow honours vision-3.1.\n\n## Layer 3: Detail\n\nScope: x.\n\n### Rota (part)\n\n#### 4. Rules\n\n1. Realizes vision-3.1. Given a, when b, then c.\n";
   const r = fxImp(md, "vision-3.1");
   assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 3 {2}Other {2}- {2}Version: vision-3\.1 is the seed\.$/.test(l)), r.out);
-  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 15 {2}Other {2}- {2}The flow honours vision-3\.1\.$/.test(l)), r.out);
+  assert.ok(r.lines.some((l) => /^ {2}d1 {2}line 15 {2}View Flow {2}- {2}The flow honours vision-3\.1\.$/.test(l)), r.out);
   assert.ok(r.lines.some((l) => /Layer 3 > Rota \(part\) > Rules/.test(l)), r.out);
 });
 
@@ -2446,4 +2446,28 @@ test("ordered: the lint reads the CommonMark list rules it models (cm-example ta
   // The loose continuation belongs to item 1: it is the citer of vision-7.2.
   const loose = fxImp(vocab("1. a\n\n   see vision-7.2.\n2. b\n"), "vision-7.2");
   assert.equal(loose.lines.filter((l) => /^ {2}d1 .*vision-7\.1 /.test(l)).length, 1, loose.out);
+});
+
+// ordered: view — the items of a ## View: section carry ids (core guide, Views across the layers).
+const VW = (body, name = "Lifecycle") => L1 + L2 + L3 + `## View: ${name}\n\n${body}\n`;
+test("ordered: view ids: an item of a view is view.<name>-<place>, a nested list extends it, and --impact reaches it", () => {
+  const md = VW("1. Given a, when b, then c.\n2. Given d, when e, then f.\n   1. A nested note.\n");
+  assert.deepEqual(lw(md), []);
+  for (const id of ["view.lifecycle-1", "view.lifecycle-2", "view.lifecycle-2.1"]) assert.equal(defined(md, id), true, id);
+  assert.equal(defined(md, "view.lifecycle-3"), false);
+  assert.match(fxImp(md, "view.lifecycle-2").lines[0], /^impact view\.lifecycle-2: defined in View Lifecycle, line \d+$/);
+  assert.equal(lw(VW("- A view item.\n")).length, 1);
+});
+
+test("ordered: view ids: a view may cite any layer, no layer may cite a view, and a view name is one word", () => {
+  const md = L1 + item("###", 3, "Value") + `1. ${GWT}\n\n` + L2 + L3 + "## View: Flow\n\n1. Given x, when y, then z, as in vision-3.1.\n";
+  assert.deepEqual(warns(lintText(md), "id-ref"), []);
+  const out = L1 + item("###", 12, "Decisions") + "1. Keep it. Reason: view.flow-1.\n\n" + L2 + L3 + "## View: Flow\n\n1. Given x, when y, then z.\n";
+  const w = warns(lintText(out), "id-ref");
+  assert.equal(w.length, 1);
+  assert.match(w[0], /view\.flow-1 is defined in view\.flow, which is outward of Layer 1/);
+  assert.match(iw(VW("1. A.\n", "Life cycle"))[0], /view name 'Life cycle' is not one word/);
+  const twice = iw(VW("1. A.\n", "Flow") + "\n## View: Flow\n\n1. B.\n");
+  assert.equal(twice.length, 1);
+  assert.match(twice[0], /view\.flow-1 repeats the one on line/);
 });

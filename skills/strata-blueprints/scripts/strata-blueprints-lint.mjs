@@ -22,14 +22,18 @@ const NEEDS_ID = {
 // A file whose first line starts with this is a condensed copy: omitted topics read None., so the topics check skips it.
 const MARKER_PREFIX = "<!-- strata-blueprints: condensed";
 const hasMarker = (firstLine) => (firstLine || "").trim().startsWith(MARKER_PREFIX);
-const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : 3);
+const DOC_LAYER = (doc) => (doc === "vision" ? 1 : doc === "structure" ? 2 : doc.startsWith("view.") ? 4 : 3);
 const topicNo = (layer, name) => (TOPICS[layer] ? TOPICS[layer].indexOf(name) + 1 || null : null);
 
 // Every list is a Markdown ordered list. An item's id is its document, the topic's number from its heading and its place in the list,
 // nested places joined by dots: vision-9.1, structure-6.2, detail.ledger-7.1, vision-6.1.2. A citation writes the id in full.
-const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+`;
+const IDCORE = String.raw`(?:(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+|view\.[a-z0-9]+-[1-9]\d*(?:\.[1-9]\d*)*)`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
-const parseId = (id) => { const m = id.match(/^(.+?)-([1-9]\d*)((?:\.[1-9]\d*)+)$/); const pos = [m[2], ...m[3].slice(1).split(".")].slice(1).map(Number); return { id, doc: m[1], topic: +m[2], item: pos[0], pos }; };
+const viewId = (name, pos) => "view." + name.toLowerCase() + "-" + pos.join(".");
+const parseId = (id) => {
+  const v = id.match(/^(view\.[a-z0-9]+)-([1-9]\d*(?:\.[1-9]\d*)*)$/);
+  if (v) { const pos = v[2].split(".").map(Number); return { id, doc: v[1], topic: null, item: pos[0], pos }; }
+  const m = id.match(/^(.+?)-([1-9]\d*)((?:\.[1-9]\d*)+)$/); const pos = [m[2], ...m[3].slice(1).split(".")].slice(1).map(Number); return { id, doc: m[1], topic: +m[2], item: pos[0], pos }; };
 const THEMATIC = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
 // A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
@@ -212,7 +216,11 @@ for (const e of els) {
   else if (e.marker.endsWith(")")) warn("list", `'${e.written})' is not the list marker; write it as '${e.written}.'`, e.n);
   else if (e.written !== e.place) warn("list", `item number ${e.written} is not ${e.place}, its place in the list; a list counts 1, 2, 3 with no gap`, e.n);
 }
-const live = els.filter((e) => e.layer !== null);
+for (const { n, t } of plainLines(rows)) {
+  const vm = t.match(/^## View:\s*(.*?)\s*$/);
+  if (vm && !/^[A-Za-z0-9]+$/.test(vm[1])) warn("id", `view name '${vm[1]}' is not one word`, n);
+}
+const live = els.filter((e) => e.layer !== null || e.view);
 const defined = new Map();             // id -> element, any own id in layers 1 to 3
 const slugsListed = [];                // part names from Layer 2 Parts
 for (const e of live) if (e.own && !defined.has(e.own.id)) defined.set(e.own.id, e);
@@ -257,6 +265,7 @@ for (const e of live) {
       continue;
     }
     if (answer) continue;
+    if (e.view) { if (!defined.has(c.id)) warn("id-ref", `${c.id} is not defined`, e.n); continue; }
     if (!defined.has(c.id)) warn("id-ref", `${c.id} is not defined`, e.n);
     else if (DOC_LAYER(p.doc) > e.layer) warn("id-ref", `${c.id} is defined in ${p.doc}, which is outward of Layer ${e.layer}`, e.n);
   }
@@ -435,11 +444,11 @@ function openFenceRow(rows) {
 // and for a list item its marker, written number, place and depth.
 function readElements(rows) {
   const els = [];
-  let cur = null, layer = null, topic = null, entry = null, fence = null, head = null, blank = false;
+  let cur = null, layer = null, topic = null, entry = null, fence = null, head = null, blank = false, view = null;
   let stack = [];                       // open items, outermost first: { el, col (its text column), count (places given to its children) }
   let root = 0;                         // places given at depth 1 under the open heading
   const close = () => { cur = null; };
-  const ctx = () => ({ layer, topic, entry, headN: head ? head.n : null, headNo: head ? head.no : null });
+  const ctx = () => ({ layer, topic, entry, view, headN: head ? head.n : null, headNo: head ? head.no : null });
   const para = (n, text, indent, table = false) => { cur = { n, end: n, text, indent, list: false, table, depth: 0, marker: null, written: null, place: null, pos: null, ...ctx() }; els.push(cur); };
   const append = (el, t, n) => { el.text += " " + t; el.end = n; for (const s of stack) s.el.end = Math.max(s.el.end, n); };
   for (let i = 0; i < rows.length; i++) {
@@ -450,10 +459,14 @@ function readElements(rows) {
     if (t === "") { close(); blank = true; continue; }
     const after = blank; blank = false;
     if (/^#{1,6}\s/.test(t)) {
+      // A view is one list context: a heading inside it ends the open items but not the count.
+      if (view && !/^## /.test(t)) { close(); stack = []; continue; }
       close(); stack = []; root = 0; head = null;
       if (/^## /.test(t)) {
         const m = t.match(/^## Layer ([123]): (.+)$/);
+        const vm = t.match(/^## View:\s*(.*?)\s*$/);
         layer = m && NAMES[m[1] - 1] === m[2].trim() ? +m[1] : null;
+        view = vm ? vm[1] : null;
         topic = null; entry = null;
       } else if (/^### /.test(t)) {
         const pe = t.match(/^### (.+?) \(part\)\s*$/);
@@ -512,6 +525,10 @@ function assignOwn(els) {
   for (const e of els) {
     e.body = clean(e.text).trim();
     e.own = null;
+    if (e.view && e.list) {
+      if (/^[A-Za-z0-9]+$/.test(e.view)) e.own = { id: viewId(e.view, e.pos), doc: "view." + e.view.toLowerCase(), topic: null, item: e.pos[0], pos: e.pos, depth: e.depth };
+      continue;
+    }
     const doc = docOf(e);
     const tn = e.layer && e.topic ? topicNo(e.layer, e.topic) : null;
     if (!doc || !e.list || tn === null) continue;
@@ -683,7 +700,7 @@ async function runImpact(args) {
   const els = readElements(target.rows);
   // Element facts: label, own id, cites.
   for (const e of els) {
-    e.label = e.layer === null ? "Other"
+    e.label = e.view ? `View ${e.view}` : e.layer === null ? "Other"
       : `Layer ${e.layer} > ${e.entry !== null ? (e.topic ? `${e.entry} (part) > ${e.topic}` : `${e.entry} (part)`) : (e.topic || "-")}`;
   }
   assignOwn(els);
@@ -727,7 +744,7 @@ async function runImpact(args) {
       level = next;
     }
     const out = [];
-    if (seed) out.push(`impact ${id}: defined in ${seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
+    if (seed) out.push(`impact ${id}: defined in ${seed.view ? `View ${seed.view}` : seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
     else { out.push(`WARN impact: ${id} is not defined in ${arg}`); code = 1; }
     out.push(id);
     const walk = (p, dd) => {

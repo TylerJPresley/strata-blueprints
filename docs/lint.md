@@ -241,12 +241,14 @@ Fires when an item's place or text is wrong:
 - A Layer 3 item in an entry whose slug does not match a part in Layer 2 Parts.
 - A part name in Layer 2 Parts that is not one word (letters, digits, underscores).
 
+A `## View: <Name>` section is a document of its own for ids. Its items take the id `view.<name>-<place>`, the name in lower case (`view.lifecycle-1`), and a nested list extends it (`view.lifecycle-2.1`); the whole section is one list, so its items count 1, 2, 3 across it. A view name that is not one word of letters and digits draws `view name '<Name>' is not one word`; two views with one name draw the repeated-id warning. A view may cite the ids of any layer, and no part is shut out; a layer that cites a view id draws `id-ref` (outward).
+
 The id of a list item is the document, a hyphen, the topic's number and the item's place in its list, with nested places joined by dots (`vision-6.2`, `vision-6.2.1`). The topic's number is the canonical number of the topic named in the heading. Table rows, `None.`, `Not supplied:` and `Title:` lines are not checked for form. The form checks (`scenario-form`, `reasons`, `limit-quality`, `realizes-text` and the three shape checks) read depth-1 items only.
 
 Silent when:
 - The layer is invalid (no topics to judge)
 - The item is in a Layer 3 with no entry
-- The line sits under no topic (a view, text before the first topic, the Layer 3 text before the first entry); such items have no id
+- The line sits under no topic (text before the first topic, the Layer 3 text before the first entry); such items have no id. The items of a view take view ids.
 
 #### Check: `id-ref`
 
@@ -386,6 +388,7 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `list` | `'<m>' starts an unordered list item; write it as '<n>.'` (with ` and drop the number from the text` when the item text starts with a number or a full id) |
 | `list` | `'<N>)' is not the list marker; write it as '<N>.'` |
 | `list` | `item number <N> is not <n>, its place in the list; a list counts 1, 2, 3 with no gap` |
+| `id` | `view name '<Name>' is not one word` |
 | `id` | `<id> repeats the one on <place>` |
 | `id` | `<id> names '<slug>', which is not a part in Layer 2 Parts` |
 | `id` | `part name '<name>' is not one word` |

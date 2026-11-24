@@ -122,13 +122,13 @@ Make one with `node scripts/strata-blueprints.mjs publish <file or folder> --out
 
 ## Views across the layers
 
-Views are not layers. A view is optional and refers inward. A view that stands on its own is a `## View: <name>` section after Layer 3, or at the end of `sbp-structure.md` in a stack of separate files.
+Views are not layers. A view is optional and refers inward. A view's items are an ordered list like any other, and each is cited as `view.<name>-<place>` (`view.lifecycle-2`), the name written in lower case. A view may cite the ids of any layer; no layer cites a view. A view that stands on its own is a `## View: <name>` section after Layer 3, or at the end of `sbp-structure.md` in a stack of separate files.
 
 - **Lifecycle:** how the subject is produced, put into service, kept working, changed and retired. See Lifecycle view below.
 
 ### Lifecycle view
 
-- **Lifecycle:** how the subject is produced, put into service, kept working, changed and retired, written as a `## View: Lifecycle` section after Layer 3. It is written once for the subject, and again for any part whose lifecycle differs.
+- **Lifecycle:** how the subject is produced, put into service, kept working, changed and retired, written as a `## View: Lifecycle` section after Layer 3. It is written once for the subject, and again for any part whose lifecycle differs. Name each view with one word that no other view uses (`Lifecycle`, `LifecycleLedger`).
   - For: says how the subject lives over time, which no layer holds.
   - Write: a `## View: Lifecycle` section after Layer 3 with a `Scope:` line and one ordered list item (Given, when, then) for each stage that matters: production, service, upkeep, change, retirement.
   - Example:

@@ -11,7 +11,7 @@ export const MARKER = "<!-- strata-blueprints: condensed (generated; omitted top
 export const PUBLISHED_MARKER = "<!-- strata-blueprints: condensed, published (generated; each omitted topic read None. or held only open questions) -->";
 const MARKER_PREFIX = "<!-- strata-blueprints: condensed";
 const PUBLISHED_PREFIX = "<!-- strata-blueprints: condensed, published";
-export const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+`;
+export const IDCORE = String.raw`(?:(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*(?:\.[1-9]\d*)+|view\.[a-z0-9]+-[1-9]\d*(?:\.[1-9]\d*)*)`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 export const NAMES = ["Vision", "Structure", "Detail"];
 // A code span: a run of N backticks to the next run of N, on one line. The same line as in the lint.
@@ -217,8 +217,8 @@ export function publishFiles(input, opts = {}) {
   for (const p of parsed) p.lines.forEach((line, i) => {
     if (p.skip.has(i) || p.drop.has(i) || p.mask[i]) return;
     for (const m of clean(line).matchAll(TOKEN)) {
-      const id = m[1].match(/^(.+)-(\d+)\.\d+$/);
-      const d = gone.get(`${id[1]}-${id[2]}`);
+      const id = m[1].match(/^(.+?)-(\d+)(?:\.\d+)+$/);
+      const d = id && gone.get(`${id[1]}-${id[2]}`);
       if (d) problems.push(`${p.f.name} line ${i + 1}: cites ${m[1]}, which is in topic ${d.no}. ${d.name} of ${d.doc}, left out of the published document (${d.kind === "none" ? "None." : "Not supplied:"})`);
     }
   });
