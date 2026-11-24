@@ -35,10 +35,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Concepts and states**
     - **How to write it:**
       - For: names what the part works with and the states it moves through, so the rules can use exact words.
-      - Write: one numbered item per concept (`2.1`, `2.2`), and for anything that changes over time, its states. Use the Layer 1 vocabulary where it has the term.
+      - Write: one list item per concept (such as `detail.ledger-2.1`), and for anything that changes over time, its states. Use the Layer 1 vocabulary where it has the term.
       - Example:
-        - 2.1. A commitment, with its text, an optional due value, and the grouping it belongs to.
-        - 2.2. A commitment's state: active (to do), done (finished but kept) or removed.
+        1. A commitment, with its text, an optional due value, and the grouping it belongs to.
+        2. A commitment's state: active (to do), done (finished but kept) or removed.
       - Mistake: listing storage or tools. Concepts are what the part reasons about; tools belong in Construction.
     - **Ask the owner:** what does it work with, what states does it pass through, in what order, what moves it on, back or to abandoned? Not supplied: a trigger or state.
     - **Check:**
@@ -46,10 +46,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Seams**
     - **How to write it:**
       - For: states what this part offers and needs at each seam it takes part in, so the makers on both sides can work apart.
-      - Write: one numbered item (`3.1`, `3.2`) per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
+      - Write: one list item per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
       - Example:
-        - 3.1. Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
-        - 3.2. Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
+        1. Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
+        2. Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
       - Mistake: copying Layer 2's account of what crosses and why. Layer 3 adds what this part offers or needs.
     - **Ask the owner:** at each seam this part takes, what does it offer or need, in what form? Not supplied: the form.
     - **Check:**
@@ -57,10 +57,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Rules**
     - **How to write it:**
       - For: states how the part acts, as scenarios that can each be run as a check.
-      - Write: one rule per line, about this part, each with its own number. Given, when, then is required where a rule says `Realizes <id>.` and is the suggested form elsewhere; a rule may be written plainly. A rule that realizes a Layer 1 value scenario says `Realizes <id>.` after its own number and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave. When a program builds the part and tests check it, its Rules and Limits carry the contract the tests assert (the exact strings it prints, its inputs and outputs as signatures, and Given, when, then cases), so that someone with only the blueprint can build a part that passes. Where a rule gives an exact string or an exact operation, it says for each `<...>` whether it is filled in or printed as written; for each "in order" which key orders; for each split, trim or comparison whether case, trim and first or last occurrence apply; and whether a state such as a fence carries across the files of a stack. An operation named by a word is defined once in Construction. A rule about a program is checked by running the program, and its `Source:` says `run` when it was. A rule may state an observable behavior that no scenario covers, such as how output reaches a slow reader, with the recipe that tests it. A rule holds one test of the program; a rule with several independent clauses is written as several numbered rules. A rule for a function that a test calls says what it returns, with the keys of an object, and what it throws, with the message. Where a test reads the program's own text, or an environment variable, the rule names the text or the variable and the test that reads it. A rule that skips a case names the checks it skips and the checks that still apply. Name a test by its title (a group of tests by their shared title prefix), and the parts of a source by their names; a count or a place in a file goes stale, but a count the program prints is part of its output and stays.
+      - Write: one rule per list item, about this part. Given, when, then is required where a rule says `Realizes <id>.` and is the suggested form elsewhere; a rule may be written plainly. A rule that realizes a Layer 1 value scenario starts with `Realizes <id>.` and keeps that scenario's Given and when text. Add rules for the edges and failures the owner gave. When a program builds the part and tests check it, its Rules and Limits carry the contract the tests assert (the exact strings it prints, its inputs and outputs as signatures, and Given, when, then cases), so that someone with only the blueprint can build a part that passes. Where a rule gives an exact string or an exact operation, it says for each `<...>` whether it is filled in or printed as written; for each "in order" which key orders; for each split, trim or comparison whether case, trim and first or last occurrence apply; and whether a state such as a fence carries across the files of a stack. An operation named by a word is defined once in Construction. A rule about a program is checked by running the program, and its `Source:` says `run` when it was. A rule may state an observable behavior that no scenario covers, such as how output reaches a slow reader, with the recipe that tests it. A rule holds one test of the program; a rule with several independent clauses is written as several list items. A rule for a function that a test calls says what it returns, with the keys of an object, and what it throws, with the message. Where a test reads the program's own text, or an environment variable, the rule names the text or the variable and the test that reads it. A rule that skips a case names the checks it skips and the checks that still apply. Name a test by its title (a group of tests by their shared title prefix), and the parts of a source by their names; a count or a place in a file goes stale, but a count the program prints is part of its output and stays.
       - Example:
-        - 4.1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
-        - 4.2. Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
+        1. Realizes vision-3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then Ledger saves it as active and confirms it is saved before the keeper looks away.
+        2. Given the keeper edits a commitment while offline, when the device reconnects, then Ledger accepts the recorded change and offers it to Presence.
       - Mistake: a rule nobody can check ("Ledger is reliable"). Each rule states a situation, an event and a result that can be observed.
     - **Ask the owner:** the rules for this part, each with its threshold, trigger and renewal. Follow-up: the edge (smallest, longest, none, missed) and what happens when broken or missed. Not supplied: the value or the broken case.
     - **Check:**
@@ -68,10 +68,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Inside**
     - **How to write it:**
       - For: names the pieces the part is made of, so a maker sees its inner shape without any means.
-      - Write: one numbered item per piece (`5.1`, `5.2`), giving its name and what it does. This topic lists pieces, so each item is typed as a piece, either with `(piece)` beside the name or by the topic heading. A piece cannot stand on its own and is never listed in Layer 2. When the part has no inside worth describing, write `None.`
+      - Write: one list item per piece, giving its name and what it does. This topic lists pieces, so each item is typed as a piece, either with `(piece)` beside the name or by the topic heading. A piece cannot stand on its own and is never listed in Layer 2. When the part has no inside worth describing, write `None.`
       - Example:
-        - 5.1. A store of commitments (piece), which holds each item and its current state.
-        - 5.2. A change log (piece), which records each edit in order so a change made apart can be reconciled.
+        1. A store of commitments (piece), which holds each item and its current state.
+        2. A change log (piece), which records each edit in order so a change made apart can be reconciled.
       - Mistake: naming a product as a piece ("a SQLite file"). Pieces are means-neutral; products belong in Construction.
     - **Ask the owner:** what pieces is the part made of? Not supplied: a piece's name.
     - **Check:**
@@ -79,10 +79,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Limits**
     - **How to write it:**
       - For: gives the checkable share of the Layer 1 qualities that this part must meet, so makers can check it.
-      - Write: one bullet per limit, with its number (`6.1`), a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. The id of a Layer 1 item, such as `vision-3.6`, may stand in place of the name. Name no means.
+      - Write: one list item per limit: a number, a testable condition or an observable result, ending with `(Layer 1, <quality or topic>)` for the Layer 1 entry that holds this number or result, else `(Layer 1, Not supplied: the quality)`; never the nearest quality. The id of a Layer 1 item, such as `vision-3.6`, may stand in place of the name. Name no means.
       - Example:
-        - 6.1. A commitment is confirmed saved within one second of the keeper writing it (Layer 1, Prompt).
-        - 6.2. A saved commitment survives a closed app, a dead battery and a lost connection (Layer 1, Durable).
+        1. A commitment is confirmed saved within one second of the keeper writing it (Layer 1, Prompt).
+        2. A saved commitment survives a closed app, a dead battery and a lost connection (Layer 1, Durable).
       - Mistake: "fast" or "reliable" with nothing to check, or a limit citing a quality that does not state it. Every limit can be checked.
     - **Ask the owner:** speed, time, counts and retention for this part, together. Follow-up: the worst acceptable value. Not supplied: any limit not given.
     - **Check:**
@@ -90,9 +90,9 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Construction**
     - **How to write it:**
       - For: closes the gaps a maker still has after Rules and Seams: the specific means, how the pieces are assembled, and the exact formats, values and tolerances at each seam.
-      - Write: only where a gap remains. Record each choice as an item with its number (`7.1`), naming the means or value and, where a Limit drives it, that Limit as the reason. Write `Not supplied:` for a value nobody has chosen.
+      - Write: only where a gap remains. Record each choice as a list item, naming the means or value and, where a Limit drives it, that Limit as the reason. Write `Not supplied:` for a value nobody has chosen.
       - Example:
-        - 7.1. Each change is written to durable local storage before the save is confirmed, and only then offered to Presence. Reason: meets "survives a lost connection" and lets the one-second confirm happen without waiting for the network.
+        1. Each change is written to durable local storage before the save is confirmed, and only then offered to Presence. Reason: meets "survives a lost connection" and lets the one-second confirm happen without waiting for the network.
         - Not supplied: how long a session stays open before the keeper must prove themselves again.
       - Mistake: naming a means in Rules or Seams, or a value with no Limit behind it. Means and values are named here, each chosen to meet a Limit.
     - **Ask the owner:** sizes, counts, materials, stack, set-up values, fasteners and schedules for this part, together. Follow-up: the tolerance. Not supplied: any "not decided" value; it stays `Not supplied:`.
@@ -101,10 +101,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Costs**
     - **How to write it:**
       - For: records what this part takes to build, run and change, so a maker and the owner know its price before it is made.
-      - Write: as in Layer 1, with numbers `8.1`, `8.2` and so on. Name a tool or a material only where it is what costs. Write `Not supplied:` for an amount nobody gave. When there are none, write `None.`
+      - Write: as in Layer 1, as list items (such as `detail.ledger-8.1`). Name a tool or a material only where it is what costs. Write `Not supplied:` for an amount nobody gave. When there are none, write `None.`
       - Example:
-        - 8.1. Given a number of keepers use the app, when their commitments are held and served, then it costs 35 USD per month. Paid by the maintainer.
-        - 8.2. Given the stored form of a commitment changes, when stored commitments are carried forward, then it costs Not supplied: the hours one change needs. Paid by the maintainer.
+        1. Given a number of keepers use the app, when their commitments are held and served, then it costs 35 USD per month. Paid by the maintainer.
+        2. Given the stored form of a commitment changes, when stored commitments are carried forward, then it costs Not supplied: the hours one change needs. Paid by the maintainer.
       - Mistake: a cost with no amount and no `Not supplied:`, a cost with no Given or when, or a price unrelated to what this part uses.
     - **Ask the owner:** what does this part cost, at what condition or volume, at which moment (build, run or change), and what amount, paid by whom? Follow-up: the unit, whether it recurs (per month, per year or once), and what moves it. Not supplied: any condition, volume, amount or payer not given.
     - **Check:**
@@ -112,10 +112,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Risks**
     - **How to write it:**
       - For: records what could go wrong with this part and what answers it.
-      - Write: as in Layer 1, with numbers `9.1`, `9.2` and so on. An answer is an id of this part, of Layer 2 or of Layer 1, such as a Construction item that meets a Limit, or a rule. When there are none, write `None.`
+      - Write: as in Layer 1, as list items (such as `detail.ledger-9.1`). An answer is an id of this part, of Layer 2 or of Layer 1, such as a Construction item that meets a Limit, or a rule. When there are none, write `None.`
       - Example:
-        - 9.1. Given a keeper edits a commitment on two devices while offline, when both reconnect, then one edit can overwrite the other. Severity: Medium. Answered by detail.ledger-12.1.
-        - 9.2. Given the stored form of a commitment must change, when the change is rolled out, then existing commitments can be left unreadable. Severity: High. Answered by Not supplied: how a change in stored form is carried forward.
+        1. Given a keeper edits a commitment on two devices while offline, when both reconnect, then one edit can overwrite the other. Severity: Medium. Answered by detail.ledger-12.1.
+        2. Given the stored form of a commitment must change, when the change is rolled out, then existing commitments can be left unreadable. Severity: High. Answered by Not supplied: how a change in stored form is carried forward.
       - Mistake: a risk the part cannot cause or answer. A risk about the whole subject goes in Layer 1; one about the division goes in Layer 2.
     - **Ask the owner:** what could go wrong with this part, and how bad? Follow-up: which decision, rule or limit answers it. Not supplied: any severity or answer not given.
     - **Check:**
@@ -123,10 +123,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Open Concerns**
     - **How to write it:**
       - For: records the concerns about this part that were raised and that nobody has settled yet, and that must be settled before the work is done, so none is lost. It is not a Risk, not a `Not supplied:` and not an Assumption. When settled, it moves into a Decision, an Assumption or a rule and leaves this list.
-      - Write: as in Layer 1, with numbers `10.1`, `10.2` and so on. Say what would settle it and what it feeds, such as a Limit, a decision in Construction or a rule. When there are none, write `None.`
+      - Write: as in Layer 1, as list items (such as `detail.ledger-10.1`). Say what would settle it and what it feeds, such as a Limit, a decision in Construction or a rule. When there are none, write `None.`
       - Example:
-        - 10.1. Given a keeper may stay signed in for a long time, when the maintainer says how long a session lasts, then the session length is chosen as a Limit and recorded as a decision. Raised by the maintainer.
-        - 10.2. Given the stored form of a commitment must change, when the maintainer says whether old versions of the app must keep working, then the way stored changes are carried forward is chosen. Raised by a reviewer of the part.
+        1. Given a keeper may stay signed in for a long time, when the maintainer says how long a session lasts, then the session length is chosen as a Limit and recorded as a decision. Raised by the maintainer.
+        2. Given the stored form of a commitment must change, when the maintainer says whether old versions of the app must keep working, then the way stored changes are carried forward is chosen. Raised by a reviewer of the part.
       - Mistake: a concern that is really a risk, an assumption or a missing fact, or a concern with no one who raised it.
     - **Ask the owner:** what is still unsettled, who raised it, and what would settle it? Follow-up: what follows once it is settled. Not supplied: a concern nobody raised stays out; never invent one.
     - **Check:**
@@ -134,10 +134,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Assumptions**
     - **How to write it:**
       - For: records what the part's rules rest on, each with its reason.
-      - Write: as in the other layers, with numbers (such as `11.1`). An assumption gives `Basis:` and `If wrong:`.
+      - Write: as in the other layers, one list item each (such as `detail.ledger-11.1`). An assumption gives `Basis:` and `If wrong:`.
       - Example:
-        - 11.1. A keeper holds hundreds, not millions, of live commitments, so the whole set can be held on a single device. Basis: personal task-keeping, from Layer 1. If wrong: the store and the one-second confirm would need a different approach.
-        - 11.2. The keeper's device knows the keeper's current time zone. Basis: consumer devices track the local zone as the keeper travels. If wrong: the keeper would have to set a zone by hand for "today" to be right.
+        1. A keeper holds hundreds, not millions, of live commitments, so the whole set can be held on a single device. Basis: personal task-keeping, from Layer 1. If wrong: the store and the one-second confirm would need a different approach.
+        2. The keeper's device knows the keeper's current time zone. Basis: consumer devices track the local zone as the keeper travels. If wrong: the keeper would have to set a zone by hand for "today" to be right.
       - Mistake: an assumption with no `If wrong:`. Without it a reader cannot tell what would change.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**
@@ -145,10 +145,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Decisions**
     - **How to write it:**
       - For: records the decisions about the part's shape that Construction does not hold, each with its reason.
-      - Write: as in the other layers, with numbers (such as `12.1`). A decision gives `Reason:`. A means or a value chosen to meet a Limit is recorded in Construction.
+      - Write: as in the other layers, one list item each (such as `detail.ledger-12.1`). A decision gives `Reason:`. A means or a value chosen to meet a Limit is recorded in Construction.
       - Example:
-        - 12.1. The change log is kept rather than only the current value of each commitment. Reason: a change made offline can be reconciled only if the order of changes is known.
-        - 12.2. A commitment due "today" with no time is treated as due at the end of the keeper's day. Reason: it is not overdue until the day is over, which matches how the keeper reads "due today".
+        1. The change log is kept rather than only the current value of each commitment. Reason: a change made offline can be reconciled only if the order of changes is known.
+        2. A commitment due "today" with no time is treated as due at the end of the keeper's day. Reason: it is not overdue until the day is over, which matches how the keeper reads "due today".
       - Mistake: a decision with no `Reason:`, or a means or value recorded here that Construction holds.
     - **Ask the owner:** Not asked. Filled from confirmed read-backs and the maker's choices.
     - **Check:**

@@ -1190,7 +1190,7 @@ function howToRange(rows, which) {
 function parseHowToEntries(rows, range, lifecycle) {
   const entries = [];
   const labelRe = lifecycle ? /^ {2}- (For|Write|Example|Mistake):(.*)$/ : /^ {6}- (For|Write|Example|Mistake):(.*)$/;
-  const sampleRe = lifecycle ? /^ {4}- (.*)$/ : /^ {8}- (.*)$/;
+  const sampleRe = lifecycle ? /^ {4}(?:- |\d+\. )(.*)$/ : /^ {8}(?:- |\d+\. )(.*)$/;
   let cur = lifecycle ? { name: "Lifecycle", labels: [], samples: [] } : null;
   if (cur) entries.push(cur);
   for (let i = range.start; i < range.end; i++) {
@@ -1255,16 +1255,16 @@ function checkHowTo(text) {
         if (new RegExp(String.raw`^${ID}\.`).test(s)) {
           add("howto-form", `${where} sample starts with a full id, write the local number: ${s}`);
         }
-        const body = s.replace(new RegExp(String.raw`^(?:${NUM}\.\s+Realizes ${ID}\.\s+|${NUM}\.\s+(?=Given ))`), "");
+        const body = s.replace(new RegExp(String.raw`^(?:${NUM}\.\s+)?(?:Realizes ${ID}\.\s+)?`), "");
         if (/^Given/.test(body) && !/^Given .+, when .+, then .+/.test(body)) {
           add("howto-form", `${where} sample is not Given, when, then: ${s}`);
         }
         const assumptionTopic = { 1: 11, 2: 10, 3: 11 }[g.layer];
         const decisionTopic = { 1: 12, 2: 11, 3: 12 }[g.layer];
-        if (assumptionTopic && new RegExp(String.raw`^${assumptionTopic}\.[1-9]\d*\.`).test(s) && !(body.includes("Basis:") && body.includes("If wrong:"))) {
+        if (assumptionTopic && e.name === "Assumptions" && !(body.includes("Basis:") && body.includes("If wrong:"))) {
           add("howto-form", `${where} assumption sample lacks Basis: or If wrong:: ${s}`);
         }
-        if (decisionTopic && new RegExp(String.raw`^${decisionTopic}\.[1-9]\d*\.`).test(s) && !body.includes("Reason:")) {
+        if (decisionTopic && e.name === "Decisions" && !body.includes("Reason:")) {
           add("howto-form", `${where} decision sample lacks Reason:: ${s}`);
         }
         const lower = s.toLowerCase();
@@ -1331,18 +1331,18 @@ const HOWTO_MUTATIONS = [
   }, "a Layer 1 Example")],
   ["an Example cut to one line", "howto-example-size", (t) => mutateHowTo(t, 1, (rows, r) => {
     const i = rowIn(rows, r, /^ {6}- Example:\s*$/);
-    if (i < 0 || !/^ {8}- /.test(rows[i + 2] || "")) return false;
+    if (i < 0 || !/^ {8}(?:- |\d+\. )/.test(rows[i + 2] || "")) return false;
     rows.splice(i + 2, 1);
     return true;
   }, "Layer 1 Example with two or more lines")],
   [", then removed from a Given sample", "howto-form", (t) => mutateHowTo(t, 1, (rows, r) => {
-    const i = rowIn(rows, r, /^ {8}- (?:3\.\d+\. )?Given .+, when .+, then /);
+    const i = rowIn(rows, r, /^ {8}(?:- |\d+\. )Given .+, when .+, then /);
     if (i < 0) return false;
     rows[i] = rows[i].replace(", then", "");
     return true;
   }, "Layer 1 Given sample")],
   ["If wrong: removed from an A sample", "howto-form", (t) => mutateHowTo(t, 1, (rows, r) => {
-    const i = rowIn(rows, r, /^ {8}- 11\.\d+\..*If wrong:/);
+    const i = rowIn(rows, r, /^ {8}\d+\. .*If wrong:/);
     if (i < 0) return false;
     rows[i] = rows[i].replace(" If wrong:", "");
     return true;
