@@ -3,7 +3,7 @@
 // Advisory lint for Strata Blueprints documents: shape checks a program can decide. No model needed.
 // usage: node strata-blueprints-lint.mjs <file.md> [--strict]
 //        node strata-blueprints-lint.mjs <folder> [--strict]
-//        node strata-blueprints-lint.mjs --impact <id> <file.md or folder>
+//        node strata-blueprints-lint.mjs --impact <id>[,<id>...] <file.md or folder>
 import fs from "node:fs";
 import path from "node:path";
 
@@ -33,22 +33,53 @@ const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 const OWNID = new RegExp(String.raw`^\**(${IDCORE})(?!\w|-|\.\d)(?=[.:)*\s]|$)`);
 const START = (s) => NUMBER.test(s) || OWNID.test(s);
 const parseId = (id) => { const m = id.match(/^(.+)-([1-9]\d*)\.([1-9]\d*)$/); return { id, doc: m[1], topic: +m[2], item: +m[3] }; };
-const clean = (s) => s.replace(/`[^`]*`/g, " ");
+const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
+// A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 const docOf = (e) => (e.layer === 1 ? "vision" : e.layer === 2 ? "structure" : e.layer === 3 && e.entry !== null ? `detail.${e.entry.toLowerCase()}` : null);
 
-const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id> <file.md or folder>";
-if (process.argv[2] === "--impact") runImpact(process.argv.slice(3));
+const USAGE = "usage: node strata-blueprints-lint.mjs <file.md> [--strict] | <folder> [--strict] | --impact <id>[,<id>...] <file.md or folder>";
+// A reader that closes the pipe early ends the run quietly, with the exit code the run would have had.
+process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); else throw e; });
+if (process.argv[2] === "--impact") await runImpact(process.argv.slice(3));
 
 const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
 const strict = process.argv.includes("--strict");
 if (!file) { console.log(USAGE); process.exit(0); }
 const target = loadTarget(file);
 const rows = target.rows;
-let count = 0, notSupplied = 0;
+let count = 0, notSupplied = 0, statusInfo = null;
 const warnAt = (check, detail, loc) => { count++; console.log(`WARN ${check}: ${detail} (${loc})`); };
 const warn = (check, detail, n) => warnAt(check, detail, target.where(n));
 if (target.folder) folderChecks(target.folder, warnAt);
 const MARK = /^(?:[-*+]|\d+[.)])\s+/;
+
+// status: Status and Blueprint status lines in each document's top matter (before its first ## heading).
+const STATUS_VALUES = ["Draft", "Review", "Approved"];
+{
+  const docs = target.folder
+    ? Object.entries(target.folder.files).map(([name, r]) => ({ name, rows: r, key: name === "sbp-vision.md" ? "vision" : name === "sbp-structure.md" ? "structure" : `detail.${name.slice(11, -3)}` }))
+    : [{ name: null, rows, key: "doc" }];
+  const found = {};
+  let any = false;
+  for (const d of docs) {
+    for (let i = 0; i < d.rows.length; i++) {
+      const t = d.rows[i].trim();
+      if (/^## /.test(t)) break;
+      const m = t.match(/^(Blueprint status|Status):\s*(.*?)\s*$/);
+      if (!m) continue;
+      any = true;
+      if (!STATUS_VALUES.includes(m[2])) warnAt("status", `'${m[2]}' is not one of Draft, Review, Approved`, d.name ? `${d.name} line ${i + 1}` : `line ${i + 1}`);
+      found[m[1] === "Status" ? d.key : `${d.key}:blueprint`] ??= m[2];
+    }
+  }
+  if (any) {
+    statusInfo = target.folder
+      ? `INFO status: blueprint ${found["vision:blueprint"] ?? "-"}; ` + ["vision", "structure", ...docs.map((d) => d.key).filter((k) => k.startsWith("detail."))].map((k) => `${k} ${found[k] ?? "-"}`).join("; ")
+      : `INFO status: ${found.doc ?? found["doc:blueprint"] ?? "-"}`;
+  }
+}
 
 let fence = null;            // { lang, open } while inside a fenced block
 let layer = null;            // current layer number, null outside any layer
@@ -63,12 +94,14 @@ let unit = null;             // the open unit, or null
 for (let i = 0; i < rows.length; i++) {
   const line = rows[i], n = i + 1, t = line.trim();
 
-  if (/\b(TODO|TBD|FIXME)\b/.test(line)) warn("unfinished", `marker '${line.match(/\b(TODO|TBD|FIXME)\b/)[1]}'`, n);
-
-  const f = t.match(/^(```|~~~)\s*(\S*)/);
-  if (fence) { if (t.startsWith(fence.mark) && t.slice(3).trim() === "") fence = null; continue; }
+  const f = fenceOpen(t);
+  if (fence === null && !f) {
+    const mk = clean(line).match(/\b(TODO|TBD|FIXME)\b/);
+    if (mk) warn("unfinished", `marker '${mk[1]}'`, n);
+  }
+  if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
   if (f) {
-    fence = { lang: f[2], mark: f[1] };
+    fence = f;
     let j = i - 1; while (j >= 0 && rows[j].trim() === "") j--;
     const prev = j >= 0 ? rows[j].trim() : "";
     if (!prev.startsWith("Title:")) warn("diagram-title", "fenced block has no 'Title:' line before it", n);
@@ -126,11 +159,17 @@ for (let i = 0; i < rows.length; i++) {
     }
   }
 
-  if (layer) for (const m of line.matchAll(/\bLayer (\d+)\b/g)) {
+  if (layer) for (const m of clean(line).matchAll(/\bLayer (\d+)\b/g)) {
     if (+m[1] > layer && !/^## /.test(t)) warn("ring", `Layer ${layer} refers outward to Layer ${m[1]}`, n);
   }
 
-  notSupplied += (line.replace(/`[^`]*`/g, "").match(/Not supplied:/g) || []).length;
+  notSupplied += (clean(line).match(/Not supplied:/g) || []).length;
+}
+
+// A fenced block still open at the end of a file hides every later row from the checks above; each such file warns once, at the row that opens it.
+for (const [name, r] of target.folder ? Object.entries(target.folder.files) : [[null, rows]]) {
+  const open = openFenceRow(r);
+  if (open) warnAt("fence", "fenced block is never closed; the checks skip every row after it", name ? `${name} line ${open}` : `line ${open}`);
 }
 
 if (!seen.includes(1)) warn("layer-heading", "missing '## Layer 1: Vision'", 1);
@@ -152,10 +191,19 @@ for (const e of els) {
   for (const c of e.body.matchAll(TOKEN)) if (c[1] !== (e.own && e.own.id) && c[1] !== e.oldTok) e.cites.push({ id: c[1], at: c.index });
   e.topicNo = e.layer ? topicNo(e.layer, e.topic) : null;
 }
-// scenario-form: a scenario reads Given, when, then, after its own id and after a Realizes sentence.
+// scenario-form: Given, when, then is required where tracing needs it: a Layer 1 Value scenario, a Layer 2 Scenario path
+// and any item that says Realizes <id>. It reads after the item's own id and after a Realizes sentence. A numbered item, a Realizes item or an item
+// that starts with Given must read in full; None., Not supplied:, Title: and a table row are exempt, and so is an unnumbered item that does not start with Given.
+const REALIZES = new RegExp(String.raw`(?<![\w.-])Realizes\s+${IDCORE}(?!\w|-|\.\d)`);
+const traced = (e) => (e.layer === 1 && (e.topic === "Value" || (e.own && e.own.topic === 3)))
+  || (e.layer === 2 && (e.topic === "Scenario paths" || (e.own && e.own.topic === 6)))
+  || REALIZES.test(e.body);
 for (const e of els) {
+  if (!traced(e)) continue;
   const scen = e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(new RegExp(String.raw`^Realizes\s+${IDCORE}[.:)]*\s+`), "");
-  if (scen.startsWith("Given") && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
+  const numbered = e.own || new RegExp(String.raw`^\**[1-9]\d*\.[1-9]\d*[.:)]*\**\s`).test(e.text);
+  if (e.table || /^(None\.|Not supplied:|Title:)/.test(scen)) continue;
+  if ((numbered || REALIZES.test(e.body) || scen.startsWith("Given")) && !/^Given .+, when .+, then .+/.test(scen)) warn("scenario-form", "must read 'Given ..., when ..., then ...'", e.n);
 }
 const live = els.filter((e) => e.layer !== null);
 const defined = new Map();             // id -> element, any own id in layers 1 to 3
@@ -210,17 +258,83 @@ for (const e of live) {
   if (e.own.topic === d && !e.body.includes("Reason:")) warn("reasons", "decision needs 'Reason:'", e.n);
 }
 
-// scenario-trace: a Layer 1 value scenario is traced by a Realizes sentence in Layer 2 and in Layer 3.
+// scenario-trace: a Layer 1 value scenario is traced by a Realizes sentence in Layer 2, and in Layer 3 where its path runs through a part that has an entry.
 {
   const traced = { 2: new Set(), 3: new Set() };
+  const pathText = new Map();   // scenario id -> text of the Layer 2 elements that realize it
+  const pathIds = new Map();    // scenario id -> ids of the Layer 2 elements that realize it
+  const hasEntry = new Set(units.filter((u) => u.layer === 3).map((u) => u.name.toLowerCase()));
   for (const e of live) {
     if (e.layer < 2) continue;
-    for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) traced[e.layer].add(m[1]);
+    for (const m of e.body.matchAll(new RegExp(String.raw`Realizes\s+(${IDCORE})(?!\w|-|\.\d)`, "g"))) {
+      traced[e.layer].add(m[1]);
+      if (e.layer === 2) {
+        pathText.set(m[1], `${pathText.get(m[1]) || ""} ${e.text}`);
+        if (e.own) pathIds.set(m[1], [...(pathIds.get(m[1]) || []), e.own.id]);
+      }
+    }
   }
+  const named = (id) => slugsListed.filter((p) => /^[A-Za-z0-9]+$/.test(p.name) && new RegExp(String.raw`(?<![A-Za-z0-9])${p.name}(?![A-Za-z0-9])`).test(pathText.get(id) || ""));
   for (const e of live) {
     if (e.layer !== 1 || !e.own || e.own.topic !== 3) continue;
     if (seen.includes(2) && !traced[2].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no path in Layer 2`, e.n);
-    if (seen.includes(3) && !traced[3].has(e.own.id)) warn("scenario-trace", `${e.own.id} has no rule in Layer 3`, e.n);
+    if (seen.includes(3) && !traced[3].has(e.own.id)) {
+      const parts = named(e.own.id);
+      const needed = parts.length ? parts.some((p) => hasEntry.has(p.name.toLowerCase())) : hasEntry.size > 0;
+      if (needed) {
+        const via = (pathIds.get(e.own.id) || []).join(", ");
+        const why = parts.length ? `${via ? `path ${via}` : "its path"} names ${parts.length > 1 ? "parts" : "part"} ${parts.map((p) => p.name).join(", ")}` : `its path ${via ? `${via} ` : ""}names no part`;
+        warn("scenario-trace", `${e.own.id} has no rule in Layer 3; ${why}`, e.n);
+      }
+    }
+  }
+}
+
+// limit-quality: a Limit cites (Layer 1, <quality, topic or Layer 1 id>); the quality is named in bold in Layer 1 Qualities and constraints, or is a Layer 1 topic, or is a vision id.
+{
+  const norm = (x) => x.replace(/\s+/g, " ").trim().toLowerCase();
+  const names = new Set();
+  const plain = new Set();
+  for (const e of live) {
+    if (e.layer !== 1 || e.topic !== "Qualities and constraints" || e.table) continue;
+    const t = e.text.replace(/^\**(?:[1-9]\d*\.[1-9]\d*[.:)]*\s+)?/, (m) => (m.startsWith("**") ? "**" : ""));
+    const b = t.match(/\*\*(.+?)\*\*/);
+    if (b) names.add(norm(b[1].replace(/:\s*$/, "")));
+    const p = t.match(/^([^*:]+):(?:\s|$)/);
+    if (p) plain.add(norm(p[1]));
+  }
+  if (names.size) for (const x of plain) names.add(x);
+  if (names.size) {
+    for (const t of TOPICS[1]) names.add(norm(t));
+    for (const e of live) {
+      if (e.layer !== 3 || e.entry === null || e.topic !== "Limits" || e.table) continue;
+      const cites = [...e.body.matchAll(/\(Layer 1,\s*([^()]*?)\)/g)];
+      if (!cites.length) continue;
+      const x = cites.at(-1)[1].trim();
+      if (x.startsWith("Not supplied:") || /^vision-[1-9]\d*\.[1-9]\d*$/.test(x) || names.has(norm(x))) continue;
+      warn("limit-quality", `'${x}' is not named in Layer 1 Qualities and constraints`, e.n);
+    }
+  }
+}
+
+// realizes-text: an item that says Realizes <id> keeps the Given and when text of that Layer 1 Value item word for word.
+{
+  const gw = (s) => {
+    const t = s.replace(/\s+/g, " ").trim();
+    const i = t.indexOf(", then ");
+    return t.startsWith("Given") && i >= 0 ? t.slice(0, i) : null;
+  };
+  const RZ = new RegExp(String.raw`(?<![\w.-])Realizes\s+(${IDCORE})(?!\w|-|\.\d)[.:)]*\s*`);
+  for (const e of live) {
+    if (e.layer < 2 || e.table) continue;
+    const m = e.body.match(RZ);
+    if (!m) continue;
+    const v = defined.get(m[1]);
+    if (!v || v.layer !== 1 || !v.own || v.own.topic !== 3) continue;
+    const mine = gw(e.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), "").replace(RZ, ""));
+    const theirs = gw(v.text.replace(/^\**/, "").replace(new RegExp(String.raw`^(?:${IDCORE}|[1-9]\d*\.[1-9]\d*)[.:)]*\**\s+`), ""));
+    if (mine === null || theirs === null || mine === theirs) continue;
+    warn("realizes-text", `does not keep the Given and when text of ${m[1]} word for word`, e.n);
   }
 }
 
@@ -281,9 +395,10 @@ for (const e of live) {
   }
 }
 
+if (statusInfo) console.log(statusInfo);
 console.log(`INFO not-supplied: ${notSupplied}`);
 console.log(`strata-blueprints-lint: ${count} warning(s)`);
-process.exit(strict && count ? 1 : 0);
+process.exitCode = strict && count ? 1 : 0;
 
 // =========================================================================
 // Folder mode and impact mode. Function declarations, hoisted; they use no
@@ -292,6 +407,18 @@ process.exit(strict && count ? 1 : 0);
 
 // The elements of a text: a bullet with its wrapped and nested lines, a paragraph, or a table row.
 // Each carries its first line, its layer, topic and open entry, and whether it is a table row.
+// The 1-based row that opens a fenced block still open at the end of rows, or 0.
+function openFenceRow(rows) {
+  let fence = null, at = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const t = rows[i].trim();
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    const f = fenceOpen(t);
+    if (f) { fence = f; at = i + 1; }
+  }
+  return fence ? at : 0;
+}
+
 function readElements(rows) {
   const els = [];
   let cur = null, layer = null, topic = null, entry = null, fence = null;
@@ -299,9 +426,9 @@ function readElements(rows) {
   const start = (n, text, indent, list, table = false) => { cur = { n, text, indent, list, table, layer, topic, entry }; els.push(cur); };
   for (let i = 0; i < rows.length; i++) {
     const line = rows[i], t = line.trim(), n = i + 1;
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
-    if (f) { fence = f[1]; close(); continue; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    if (f) { fence = f; close(); continue; }
     if (t === "") { close(); continue; }
     if (/^#{1,6}\s/.test(t)) {
       close();
@@ -376,9 +503,9 @@ function* plainLines(rows) {
   let fence = null;
   for (let i = 0; i < rows.length; i++) {
     const t = rows[i].trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; continue; }
-    if (f) { fence = f[1]; continue; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; continue; }
+    if (f) { fence = f; continue; }
     yield { n: i + 1, t };
   }
 }
@@ -409,7 +536,7 @@ function loadFolder(dir) {
   const names = [];
   const hasVision = all.includes("sbp-vision.md"), hasStructure = all.includes("sbp-structure.md");
   const details = all.filter((n) => /^sbp-detail-.+\.md$/.test(n)).sort();
-  if (!hasVision && !hasStructure && !details.length) die(`no sbp-vision.md, sbp-structure.md or sbp-detail-*.md in ${dir}`);
+  if (!hasVision && !hasStructure && !details.length) die(`no sbp-vision.md, sbp-structure.md or sbp-detail-*.md in ${dir}; to lint one document, pass the file`);
   const read = (n) => {
     try { return fs.readFileSync(path.join(dir, n), "utf8").split("\n"); } catch (e) { die(`cannot read ${path.join(dir, n)}: ${e.code || e.message}`); }
   };
@@ -429,7 +556,10 @@ function loadFolder(dir) {
     const src = files[name];
     const drop = new Set();
     if (hasMarker(src[0])) { condensed.add(name); drop.add(0); if (src.length > 1 && src[1].trim() === "") drop.add(1); }
-    const nextNonBlank = (from) => { let j = from; while (j < src.length && src[j].trim() === "") j++; return j; };
+    // Version, Status, Blueprint status and Parent lines in the top matter (before the first ## heading) are metadata, not items.
+    const meta = new Set();
+    for (let i = 0; i < src.length && !/^## /.test(src[i].trim()); i++) if (/^(?:Version|Status|Blueprint status|Parent):/.test(src[i].trim())) { drop.add(i); meta.add(i); }
+    const nextNonBlank = (from) => { let j = from; while (j < src.length && (src[j].trim() === "" || meta.has(j))) j++; return j; };
     if (k > 0) {
       let j = nextNonBlank(drop.has(1) ? 2 : drop.has(0) ? 1 : 0);
       if (j < src.length && /^# /.test(src[j])) { drop.add(j); if (j + 1 < src.length && src[j + 1].trim() === "") drop.add(j + 1); j = nextNonBlank(j + 1); }
@@ -499,13 +629,17 @@ function folderChecks(f, warnAt) {
   }
 }
 
-// --impact <id> <file or folder>
-function runImpact(args) {
+// --impact <id>[,<id>...] <file or folder>
+async function runImpact(args) {
   const opts = args.filter((a) => a.startsWith("--"));
   if (opts.length) die(`unknown option in --impact mode: ${opts[0]}`);
   if (args.length < 1) die("--impact needs an id and a file or folder");
-  const [id, arg] = args;
-  if (!new RegExp(`^${IDCORE}$`).test(id)) die(`not an id: ${id}`);
+  const [idList, arg] = args;
+  const ids = [];
+  for (const id of idList.split(",")) {
+    if (!new RegExp(`^${IDCORE}$`).test(id)) die(`not an id: ${id}`);
+    if (!ids.includes(id)) ids.push(id);
+  }
   if (arg === undefined) die("--impact needs a file or folder after the id");
   if (args.length > 2) die(`unexpected extra argument: ${args[2]}`);
   const target = loadTarget(arg);
@@ -523,51 +657,57 @@ function runImpact(args) {
   const defs = new Map(), dups = [];
   for (const e of els) if (e.id) { if (defs.has(e.id)) dups.push([e.id, defs.get(e.id), e]); else defs.set(e.id, e); }
   const place = (e) => target.where(e.n);
-  const seed = defs.get(id) || null;
-  const citers = (x) => els.filter((e) => e.cites.includes(x));
-  // Breadth first by depth; each element once, under the earliest parent at the smallest depth.
-  const parent = new Map(), depth = new Map(), kids = new Map();
-  const cycles = [], seenCycle = new Set();
-  let level = [{ e: seed, id }], d = 0;
-  const onPath = (e, p) => { for (let x = p; x; x = parent.get(x)) if (x === e) return true; return false; };
-  while (level.length) {
-    d++;
-    const next = [];
-    for (const { e: p, id: pid } of level) {
-      for (const c of citers(pid)) {
-        if (c === p) continue;
-        if (seed && (c === seed || onPath(c, p))) {
-          const key = `${c.id}>${pid}`;
-          if (!seenCycle.has(key)) { seenCycle.add(key); cycles.push(`WARN impact: cycle ${c.id} ... ${pid}`); }
-          continue;
-        }
-        if (depth.has(c)) continue;
-        depth.set(c, d); parent.set(c, p);
-        if (!kids.has(p)) kids.set(p, []);
-        kids.get(p).push(c);
-        if (c.id) next.push({ e: c, id: c.id });
-      }
-    }
-    next.sort((a, b) => els.indexOf(a.e) - els.indexOf(b.e));
-    level = next;
-  }
-  const out = [];
-  let code = 0;
-  if (seed) out.push(`impact ${id}: defined in ${seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
-  else { out.push(`WARN impact: ${id} is not defined in ${arg}`); code = 1; }
-  out.push(id);
   const cut = (s) => (s.length > 80 ? s.slice(0, 80) + "..." : s);
-  const walk = (p, dd) => {
-    for (const c of (kids.get(p) || []).sort((a, b) => els.indexOf(a) - els.indexOf(b))) {
-      out.push(`${"  ".repeat(dd)}d${dd}  ${place(c)}  ${c.label}  ${c.id || "-"}  ${cut(c.text)}`);
-      walk(c, dd + 1);
+  const blocks = [];
+  let code = 0;
+  for (const id of ids) {
+    const seed = defs.get(id) || null;
+    const citers = (x) => els.filter((e) => e.cites.includes(x));
+    // Breadth first by depth; each element once, under the earliest parent at the smallest depth.
+    const parent = new Map(), depth = new Map(), kids = new Map();
+    const cycles = [], seenCycle = new Set();
+    let level = [{ e: seed, id }], d = 0;
+    const onPath = (e, p) => { for (let x = p; x; x = parent.get(x)) if (x === e) return true; return false; };
+    while (level.length) {
+      d++;
+      const next = [];
+      for (const { e: p, id: pid } of level) {
+        for (const c of citers(pid)) {
+          if (c === p) continue;
+          if (seed && (c === seed || onPath(c, p))) {
+            const key = `${c.id}>${pid}`;
+            if (!seenCycle.has(key)) { seenCycle.add(key); cycles.push(`WARN impact: cycle ${c.id} ... ${pid}`); }
+            continue;
+          }
+          if (depth.has(c)) continue;
+          depth.set(c, d); parent.set(c, p);
+          if (!kids.has(p)) kids.set(p, []);
+          kids.get(p).push(c);
+          if (c.id) next.push({ e: c, id: c.id });
+        }
+      }
+      next.sort((a, b) => els.indexOf(a.e) - els.indexOf(b.e));
+      level = next;
     }
-  };
-  walk(seed, 1);
-  for (const [dupId, a, b] of dups) if (dupId === id) out.push(`WARN impact: ${id} is defined on lines ${a.n} and ${b.n}`);
-  out.push(...cycles);
-  const deepest = Math.max(0, ...depth.values());
-  out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
-  console.log(out.join("\n"));
+    const out = [];
+    if (seed) out.push(`impact ${id}: defined in ${seed.layer === null ? "Other" : `Layer ${seed.layer}`}, ${place(seed)}`);
+    else { out.push(`WARN impact: ${id} is not defined in ${arg}`); code = 1; }
+    out.push(id);
+    const walk = (p, dd) => {
+      for (const c of (kids.get(p) || []).sort((a, b) => els.indexOf(a) - els.indexOf(b))) {
+        out.push(`${"  ".repeat(dd)}d${dd}  ${place(c)}  ${c.label}  ${c.id || "-"}  ${cut(c.text)}`);
+        walk(c, dd + 1);
+      }
+    };
+    walk(seed, 1);
+    for (const [dupId, a, b] of dups) if (dupId === id) out.push(`WARN impact: ${id} is defined on lines ${a.n} and ${b.n}`);
+    out.push(...cycles);
+    const deepest = Math.max(0, ...depth.values());
+    out.push(`INFO impact: ${depth.size} element(s) reached, deepest ${deepest}`);
+    blocks.push(out.join("\n"));
+  }
+  // Wait for the write to finish so a slow pipe reader still receives every byte, then exit before the rest of the script runs.
+  process.exitCode = code;
+  await new Promise((done) => process.stdout.write(blocks.join("\n\n") + "\n", done));
   process.exit(code);
 }

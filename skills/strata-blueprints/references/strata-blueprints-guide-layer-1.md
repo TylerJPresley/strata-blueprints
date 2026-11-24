@@ -5,7 +5,8 @@ Load while interviewing for, writing or checking Layer 1.
 - **Intent:** what the subject is for, stated before any design.
 - **Audience:** anyone who needs to know why the subject exists, including those who will make it.
 - **Success:** Given someone who has never seen the subject, when they read this layer, then they can say what need it addresses, who it serves, and how success would be measured.
-- **Status:** always written.
+- **Written:** always.
+- **Holds:** intent only: no code, commands, exact strings or schemas; those are Detail.
 - **Contents:**
   1. **Need**
   2. **Target audience**
@@ -45,7 +46,7 @@ Load while interviewing for, writing or checking Layer 1.
   - **Value**
     - **How to write it:**
       - For: shows what the subject gives each audience, as scenarios that the layers below trace.
-      - Write: one scenario per line, Given, when, then, from the audience's side. Give each its number (`3.1`, `3.2`, ...); Layer 2 paths and Layer 3 rules say they realize it by its full id (`vision-3.1`).
+      - Write: one scenario per line, Given, when, then, from the audience's side. Always Given, when, then, so the layers below can trace it. Give each its number (`3.1`, `3.2`, ...); Layer 2 paths and Layer 3 rules say they realize it by its full id (`vision-3.1`).
       - Example:
         - 3.1. Given the keeper has a commitment in mind, when they write it down in a few seconds, then it is saved and shows up as something to do.
         - 3.2. Given some commitments have a day or time they are due, when the keeper looks, then they see what is due today and what is overdue, in due order.
@@ -78,7 +79,7 @@ Load while interviewing for, writing or checking Layer 1.
   - **Qualities and constraints**
     - **How to write it:**
       - For: states what must hold for the whole subject and the limits it works within, so every part inherits them.
-      - Write: one bullet per quality, its name first where it has one (bold helps), with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. When two qualities pull apart, say which wins.
+      - Write: one bullet per quality, its name first where it has one, with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. Write in bold the name of each quality a Layer 3 Limit cites; the lint reads a Limit's citation against the bold names. When two qualities pull apart, say which wins.
       - Example:
         - **Durable:** once the app says a commitment is saved, it survives a closed app and a lost connection.
         - **Running cost:** it stays within what the maintainer can fund, as set by the maintainer's budget.
@@ -153,4 +154,4 @@ Load while interviewing for, writing or checking Layer 1.
     - **Check:**
       - [ ] Does each decision give `Reason:`, or is the topic `None.`?
 - **Check (whole layer):**
-  - [ ] Does it name no parts and no specific means other than a stated constraint?
+  - [ ] Does it name no part of the division and no specific means other than a stated constraint? It may name what the subject does.

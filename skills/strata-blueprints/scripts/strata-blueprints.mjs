@@ -14,6 +14,11 @@ const PUBLISHED_PREFIX = "<!-- strata-blueprints: condensed, published";
 export const IDCORE = String.raw`(?:vision|structure|detail\.[a-z0-9]+)-[1-9]\d*\.[1-9]\d*`;
 const TOKEN = new RegExp(String.raw`(?<![\w.-])(${IDCORE})(?!\w|-|\.\d)`, "g");
 export const NAMES = ["Vision", "Structure", "Detail"];
+// A code span: a run of N backticks to the next run of N, on one line. The same line as in the lint.
+const clean = (s) => s.replace(/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, " ");
+// A fenced block opens at three or more backticks or tildes (a backtick row with another backtick after the run is text) and closes at a row of the same mark at least as long with nothing after it. The same lines as in the lint.
+const fenceOpen = (t) => { const m = t.match(/^(`{3,}|~{3,})(.*)$/); return m && !(m[1][0] === "`" && m[2].includes("`")) ? { mark: m[1], lang: m[2].trim().split(/\s+/)[0] } : null; };
+const fenceCloses = (t, fence) => t[0] === fence.mark[0] && t.length >= fence.mark.length && t === t[0].repeat(t.length);
 export const TOPICS = {
   1: ["Need", "Target audience", "Value", "Focus", "Success measures", "Qualities and constraints", "Vocabulary", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
   2: ["Parts", "Standing", "Seams between parts", "Seams with the outside", "Shared things", "Scenario paths", "Costs", "Risks", "Open Concerns", "Assumptions", "Decisions"],
@@ -40,9 +45,9 @@ function scan(lines) {
   let fence = null;
   lines.forEach((line, i) => {
     const t = line.trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; return; }
-    if (f) { fence = f[1]; return; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; return; }
+    if (f) { fence = f; return; }
     const h = t.match(/^(#{1,6}) /);
     if (h) heads.push({ i, level: h[1].length, t });
   });
@@ -134,9 +139,9 @@ function fenceMask(lines) {
   let fence = null;
   return lines.map((line) => {
     const t = line.trim();
-    const f = t.match(/^(```|~~~)/);
-    if (fence) { if (t.startsWith(fence) && t.slice(3).trim() === "") fence = null; return true; }
-    if (f) { fence = f[1]; return true; }
+    const f = fenceOpen(t);
+    if (fence) { if (fenceCloses(t, fence)) fence = null; return true; }
+    if (f) { fence = f; return true; }
     return false;
   });
 }
@@ -209,7 +214,7 @@ export function publishFiles(input, opts = {}) {
   const problems = [];
   for (const p of parsed) p.lines.forEach((line, i) => {
     if (p.skip.has(i) || p.drop.has(i) || p.mask[i]) return;
-    for (const m of line.replace(/`[^`]*`/g, " ").matchAll(TOKEN)) {
+    for (const m of clean(line).matchAll(TOKEN)) {
       const id = m[1].match(/^(.+)-(\d+)\.\d+$/);
       const d = gone.get(`${id[1]}-${id[2]}`);
       if (d) problems.push(`${p.f.name} line ${i + 1}: cites ${m[1]}, which is in topic ${d.no}. ${d.name} of ${d.doc}, left out of the published document (${d.kind === "none" ? "None." : "Not supplied:"})`);
@@ -227,13 +232,17 @@ export function publishFiles(input, opts = {}) {
     const heads = kept.map((k, j) => (!k.m && /^## /.test(k.s.trim()) ? j : -1)).filter((j) => j >= 0);
     const first = heads.length ? heads[0] : kept.length;
     let pre = kept.slice(0, first);
-    if (fi === 0) top = trimBlank(pre.map((k) => k.s));
+    if (fi === 0) {
+      top = trimBlank(pre.map((k) => k.s));
+      // The published Status is the Vision's Blueprint status when it has one; its own Status line is then left out.
+      if (top.some((l) => /^Blueprint status:/.test(l))) top = top.filter((l) => !/^Status:/.test(l)).map((l) => l.replace(/^Blueprint status:/, "Status:"));
+    }
     else {
       const a = pre.findIndex((k) => !isBlank(k.s));
       if (a >= 0) {
         let rest = pre;
         if (/^# /.test(pre[a].s)) rest = pre.slice(a + 1);
-        const b = rest.find((k) => !isBlank(k.s));
+        const b = rest.find((k) => !isBlank(k.s) && !/^(?:Version|Status|Blueprint status|Parent):/.test(k.s.trim()));
         if (b) throw new Error(`${p.f.name}: text before the first layer heading (line ${b.n}) cannot be merged; only the first file may hold it`);
       }
     }
@@ -285,7 +294,7 @@ export function publishFiles(input, opts = {}) {
   let questions = 0;
   out.forEach((line, i) => {
     if (om[i] || /^## /.test(line.trim())) return;
-    const c = (line.replace(/`[^`]*`/g, "").match(/Not supplied:/g) || []).length;
+    const c = (clean(line).match(/Not supplied:/g) || []).length;
     if (!c) return;
     questions += c;
     open.push({ line: i + 1, text: cut(line.trim()) });

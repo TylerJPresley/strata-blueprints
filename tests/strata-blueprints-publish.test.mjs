@@ -34,7 +34,7 @@ const L1 = "## Layer 1: Vision\n\nScope: all.\n\n";
 const L2 = "## Layer 2: Structure\n\nScope: all.\n\n";
 const L3 = "## Layer 3: Detail\n\nScope: one part.\n\n";
 const vision = (have = { Need: "- 1.1. Members need a shed.", Decisions: "- 12.1. Keep it. Reason: simple." }) =>
-  "# Club\n\nVersion: 1.0\nStatus: draft\n\n" + L1 + fxT("###", T1, have);
+  "# Club\n\nVersion: 1.0\nStatus: Draft\n\n" + L1 + fxT("###", T1, have);
 const structure = (parts, have = {}, views = "") =>
   "# Club\n\n" + L2 + fxT("###", T2, { Parts: parts.map((p) => `- ${p} (part): holds ${p}.`).join("\n"), ...have }) + views;
 const detail = (part, have = {}) =>
@@ -388,7 +388,7 @@ test("publish: later file preamble and wrong layer", () => {
   const noTitle = { ...s, "sbp-structure.md": s["sbp-structure.md"].replace("# Club\n\n", "Extra text.\n\n") };
   assert.throws(() => pub(noTitle), /sbp-structure\.md: text before the first layer heading \(line 1\)/);
   // the first file may hold text, and a later title is dropped
-  assert.doesNotThrow(() => pub({ ...s, "sbp-vision.md": s["sbp-vision.md"].replace("Status: draft\n", "Status: draft\n\nIntro text.\n") }));
+  assert.doesNotThrow(() => pub({ ...s, "sbp-vision.md": s["sbp-vision.md"].replace("Status: Draft\n", "Status: Draft\n\nIntro text.\n") }));
   const wrong = { ...s, "sbp-vision.md": s["sbp-vision.md"] + "\n" + L2 + "### 1. Parts\n\n- A (part): a.\n" };
   assert.throws(() => pub(wrong), (e) => e.message === "sbp-vision.md: '## Layer 2: Structure' does not belong in sbp-vision.md, which holds Layer 1");
   assert.throws(() => pub({ ...s, "sbp-detail-access.md": detail("Access").replace("## Layer 3: Detail", "## Layer 1: Vision") }), /does not belong in sbp-detail-access\.md, which holds Layer 3/);
@@ -571,4 +571,62 @@ test("docs/example-published.md equals the tool's published output for the to-do
     const l = runLint(committed, "--strict");
     assert.equal(l.code, 0, l.out + l.err);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("publish: Status comes from the Vision's Blueprint status when it has one", () => {
+  const s = stack(["Access"]);
+  const withBp = { ...s, "sbp-vision.md": s["sbp-vision.md"].replace("Status: Draft\n", "Status: Review\nBlueprint status: Approved\n") };
+  const r = pub(withBp);
+  assert.equal(headingsOf(r.text, /^Status: /).length, 1);
+  assert.equal(headingsOf(r.text, /^Status: /)[0], "Status: Approved");
+  assert.equal(headingsOf(r.text, /^Blueprint status:/).length, 0);
+  assert.equal(headingsOf(r.text, /^Version: /).length, 1);
+  const plain = pub({ ...s, "sbp-vision.md": s["sbp-vision.md"].replace("Status: Draft\n", "Status: Review\n") });
+  assert.deepEqual(headingsOf(plain.text, /^Status: /), ["Status: Review"]);
+});
+
+test("publish and condense: Status, Version and Parent in the top matter of every file are accepted; one Status is published", () => {
+  const s = stack(["Access"]);
+  const withMeta = {
+    ...s,
+    "sbp-vision.md": s["sbp-vision.md"].replace("Version: 1.0\nStatus: Draft\n", "Version: 1.0\nBlueprint status: Approved\nStatus: Review\n"),
+    "sbp-structure.md": s["sbp-structure.md"].replace("# Club\n\n", "# Club\n\nStatus: Draft\nVersion: 0.2\nParent: Org\n\n"),
+    "sbp-detail-access.md": s["sbp-detail-access.md"].replace("# Club\n\n", "# Club\n\nStatus: Review\n\n"),
+  };
+  const r = pub(withMeta);
+  assert.deepEqual(headingsOf(r.text, /^Status: /), ["Status: Approved"]);
+  assert.equal(headingsOf(r.text, /^Version: /).length, 1);
+  assert.equal(headingsOf(r.text, /^Parent: /).length, 0);
+  for (const [n, t] of Object.entries(withMeta)) {
+    const c = condenseText(t);
+    assert.deepEqual(c.split("\n").filter((l) => /^(Status|Version|Parent):/.test(l)), t.split("\n").filter((l) => /^(Status|Version|Parent):/.test(l)), n);
+  }
+  tmp((dir) => {
+    const out = path.join(dir, "pub.md");
+    const c = cli("publish", writeStack(path.join(dir, "src"), withMeta), "--out", out);
+    assert.equal(c.code, 0, c.err);
+    const l = runLint(out, "--strict");
+    assert.equal(l.code, 0, l.out);
+    assert.match(l.lines.at(-1), /^strata-blueprints-lint: 0 warning\(s\)$/);
+  });
+});
+
+test("publish: a double-backtick span around an id is not a citation", () => {
+  const src = (need) => doc({ Need: need, "Success measures": "None." });
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See ``vision-5.1`` for the measure.") }));
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. See `vision-5.1` for the measure.") }));
+  assert.throws(() => pub({ "club.md": src("- 1.1. See vision-5.1 for the measure.") }), /cites vision-5\.1, which is in topic 5/);
+});
+
+test("publish: Not supplied inside a double-backtick span is not an open question", () => {
+  const q = (need) => pub({ "club.md": doc({ Need: need }) }).questions;
+  assert.equal(q("- 1.1. Write ``Not supplied: x`` in the text."), 0);
+  assert.equal(q("- 1.1. Write `Not supplied: x` in the text."), 0);
+  assert.equal(q("- 1.1. Not supplied: x."), 1);
+});
+
+test("publish: an id after an inner three-backtick row in a four-backtick fence stays hidden", () => {
+  const src = (need) => doc({ Need: need, "Success measures": "None." });
+  assert.doesNotThrow(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nvision-5.1\n````") }));
+  assert.throws(() => pub({ "club.md": src("- 1.1. Ok.\n\n````\n```\nx\n````\n\nSee vision-5.1.") }), /cites vision-5\.1, which is in topic 5/);
 });

@@ -1,5 +1,7 @@
 # To-do app
 
+Status: Approved
+
 ## Layer 2: Structure
 
 Scope: the whole app, divided into its parts, with the seams between them and with the outside.

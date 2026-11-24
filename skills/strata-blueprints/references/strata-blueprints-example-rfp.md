@@ -1,6 +1,7 @@
 # Library room booking service (RFP)
 
 Version: 0.1.0
+Status: Review
 
 This is a worked blueprint for a request for proposals (RFP): a town council asks bidders to propose a way for patrons to book the public library's meeting rooms. The issuer states the need, the value, the parts and their seams, and the limits an answer must meet. The means are left to the bidder. It is one way to fill the layers, not a template.
 
