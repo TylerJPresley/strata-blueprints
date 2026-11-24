@@ -35,10 +35,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Target audience**
     - **How to write it:**
       - For: says who has the need, so value and success are judged by the right people.
-      - Write: one entry per kind of person or outsider, or a short paragraph that names each kind. Name it, say whether it is an actor or an outsider (beside its name, once for a list of one kind, or plainly in its sentence), and say what it wants or does. Include everyone with a stake.
+      - Write: one numbered item (`2.1`, `2.2`) per kind of person or outsider, or a short paragraph that names each kind. Name it, say whether it is an actor or an outsider (beside its name, once for a list of one kind, or plainly in its sentence), and say what it wants or does. Include everyone with a stake.
       - Example:
-        - **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand.
-        - **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
+        - 2.1. **The keeper (actor):** a person managing their own commitments, who adds things through the day on whatever device is at hand.
+        - 2.2. **The clock and calendar (outsider):** the passage of time, against which "due" is judged.
       - Mistake: naming only the main user. Those who share, pay for, run or are affected by the subject are listed too.
     - **Ask the owner:** who uses it, how many people, in which roles, and who pays? Follow-up: smallest and largest group. Not supplied: counts or payer.
     - **Check:**
@@ -68,10 +68,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Success measures**
     - **How to write it:**
       - For: says how we would know the subject works, so "done" can be checked.
-      - Write: one checkable statement per line, each tied to a value scenario or a quality where one applies. Give a number, or the observable result in the audience's terms (it stops, it fits, it can be lifted). A Layer 3 Limit can set the number such a result needs; write `Not supplied: <the agreed limit>` where nobody has set it.
+      - Write: one numbered, checkable statement per line (`5.1`, `5.2`), each tied to a value scenario or a quality where one applies, by its full id (`vision-3.1`). Give a number, or the observable result in the audience's terms (it stops, it fits, it can be lifted). A Layer 3 Limit can set the number such a result needs; write `Not supplied: <the agreed limit>` where nobody has set it.
       - Example:
-        - A commitment is captured in under five seconds from the moment the keeper decides to add it.
-        - A change made on one device is visible on another within a few seconds, without the keeper doing anything.
+        - 5.1. A commitment is captured in under five seconds from the moment the keeper decides to add it.
+        - 5.2. A change made on one device is visible on another within a few seconds, without the keeper doing anything.
       - Mistake: a measure such as "easy to use" with nothing to check. A measure names a number or an observable result.
     - **Ask the owner:** Ask open-ended first: what number or result shows it worked? Then offer examples. Follow-up: target value and by when. Not supplied: the measure.
     - **Check:**
@@ -79,10 +79,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Qualities and constraints**
     - **How to write it:**
       - For: states what must hold for the whole subject and the limits it works within, so every part inherits them.
-      - Write: one bullet per quality, its name first where it has one, with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. Write in bold the name of each quality a Layer 3 Limit cites; the lint reads a Limit's citation against the bold names. When two qualities pull apart, say which wins.
+      - Write: one numbered item per quality (`6.1`, `6.2`), its name first where it has one, with what it means in the audience's terms. State each constraint (cost, time, rules) with where it comes from. Layer 3 Limits give each quality its checkable share. Write in bold the name of each quality a Layer 3 Limit cites; the lint reads a Limit's citation against the bold names. A Limit cites a numbered quality by its bold name or by its id (`vision-6.1`); the id lets `--impact` reach the Limit. When two qualities pull apart, say which wins.
       - Example:
-        - **Durable:** once the app says a commitment is saved, it survives a closed app and a lost connection.
-        - **Running cost:** it stays within what the maintainer can fund, as set by the maintainer's budget.
+        - 6.1. **Durable:** once the app says a commitment is saved, it survives a closed app and a lost connection.
+        - 6.2. **Running cost:** it stays within what the maintainer can fund, as set by the maintainer's budget.
       - Mistake: naming a tool as a quality ("uses a cloud database"). A tool is a means; Layer 1 names one only as a stated constraint with its source.
     - **Ask the owner:** speed, size, cost, safety, legal and other limits, together. Follow-up: the worst acceptable value. Not supplied: any limit not given.
     - **Check:**
@@ -90,10 +90,10 @@ Load while interviewing for, writing or checking Layer 1.
   - **Vocabulary**
     - **How to write it:**
       - For: fixes the meaning of each key term, so the layers below use one word for one thing.
-      - Write: one bullet per term, the term first (bold helps), then its definition in one line. Define every term a later layer uses that a reader may not know, in the owner's words or `Not supplied:`.
+      - Write: one numbered item per term (`7.1`, `7.2`), the term first (bold helps), then its definition in one line. Define every term a later layer uses that a reader may not know, in the owner's words or `Not supplied:`.
       - Example:
-        - **Commitment:** one thing the keeper means to do, the smallest unit the app holds.
-        - **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
+        - 7.1. **Commitment:** one thing the keeper means to do, the smallest unit the app holds.
+        - 7.2. **Grouping:** a named collection of commitments the keeper arranges, such as "Work" or "Groceries".
       - Mistake: defining a term in a later layer on first use. Every term later layers use is defined here, once.
     - **Ask the owner:** Ask only about terms the owner used. Follow-up: one meaning each. Not supplied: a definition after "not decided".
     - **Check:**

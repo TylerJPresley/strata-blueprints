@@ -10,29 +10,29 @@ Scope: the whole [subject], divided into parts, with the seams between them and 
 
 ### 1. Parts
 
-- [Part A] (part): [its one responsibility].
-- [Part B] (part): [its one responsibility].
-- [Part C] (part): [its one responsibility].
+- 1.1. [Part A] (part): [its one responsibility].
+- 1.2. [Part B] (part): [its one responsibility].
+- 1.3. [Part C] (part): [its one responsibility].
 
 ### 2. Standing (optional)
 
-- [Part A]: described here.
-- [Part B]: described here.
-- [Part C]: own stack, [folder/file.md].
+- 2.1. [Part A]: described here.
+- 2.2. [Part B]: described here.
+- 2.3. [Part C]: own stack, [folder/file.md].
 
 ### 3. Seams between parts
 
-- [Part A] to [Part B]: [what crosses and why]. [Part A] initiates when [what starts it].
-- [Part B] to [Part C]: [what crosses and why]. [Part B] initiates when [what starts it].
+- 3.1. [Part A] to [Part B]: [what crosses and why]. [Part A] initiates when [what starts it].
+- 3.2. [Part B] to [Part C]: [what crosses and why]. [Part B] initiates when [what starts it].
 
 ### 4. Seams with the outside (optional)
 
-- [Part A] to [actor or outsider]: [what crosses and why]. [Part A] initiates when [what starts it].
-- [Outsider] to [Part C]: [what crosses and why]. [Outsider] initiates when [what starts it].
+- 4.1. [Part A] to [actor or outsider]: [what crosses and why]. [Part A] initiates when [what starts it].
+- 4.2. [Outsider] to [Part C]: [what crosses and why]. [Outsider] initiates when [what starts it].
 
 ### 5. Shared things (optional)
 
-- [What several parts rely on], established by [Part A], relied on by [Part B] and [Part C].
+- 5.1. [What several parts rely on], established by [Part A], relied on by [Part B] and [Part C].
 
 ### 6. Scenario paths (optional)
 

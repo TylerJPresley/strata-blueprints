@@ -35,10 +35,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Concepts and states**
     - **How to write it:**
       - For: names what the part works with and the states it moves through, so the rules can use exact words.
-      - Write: one bullet per concept, and for anything that changes over time, its states. Use the Layer 1 vocabulary where it has the term.
+      - Write: one numbered item per concept (`2.1`, `2.2`), and for anything that changes over time, its states. Use the Layer 1 vocabulary where it has the term.
       - Example:
-        - A commitment, with its text, an optional due value, and the grouping it belongs to.
-        - A commitment's state: active (to do), done (finished but kept) or removed.
+        - 2.1. A commitment, with its text, an optional due value, and the grouping it belongs to.
+        - 2.2. A commitment's state: active (to do), done (finished but kept) or removed.
       - Mistake: listing storage or tools. Concepts are what the part reasons about; tools belong in Construction.
     - **Ask the owner:** what does it work with, what states does it pass through, in what order, what moves it on, back or to abandoned? Not supplied: a trigger or state.
     - **Check:**
@@ -46,10 +46,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Seams**
     - **How to write it:**
       - For: states what this part offers and needs at each seam it takes part in, so the makers on both sides can work apart.
-      - Write: one bullet per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
+      - Write: one numbered item (`3.1`, `3.2`) per Layer 2 seam this part takes part in, `<From> to <To>, offers:`, `needs:` or `offers and needs:`, then what, whatever the means. Name what crosses in a few words and add what this part commits to (its form, content or condition); the full account of what crosses and why stays in Layer 2. Where the seam is an outsider's interface, write it here at the depth of an internal one (endpoints, fields, errors) and name the outsider's own documentation and version as its source.
       - Example:
-        - Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
-        - Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
+        - 3.1. Access to Ledger, needs: a keeper identity that Access has already proven, passed with every request.
+        - 3.2. Ledger to Timing, offers: each commitment's due day or time, as a date and time that carries the keeper's time zone.
       - Mistake: copying Layer 2's account of what crosses and why. Layer 3 adds what this part offers or needs.
     - **Ask the owner:** at each seam this part takes, what does it offer or need, in what form? Not supplied: the form.
     - **Check:**
@@ -68,10 +68,10 @@ Load while interviewing for, writing or checking Layer 3. Each Ask the owner ent
   - **Inside**
     - **How to write it:**
       - For: names the pieces the part is made of, so a maker sees its inner shape without any means.
-      - Write: one bullet per piece, giving its name and what it does. This topic lists pieces, so each bullet is typed as a piece, either with `(piece)` beside the name or by the topic heading. A piece cannot stand on its own and is never listed in Layer 2. When the part has no inside worth describing, write `None.`
+      - Write: one numbered item per piece (`5.1`, `5.2`), giving its name and what it does. This topic lists pieces, so each item is typed as a piece, either with `(piece)` beside the name or by the topic heading. A piece cannot stand on its own and is never listed in Layer 2. When the part has no inside worth describing, write `None.`
       - Example:
-        - A store of commitments (piece), which holds each item and its current state.
-        - A change log (piece), which records each edit in order so a change made apart can be reconciled.
+        - 5.1. A store of commitments (piece), which holds each item and its current state.
+        - 5.2. A change log (piece), which records each edit in order so a change made apart can be reconciled.
       - Mistake: naming a product as a piece ("a SQLite file"). Pieces are means-neutral; products belong in Construction.
     - **Ask the owner:** what pieces is the part made of? Not supplied: a piece's name.
     - **Check:**

@@ -24,10 +24,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Parts**
     - **How to write it:**
       - For: divides the subject into units of responsibility, so each need and value in Layer 1 has an owner.
-      - Write: one bullet per part, `Name (part): responsibility`, in one line and with one responsibility. Keep the parts at a similar size. For a subject made of independent members, list the peers, each with its own stack.
+      - Write: one numbered item per part (`1.1`, `1.2`), `Name (part): responsibility`, in one line and with one responsibility. Keep the parts at a similar size. For a subject made of independent members, list the peers, each with its own stack.
       - Example:
-        - Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
-        - Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
+        - 1.1. Ledger (part): holds each commitment and its state, and answers for what is saved, changed and done.
+        - 1.2. Timing (part): judges each commitment against the clock and says what is due, overdue and upcoming.
       - Mistake: dividing by where things run or what they are made of (a "server" part or a "database" part). Parts divide by responsibility. Name a part with a word Layer 1 does not use in another sense.
     - **Ask the owner:** what is the subject divided into, and what is each part responsible for? Follow-up: anything that fits no part. Not supplied: a part's responsibility.
     - **Check:**
@@ -36,10 +36,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Standing**
     - **How to write it:**
       - For: says for each part whether its Detail is written here or in a stack of its own, so a reader knows where to look.
-      - Write: Standing holds only `Name: value` lines, one for each part. Say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`. In a stack written as one document, a part with no Layer 3 entry says so, such as `Docs: no Detail here`; in separate files such a part has no file and no Standing line.
+      - Write: Standing holds only numbered `Name: value` items (`2.1`, `2.2`), one for each part. Say for each part that it is described here as an entry in this document, such as `Ledger: described here`, or that it has its own stack, named by its file, such as `Presence: own stack, presence/presence.md`. A part gets its own stack when someone can use it on its own. In a stack of separate files, name each part's detail file, such as `Ledger: sbp-detail-ledger.md`; a part with its own stack names its folder, such as `Presence: own stack, presence/`. In a stack written as one document, a part with no Layer 3 entry says so, such as `Docs: no Detail here`; in separate files such a part has no file and no Standing line.
       - Example:
-        - Ledger: described here.
-        - Presence: own stack, presence/presence.md
+        - 2.1. Ledger: described here.
+        - 2.2. Presence: own stack, presence/presence.md
       - Mistake: saying "own stack" without the file. Standing names the file.
     - **Ask the owner:** is each part inside this stack, its own stack, or an outside peer? Not supplied: the standing of a part.
     - **Check:**
@@ -47,10 +47,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Seams between parts**
     - **How to write it:**
       - For: shows where two parts meet, so each can be made knowing what the other offers and needs.
-      - Write: one bullet per seam, named `<From> to <To>`, saying what crosses and why. Name it from the part that initiates; saying what starts it helps.
+      - Write: one numbered item per seam (`3.1`, `3.2`), named `<From> to <To>`, saying what crosses and why. Name it from the part that initiates; saying what starts it helps.
       - Example:
-        - Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
-        - Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
+        - 3.1. Ledger to Timing: each commitment's due day or time crosses, so Timing can judge it. Ledger initiates when a due value is set or changed.
+        - 3.2. Timing to Notifier: the fact that a commitment has become due, and when, crosses, so Notifier can decide to send. Timing initiates when a due moment arrives.
       - Mistake: a vague label such as "uses" or "sends". State what crosses and why.
     - **Ask the owner:** for each pair of parts that touch, what passes between them and who starts it? Follow-up: how often, what if it fails. Not supplied: the trigger.
     - **Check:**
@@ -58,10 +58,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Seams with the outside**
     - **How to write it:**
       - For: shows where the subject meets its actors and outsiders, so what it depends on is explicit.
-      - Write: the same form as seams between parts, with the actor or outsider as one end. Every actor and outsider from Layer 1 that the subject exchanges something with appears in at least one seam. An actor that reaches the subject only through an outsider, such as a device or a channel, meets the subject at that outsider's seam, which stands for it.
+      - Write: the same form as seams between parts, numbered `4.1`, `4.2`, with the actor or outsider as one end. Every actor and outsider from Layer 1 that the subject exchanges something with appears in at least one seam. An actor that reaches the subject only through an outsider, such as a device or a channel, meets the subject at that outsider's seam, which stands for it.
       - Example:
-        - Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
-        - Notifier to a notification channel: a message for the keeper crosses out. Notifier initiates when a commitment is due and the app is closed.
+        - 4.1. Timing to the clock and calendar: the current time crosses in, so Timing can judge what is due. Timing initiates when it reads the time.
+        - 4.2. Notifier to a notification channel: a message for the keeper crosses out. Notifier initiates when a commitment is due and the app is closed.
       - Mistake: leaving an outsider the subject depends on with no seam. A dependency with no seam has no owner.
     - **Ask the owner:** which outside services, people or systems does it touch, who initiates, and how is it secured? Follow-up: what if the outside is down. Not supplied: the service or the security.
     - **Check:**
@@ -69,10 +69,10 @@ Load while interviewing for, writing or checking Layer 2.
   - **Shared things**
     - **How to write it:**
       - For: lists what several parts rely on in common, once, so no part redefines it.
-      - Write: one bullet per shared thing: what it is, the part that establishes it where one does, and the parts that rely on it. Number an item that a Detail cites, such as `5.1.`; a Detail then cites it as `structure-5.1`. Also list here a fact that two parts must keep identical, such as a line of text or an input one part's tests read and another part's tests set, naming the parts; each part's Detail cites the item and states what it keeps. The count starts at 1 for the first numbered item; an unnumbered bullet takes none.
+      - Write: one numbered item (`5.1`, `5.2`) per shared thing: what it is, the part that establishes it where one does, and the parts that rely on it. A Detail cites it by its full id, such as `structure-5.1`. Also list here a fact that two parts must keep identical, such as a line of text or an input one part's tests read and another part's tests set, naming the parts; each part's Detail cites the item and states what it keeps.
       - Example:
-        - The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds to that one keeper.
-        - A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same everywhere.
+        - 5.1. The keeper's proven identity, established by Access, is relied on by every other part to scope what it holds to that one keeper.
+        - 5.2. A single notion of "now", read from the clock and calendar, is relied on by Timing and Notifier so that "due" means the same everywhere.
       - Mistake: describing the shared thing again inside each part that uses it. It is listed once, here.
     - **Ask the owner:** what do several parts use together, and who owns each? Follow-up: who may change it. Not supplied: the owner.
     - **Check:**

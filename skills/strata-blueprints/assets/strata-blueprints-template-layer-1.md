@@ -16,8 +16,8 @@ Scope: the whole [subject], its [audiences], and what lies beyond it.
 
 ### 2. Target audience
 
-- **[Audience] (actor):** [who they are, how many, what they want].
-- **[Other party] (outsider):** [who they are and why they matter].
+- 2.1. **[Audience] (actor):** [who they are, how many, what they want].
+- 2.2. **[Other party] (outsider):** [who they are and why they matter].
 
 ### 3. Value
 
@@ -30,17 +30,17 @@ The [subject] covers [what is in]. It does not cover [what is out].
 
 ### 5. Success measures (optional)
 
-- [A number or an observable result] (vision-3.1).
-- [A number or an observable result] (vision-3.2).
+- 5.1. [A number or an observable result] (vision-3.1).
+- 5.2. [A number or an observable result] (vision-3.2).
 
 ### 6. Qualities and constraints (optional)
 
-- **[Quality]:** [what must hold, in the audience's terms].
-- **[Constraint]:** [the limit], set by [its source].
+- 6.1. **[Quality]:** [what must hold, in the audience's terms].
+- 6.2. **[Constraint]:** [the limit], set by [its source].
 
 ### 7. Vocabulary (optional)
 
-- **[Term]:** [the owner's definition].
+- 7.1. **[Term]:** [the owner's definition].
 
 ### 8. Costs (optional)
 

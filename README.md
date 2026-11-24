@@ -48,7 +48,7 @@ Each layer rests on the layers above it. A change to Vision reaches every layer 
 
 - Changes cascade top down. When Vision changes, every path in Structure and every rule in Detail that cites it reopens and must be settled. Find each with `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact <id> <blueprint>` (core guide, section "How the layers depend on each other").
 
-- Every layer holds costs, risks and open concerns. Every item in the cited topics is numbered under its topic (`8.1`) and cited by its id, the document in front (`vision-8.1`, `structure-8.2`), so a change to one reopens answers that cite it. An unsettled question is an Open Concern with who raised it (core guide, section "Element types").
+- Every layer holds costs, risks and open concerns. Every list item is numbered under its topic (`8.1`) and cited by its id, the document in front (`vision-8.1`, `structure-8.2`), so a change to one reopens answers that cite it. An unsettled question is an Open Concern with who raised it (core guide, section "Element types").
 
 - Events flow through the layers. Every key scenario is written in Vision as Given/When/Then and numbered under its topic (`3.1`, `3.2`, ...), and cited by its id (`vision-3.1`, `vision-3.2`, ...). Each scenario's path through Structure says `Realizes` and that id, keeping the Given and when text the same. Each rule in Detail that realizes it says the same. Following one id shows the whole thread from intent to construction (core guide, section "How to fill it out").
 

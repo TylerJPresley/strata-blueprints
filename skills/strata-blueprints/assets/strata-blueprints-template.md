@@ -15,8 +15,8 @@ Scope: the whole [subject], its [audiences], and what lies beyond it.
 
 ### 2. Target audience
 
-- **[Audience] (actor):** [who they are, how many, what they want].
-- **[Other party] (outsider):** [who they are and why they matter].
+- 2.1. **[Audience] (actor):** [who they are, how many, what they want].
+- 2.2. **[Other party] (outsider):** [who they are and why they matter].
 
 ### 3. Value
 
@@ -29,17 +29,17 @@ The [subject] covers [what is in]. It does not cover [what is out].
 
 ### 5. Success measures (optional)
 
-- [A number or an observable result] (vision-3.1).
-- [A number or an observable result] (vision-3.2).
+- 5.1. [A number or an observable result] (vision-3.1).
+- 5.2. [A number or an observable result] (vision-3.2).
 
 ### 6. Qualities and constraints (optional)
 
-- **[Quality]:** [what must hold, in the audience's terms].
-- **[Constraint]:** [the limit], set by [its source].
+- 6.1. **[Quality]:** [what must hold, in the audience's terms].
+- 6.2. **[Constraint]:** [the limit], set by [its source].
 
 ### 7. Vocabulary (optional)
 
-- **[Term]:** [the owner's definition].
+- 7.1. **[Term]:** [the owner's definition].
 
 ### 8. Costs (optional)
 
@@ -67,29 +67,29 @@ Scope: the whole [subject], divided into parts, with the seams between them and 
 
 ### 1. Parts
 
-- [Part A] (part): [its one responsibility].
-- [Part B] (part): [its one responsibility].
-- [Part C] (part): [its one responsibility].
+- 1.1. [Part A] (part): [its one responsibility].
+- 1.2. [Part B] (part): [its one responsibility].
+- 1.3. [Part C] (part): [its one responsibility].
 
 ### 2. Standing (optional)
 
-- [Part A]: described here.
-- [Part B]: described here.
-- [Part C]: own stack, [folder/file.md].
+- 2.1. [Part A]: described here.
+- 2.2. [Part B]: described here.
+- 2.3. [Part C]: own stack, [folder/file.md].
 
 ### 3. Seams between parts
 
-- [Part A] to [Part B]: [what crosses and why]. [Part A] initiates when [what starts it].
-- [Part B] to [Part C]: [what crosses and why]. [Part B] initiates when [what starts it].
+- 3.1. [Part A] to [Part B]: [what crosses and why]. [Part A] initiates when [what starts it].
+- 3.2. [Part B] to [Part C]: [what crosses and why]. [Part B] initiates when [what starts it].
 
 ### 4. Seams with the outside (optional)
 
-- [Part A] to [actor or outsider]: [what crosses and why]. [Part A] initiates when [what starts it].
-- [Outsider] to [Part C]: [what crosses and why]. [Outsider] initiates when [what starts it].
+- 4.1. [Part A] to [actor or outsider]: [what crosses and why]. [Part A] initiates when [what starts it].
+- 4.2. [Outsider] to [Part C]: [what crosses and why]. [Outsider] initiates when [what starts it].
 
 ### 5. Shared things (optional)
 
-- [What several parts rely on], established by [Part A], relied on by [Part B] and [Part C].
+- 5.1. [What several parts rely on], established by [Part A], relied on by [Part B] and [Part C].
 
 ### 6. Scenario paths (optional)
 
@@ -128,13 +128,13 @@ Scope: one part at a time. Each entry below describes one part from Layer 2: wha
 
 #### 2. Concepts and states (optional)
 
-- [A thing the part works with], with [its fields].
-- [Thing]'s state: [state one], [state two] or [state three].
+- 2.1. [A thing the part works with], with [its fields].
+- 2.2. [Thing]'s state: [state one], [state two] or [state three].
 
 #### 3. Seams (optional)
 
-- [Part A] to [Part B], offers: [what this part offers, in what form].
-- [Part C] to [Part A], needs: [what this part needs, in what condition].
+- 3.1. [Part A] to [Part B], offers: [what this part offers, in what form].
+- 3.2. [Part C] to [Part A], needs: [what this part needs, in what condition].
 
 #### 4. Rules
 
@@ -143,8 +143,8 @@ Scope: one part at a time. Each entry below describes one part from Layer 2: wha
 
 #### 5. Inside (optional)
 
-- [A piece] (piece), which [does what].
-- [Another piece] (piece), which [does what].
+- 5.1. [A piece] (piece), which [does what].
+- 5.2. [Another piece] (piece), which [does what].
 
 #### 6. Limits
 
