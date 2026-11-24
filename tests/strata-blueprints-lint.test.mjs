@@ -2379,3 +2379,41 @@ test("ordered: a duplicate number and another topic's number still warn", () => 
   assert.equal(other.length, 1);
   assert.match(other[0], /vision-3\.1 is numbered for topic 3, but sits under Target audience/);
 });
+
+test("ordered: --impact and id-ref resolve items of the newly numbered topics", () => {
+  const md = [
+    "# T", "",
+    "## Layer 1: Vision", "", "Scope: all.", "",
+    "### 2. Target audience", "", "- 2.1. **The keeper (actor):** a person.", "",
+    "### 3. Value", "", "- 3.1. Given a keeper, when they add, then it is saved.", "",
+    "### 5. Success measures", "", "- 5.1. Saved in under a second (vision-3.1).", "",
+    "### 6. Qualities and constraints", "", "- 6.1. **Durable:** survives a closed app.", "",
+    "### 7. Vocabulary", "", "- 7.1. **Commitment:** one thing the keeper means to do.", "",
+    "## Layer 2: Structure", "", "Scope: all.", "",
+    "### 1. Parts", "", "- 1.1. Ledger (part): holds.", "- 1.2. Rota (part): plans.", "",
+    "### 2. Standing", "", "- 2.1. Ledger: described here.", "",
+    "### 3. Seams between parts", "", "- 3.1. Ledger to Rota: a date crosses, for the keeper in vision-2.1.", "",
+    "### 4. Seams with the outside", "", "- 4.1. Rota to the keeper: a reminder crosses (vision-2.1).", "",
+    "### 5. Shared things", "", "- 5.1. The date format, kept by Ledger and Rota.", "",
+    "## Layer 3: Detail", "", "Scope: one part.", "",
+    "### Ledger (part)", "",
+    "#### 2. Concepts and states", "", "- 2.1. A commitment, as in vision-7.1.", "",
+    "#### 3. Seams", "", "- 3.1. Ledger to Rota, offers: a date, as in structure-3.1.", "",
+    "#### 5. Inside", "", "- 5.1. A store (piece), which holds each item; its format is structure-5.1.", "",
+    "#### 6. Limits", "", "- 6.1. A saved item survives a closed app (Layer 1, vision-6.1).", "",
+  ].join("\n");
+  assert.deepEqual(lintText(md).lines.filter((l) => /^WARN (id|id-ref|limit-quality):/.test(l)), []);
+  const ids = ["vision-2.1", "vision-5.1", "vision-6.1", "vision-7.1", "structure-1.1", "structure-2.1", "structure-3.1", "structure-4.1", "structure-5.1", "detail.ledger-2.1", "detail.ledger-3.1", "detail.ledger-5.1"];
+  for (const id of ids) {
+    const r = fxImp(md, id);
+    assert.equal(r.code, 0, id);
+    assert.match(r.lines[0], new RegExp(`^impact ${id.replace(/\./g, "\\.")}: defined in`), id);
+  }
+  const lim = fxImp(md, "vision-6.1");
+  assert.ok(lim.lines.some((l) => /detail\.ledger-6\.1/.test(l)), lim.out);
+  const aud = fxImp(md, "vision-2.1");
+  assert.ok(aud.lines.some((l) => /structure-3\.1/.test(l)) && aud.lines.some((l) => /structure-4\.1/.test(l)), aud.out);
+  assert.ok(fxImp(md, "structure-5.1").lines.some((l) => /detail\.ledger-5\.1/.test(l)));
+  // A citation of an item that does not exist is still caught.
+  assert.equal(warns(lintText(md.replace("as in vision-7.1", "as in vision-7.2")), "id-ref").length, 1);
+});
