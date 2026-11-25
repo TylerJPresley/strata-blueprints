@@ -36,7 +36,7 @@ The script produces three kinds of output:
 
 ### Warnings
 
-`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `status`, `topics`, `scenario-form`, `list`, `id`, `id-ref`, `count-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
+`WARN <check>: <message> (<place>)` flags a structural problem. The place is `line N` for a single file or `<filename> line N` for a folder. Warnings are printed pass by pass, not in one line order. In a folder the folder checks come first (`layer-heading` per file, then `standing`). Then `status` validates the metadata lines. Then one scan reports, line by line and in this order within a line: `unfinished`, `diagram-title`, `diagram-key`, `layer-heading`, `scope-line`, `topic-order`, `ring`. After the scan come the `fence` check, then the two `layer-heading` missing-layer warnings (line 1), then `topics`, `scenario-form`, `list`, `id`, `id-ref`, `count-ref`, `reasons`, `scenario-trace`, `limit-quality`, `realizes-text`, and last the `cost-shape`, `risk-shape`, `concern-shape` and `risk-ref` warnings (one pass, line order). Each pass is in line order. The check sections below are in the guide's order, not the print order:
 
 #### Check: `layer-heading`
 
@@ -295,6 +295,7 @@ Fires when reading a folder, for these faults in the `sbp-structure.md` Standing
 - A Standing line reads `described here` (not allowed in a stack of separate files)
 - A detail file in the folder is not named by any Standing line
 - A detail file's slug does not match any part name in the Parts topic
+- A Standing line entry name differs from the corresponding part name in the Parts topic
 
 A line reads `<Part>: sbp-detail-<slug>.md` or `<Part>: own stack, <folder>/`. Parts and Standing are found by topic name alone, ignoring the layer heading above them, and both are read from `sbp-structure.md` only. Only lines that read `<Name>: <value>` are read; any other line under Standing is ignored and draws no warning.
 
@@ -405,7 +406,6 @@ Every warning follows the format `WARN <check>: <message> (<place>)`. The full l
 | `id` | `<id> repeats the one on <place>` |
 | `id` | `<id> names '<slug>', which is not a part in Layer 2 Parts` |
 | `id` | `part name '<name>' is not one word` |
-| `id` | `the item starts with '<text>'; the list gives its number, so write the item without it` |
 | `id-ref` | `<id> is not defined` |
 | `id-ref` | `<id> is defined in <doc>, which is outward of Layer <N>` |
 | `id-ref` | `<id> belongs to another part, and the entry '<Part>' may not cite it` |
