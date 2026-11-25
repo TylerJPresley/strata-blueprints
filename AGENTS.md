@@ -6,60 +6,49 @@ Overview for people: [README.md](README.md).
 
 ## Commands
 
-- Gate: `node gate.mjs` (runs all checks)
+- Gate (templates, links, layout, all unit tests, strict example lints, version sync): `node gate.mjs`
 - Test (all): `npm test`
-- Test (single file): `node --test tests/strata-blueprints-lint.test.mjs` (or the examples, version-check or links-check test)
-- Lint (file): `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <file.md> --strict`
-- Lint (folder): `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs <folder> --strict`
-- Impact: `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --impact <id> <file or folder>`
-- Condense: `node skills/strata-blueprints/scripts/strata-blueprints.mjs condense <file or folder> --out <path>`
-- Publish: `node skills/strata-blueprints/scripts/strata-blueprints.mjs publish <file or folder> --out <file>`
-- Ids: `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs --ids <file or folder>`
-- Insert an item: `node skills/strata-blueprints/scripts/strata-blueprints.mjs insert <id> <file or folder> [--text <text> | --text-file <path> | --needs <text>] [--apply]`
-- Delete an item: `node skills/strata-blueprints/scripts/strata-blueprints.mjs delete <id> <file or folder> [--apply] [--ack <handle>]`
-- Lint reference: [docs/lint.md](docs/lint.md) (what each check does, exit codes, `--strict` and `--impact` usage)
+- Test (single file): `node --test tests/<name>.test.mjs` (`strata-blueprints-lint`, `strata-blueprints-tool`, `strata-blueprints-publish`, `strata-blueprints-examples`, `version-check`, `links-check`, `gate`)
+- Lint worked examples (`--strict`):
+  - `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs skills/strata-blueprints/references/strata-blueprints-example.md --strict`
+  - `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs skills/strata-blueprints/references/strata-blueprints-example-todo-app --strict`
+  - `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs skills/strata-blueprints/references/strata-blueprints-example-rfp.md --strict`
+- Regenerate published To-Do App example (`docs/example-published.md`): `node skills/strata-blueprints/scripts/strata-blueprints.mjs publish skills/strata-blueprints/references/strata-blueprints-example-todo-app --out docs/example-published.md`
+- Tool CLI (`condense`, `publish`, `insert`, `delete`): `node skills/strata-blueprints/scripts/strata-blueprints.mjs <subcommand> ...` (reference: [docs/tool.md](docs/tool.md))
+- Lint CLI (`--strict`, `--impact <id>`, `--ids`): `node skills/strata-blueprints/scripts/strata-blueprints-lint.mjs ...` (reference: [docs/lint.md](docs/lint.md))
 
 Pre-flight: run `npm test` and `node gate.mjs` before every commit.
 
 ## Stack
 
-Node.js LTS 22 and 24 (`engines.node` is `>=22` in `package.json`), ES modules, no dependencies. CI runs `node gate.mjs` on Node 22 and 24 (`.github/workflows/gate.yml`).
+Node.js LTS 22 and 24 (`engines.node` is `>=22` in `package.json`), ES modules (`.mjs`), zero external dependencies, built-in `node:test` runner. CI runs `node gate.mjs` on Node 22 and 24 (`.github/workflows/gate.yml`).
 
 ## Map
 
-- `skills/strata-blueprints/` is the single home of the standard and the only source:
-  - `SKILL.md`: skill instructions (how to write, review and build)
-  - `LICENSE`: MIT
-  - `references/`: core guide, one guide file per layer, examples (community garden idea, to-do app as separate files, library room booking RFP)
-  - `assets/`: full template and one cut per layer
-  - `scripts/strata-blueprints-lint.mjs`: the lint script
-  - `scripts/strata-blueprints.mjs`: the condense and publish tool
-- `tests/`: tests for the lint, examples, version check and links check
-- `scripts/version-check.mjs`: verifies versions across files match (runs in the gate)
-- `scripts/links-check.mjs`: verifies relative links and anchors in every Markdown file (runs in the gate)
-- `docs/lint.md`: the lint reference
-- `docs/index.html`, `docs/CNAME`, `docs/.nojekyll`: the GitHub Pages redirect from stratablueprints.com to the repository
-- `gate.mjs`: root-level gate, runs all checks
-- `.claude-plugin/marketplace.json`: Claude Code plugin manifest
-- Blueprints (written by users): not in this repo; point tools at this skill or copy `skills/strata-blueprints` into a project.
+- `skills/strata-blueprints/` — Single home of the distribute-ready skill and the only source:
+  - `SKILL.md` — Skill entry point and step-by-step file loader instructions
+  - `LICENSE` — MIT
+  - `references/` — Core guide (`strata-blueprints-guide.md`), per-layer guides (`strata-blueprints-guide-layer-{1,2,3}.md`), and worked examples (`strata-blueprints-example.md`, `strata-blueprints-example-todo-app/`, `strata-blueprints-example-rfp.md`)
+  - `assets/` — Full template (`strata-blueprints-template.md`) and per-layer cuts (`strata-blueprints-template-layer-{1,2,3}.md`)
+  - `scripts/strata-blueprints-lint.mjs` — Blueprint linter (`--strict`, `--impact`, `--ids`)
+  - `scripts/strata-blueprints.mjs` — Blueprint tool (`condense`, `publish`, `insert`, `delete`)
+- `tests/` — Unit and integration test suites (`*.test.mjs`) for the linter, tool, publish output, worked examples manifest, version check, link check, and gate
+- `scripts/version-check.mjs` — Verifies version consistency across the repository (run by `gate.mjs`)
+- `scripts/links-check.mjs` — Verifies relative links and heading anchors across all Markdown files (run by `gate.mjs`)
+- `docs/lint.md` — Reference documentation for `strata-blueprints-lint.mjs`
+- `docs/tool.md` — Reference documentation for `strata-blueprints.mjs` (`condense`, `publish`, `insert`, `delete`)
+- `docs/example-published.md` — Published single-document output of the To-Do App example
+- `docs/index.html`, `docs/CNAME`, `docs/.nojekyll` — GitHub Pages redirect from `stratablueprints.com` to the repository
+- `gate.mjs` — Root repository quality gate
+- `.claude-plugin/marketplace.json` — Claude Code plugin marketplace manifest
 
 ## Conventions
 
-The skill folder holds exactly `SKILL.md`, `LICENSE`, `references/`, `assets/` and `scripts/`. No files are generated or copied from elsewhere. The `name` in SKILL.md front matter must equal the folder name `strata-blueprints`.
-
-Blueprint files follow the naming pattern `sbp-<layer>.md` for the three layers and `sbp-detail-<part>.md` for each part's Detail in a stack of separate files. A stack written in one file omits the `sbp-` prefix and uses layer headings instead.
-
-Example: a subject can be written as one file `mybp.md`, or as a folder `mybp/` holding `sbp-vision.md`, `sbp-structure.md`, and one `sbp-detail-<part>.md` per part.
-
-Stack folder structure:
-
-```
-mybp/
-  sbp-vision.md
-  sbp-structure.md
-  sbp-detail-part1.md
-  sbp-detail-part2.md
-```
+- **Skill folder layout (`layoutCheck` in `gate.mjs`):** `skills/strata-blueprints/` holds exclusively `SKILL.md`, `LICENSE`, `references/`, `assets/`, and `scripts/`. No extra files or subdirectories are permitted, and `name` in `SKILL.md` frontmatter must equal `strata-blueprints`.
+- **Template cuts (`templateProblems` in `gate.mjs`):** `skills/strata-blueprints/assets/strata-blueprints-template.md` is the master template. Each `strata-blueprints-template-layer-{1,2,3}.md` file is a row-for-row cut of its matching `## Layer N:` section in the full template. Always edit `strata-blueprints-template.md` first, then update the matching layer cut so `node gate.mjs` passes.
+- **Single source of version (`scripts/version-check.mjs`):** The `Version:` line in `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of truth and must match the top released heading in `CHANGELOG.md`, `package.json` (`version`), `skills/strata-blueprints/SKILL.md` (`metadata.version`), and `.claude-plugin/marketplace.json` (`metadata.version`).
+- **Worked examples & docs parity:** Every worked example in `skills/strata-blueprints/references/` is registered in `tests/strata-blueprints-examples.test.mjs` (`MANIFEST`) and must lint with `0` warnings under `--strict`. When changing a guide rule, template, or the To-Do App example, update the matching examples, `README.md`, `docs/lint.md`, `docs/tool.md`, and `docs/example-published.md` in the same change.
+- **Markdown link & command integrity (`linksCheck` in `gate.mjs`):** Every relative link and `#anchor` in every `.md` file must resolve, and every fenced `node <path>.mjs` command in `README.md` and `CONTRIBUTING.md` must point to an existing file relative to the repo root.
 
 ## Boundaries
 

@@ -2,6 +2,12 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
+## 0.4.1
+
+Focus `AGENTS.md` strictly on developing the `strata-blueprints` repository itself rather than consumer blueprint-writing tutorials.
+
+- `AGENTS.md`: replaced consumer `mybp/` blueprint-writing examples with repository development commands (exact unit test suites, `--strict` worked-example lint commands, and `docs/example-published.md` regeneration), added `docs/tool.md` and `docs/example-published.md` to `## Map`, and documented the 5 repository invariants enforced by `gate.mjs` (`layoutCheck`, `templateProblems` master-to-cut parity, `scripts/version-check.mjs` single source of truth, worked examples `MANIFEST` & docs parity, and `linksCheck`).
+
 ## 0.4.0
 
 Every list in a blueprint is a standard Markdown ordered list, so every item can be cited by its full id.

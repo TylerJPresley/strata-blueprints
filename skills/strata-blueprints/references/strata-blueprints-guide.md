@@ -1,6 +1,6 @@
 # Strata Blueprints
 
-Version: 0.4.0
+Version: 0.4.1
 Status: Draft
 
 A Strata Blueprints stack describes any subject, at any scale, in three layers. Every layer zooms into one element of the layer before it. The layers are the same everywhere; only the content changes. This is a guide, not a strict template: use what fits the subject, and leave out a layer it does not need.
