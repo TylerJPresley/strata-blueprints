@@ -4,7 +4,7 @@ description: "Author, lint, and publish 3-layer Strata Blueprint specs — descr
 license: "MIT"
 compatibility: "Plain Markdown; only the scripts in scripts/ need a Node.js LTS"
 metadata:
-  version: "0.4.1"
+  version: "0.4.2"
 ---
 
 # Strata Blueprints (three zoom layers for any subject)

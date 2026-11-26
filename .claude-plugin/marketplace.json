@@ -3,7 +3,7 @@
   "owner": { "name": "Tyler J Presley" },
   "metadata": {
     "description": "Strata Blueprints: a lightweight standard for describing any subject, at any scale, in three layers.",
-    "version": "0.4.1"
+    "version": "0.4.2"
   },
   "plugins": [
     {

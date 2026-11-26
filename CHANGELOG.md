@@ -2,6 +2,15 @@
 
 This changelog records releases of Strata Blueprints. The `Version:` line of `skills/strata-blueprints/references/strata-blueprints-guide.md` is the single source of the version, and the owner chooses release tags.
 
+## 0.4.2
+
+Refine `SKILL.md`, guides, templates, worked examples, and CLI reference documentation to match the ordered-list (`0.4.0`) and tool (`insert`/`delete`/`--ack`) implementation exactly.
+
+- `skills/strata-blueprints/SKILL.md`: front-load primary action verbs (`Author, lint, and publish 3-layer Strata Blueprint specs...`) so 60-character harness skill-table truncations land on a clean word boundary.
+- `skills/strata-blueprints/references/strata-blueprints-guide.md` & `strata-blueprints-guide-layer-1.md`: replace residual "bullet" wording with ordered-list item wording and remove duplicate `settles open concern` sentence.
+- `skills/strata-blueprints/assets/strata-blueprints-template.md` & worked examples (`strata-blueprints-example.md`, `strata-blueprints-example-rfp.md`, `strata-blueprints-example-todo-app/README.md`): update `(core guide, bullet on ids)` cross-reference to `(core guide, How to fill it out)`.
+- `README.md`, `docs/lint.md`, `docs/tool.md`: clarify `insert`/`delete` default preview behavior (`--apply` required to write, `--ack <handle>` for unresolved citations of deleted items), warning exemptions for deleted IDs with held citations, and warning print order including `standing`.
+
 ## 0.4.1
 
 Focus `AGENTS.md` strictly on developing the `strata-blueprints` repository itself rather than consumer blueprint-writing tutorials.
